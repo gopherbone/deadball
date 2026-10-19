@@ -3,6 +3,23 @@
 A Playdate game: a shared, simulated online baseball league you bet on, rig and read about
 (with BallCast 3D replays), plus Pennant '96, an offline season mode.
 
+<p align="center">
+  <img src="media/ballcast_home_run.gif" width="400" alt="BallCast replay: a home run">
+  <img src="media/ballcast_strikeout_swingcam.gif" width="400" alt="BallCast replay: strikeout with the swing cam">
+</p>
+
+<p align="center">
+  <img src="media/01_desktop_todo.png" width="266" alt="The league desktop">
+  <img src="media/03_bobby_tote_board.png" width="266" alt="Bets By Bobby tote board">
+  <img src="media/07_extra_extra.png" width="266" alt="EXTRA! newspaper">
+  <img src="media/11_ballcast_swingcam_pip.png" width="266" alt="BallCast swing cam">
+  <img src="media/ballcast_fireball_spincam.gif" width="266" alt="BallCast spin cam">
+  <img src="media/p00_mode_select.png" width="266" alt="Online or offline mode select">
+  <img src="media/p03_hub.png" width="266" alt="Pennant '96 season hub">
+  <img src="media/p21_roadmap.png" width="266" alt="Pennant '96 road map">
+  <img src="media/p23b_landmark.png" width="266" alt="Pennant '96 landmark stop">
+</p>
+
 ## Layout
 
 - `playdate/` — the Playdate client (Lua in `source/`, C extension in `c/`: the BallCast
