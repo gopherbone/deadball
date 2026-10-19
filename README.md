@@ -28,6 +28,15 @@ A Playdate game: a shared, simulated online baseball league you bet on, rig and 
 - `packages/server` — the league server (Cloudflare Worker + Durable Object, D1, R2)
 - `tools/` — asset and audio pipelines (Python)
 
+## Get the game
+
+Ready-made builds are on itch.io: **https://gopherbonegames.itch.io/deadball**
+
+You're welcome to build DEADBALL from this source for yourself. As a favor (not a license
+condition), please don't distribute built copies (`.pdx` files or zips of them); point people to
+the itch.io page instead, so everyone gets the current build and the online league only sees
+up-to-date clients.
+
 ## Build the game
 
 Needs the [Playdate SDK](https://play.date/dev/) (at `~/Developer/PlaydateSDK`, or set `SDK=`)
