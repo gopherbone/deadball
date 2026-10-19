@@ -1,0 +1,21 @@
+{
+ "events": [
+  {
+   "id": "ev-iv0e133h3x4d184s",
+   "title": "An Offer You Could Refuse",
+   "body": "Lefty Loot wants you in the Night Owls syndicate. Shared crews, shared treasury, shared bail.",
+   "choices": [
+    {
+     "key": "accept",
+     "label": "Join up"
+    },
+    {
+     "key": "decline",
+     "label": "Thanks, no"
+    }
+   ],
+   "expiresAt": 1792972091783,
+   "expiresIn": 604800
+  }
+ ]
+}

@@ -1,0 +1,131 @@
+{
+ "mail": [
+  {
+   "id": "mb:b482f5w3e1d004b",
+   "from": "Bets By Bobby",
+   "subject": "You won $107",
+   "body": [
+    "Final: ELC 11, HCL 1.",
+    "You had $60 on the away side.",
+    "Paid out: $107."
+   ],
+   "at": 1792367340971,
+   "ago": 19,
+   "read": false,
+   "kind": "bank"
+  },
+  {
+   "id": "mb:b0n6a4a5y2x0e2q",
+   "from": "Bets By Bobby",
+   "subject": "Tough luck",
+   "body": [
+    "Final: BVG 6, SBS 8.",
+    "You had $30 on the away side.",
+    "Better luck tomorrow."
+   ],
+   "at": 1792367336687,
+   "ago": 23,
+   "read": false,
+   "kind": "bank"
+  },
+  {
+   "id": "mb:b3t1x2p1w3s1t0i",
+   "from": "Bets By Bobby",
+   "subject": "You won $199",
+   "body": [
+    "Final: CSR 2, STA 9.",
+    "You had $100 on the home side.",
+    "Paid out: $199."
+   ],
+   "at": 1792367332404,
+   "ago": 28,
+   "read": false,
+   "kind": "bank"
+  },
+  {
+   "id": "op3r4v6b0r1e0c19:after:2",
+   "from": "The Clubhouse BBS",
+   "subject": "Report: Grease the mound",
+   "body": [
+    "Grease the mound: failed.",
+    "Final: CSR 2, STA 9. The Rustlers lost."
+   ],
+   "at": 1792367332397,
+   "ago": 28,
+   "photo": "grease-04",
+   "photoCaption": "A tin of grease, 1894",
+   "read": false,
+   "kind": "op"
+  },
+  {
+   "id": "dtip:6:a2y0o1k1y3n5s2g:e70",
+   "from": "Concerned Usher",
+   "subject": "FYI",
+   "body": [
+    "Tom Zaleski and a teammate are not speaking. The Friars clubhouse is quiet.",
+    "Burn this."
+   ],
+   "at": 1792367330111,
+   "ago": 30,
+   "photo": "telephone-10",
+   "photoCaption": "On the telephone, 1945",
+   "read": false,
+   "kind": "tip",
+   "storylineId": "sl26"
+  },
+  {
+   "id": "op3r4v6b0r1e0c19:m1",
+   "from": "The Clubhouse BBS",
+   "subject": "Grease the mound: did not work",
+   "body": [
+    "Quincy Watanabe could not get past the Rustlers night watchman. The job is off.",
+    "No one saw anything, as far as we know."
+   ],
+   "at": 1792367304397,
+   "ago": 56,
+   "photo": "grease-06",
+   "photoCaption": "A tin of grease, 1916",
+   "read": false,
+   "kind": "op"
+  },
+  {
+   "id": "chipin:op3r4v6b0r1e0c19:a122v3u0q0b0q0h",
+   "from": "The Clubhouse BBS",
+   "subject": "Dotty Dial chipped in $20",
+   "body": [
+    "Dotty Dial paid $20 toward \"Grease the mound\". It has been credited to you."
+   ],
+   "at": 1792367294475,
+   "ago": 66,
+   "read": false,
+   "kind": "bank"
+  },
+  {
+   "id": "sold:tx205l6h5j513k4y",
+   "from": "Diamond Exchange",
+   "subject": "Sold for $120",
+   "body": [
+    "Gus Gumshoe bought your card.",
+    "After the house's 5% you got $114."
+   ],
+   "at": 1792367294128,
+   "ago": 66,
+   "read": false,
+   "kind": "bank"
+  },
+  {
+   "id": "welcome:a2y0o1k1y3n5s2g",
+   "from": "The Commissioner's Office",
+   "subject": "Welcome to the league",
+   "body": [
+    "Here's $1,000 and a free starter pack. Spend it wisely, or don't.",
+    "Games air every half hour. Bets close at first pitch.",
+    "Remember: nothing in this league is fixed. Officially."
+   ],
+   "at": 1792367291236,
+   "ago": 69,
+   "read": false,
+   "kind": "league"
+  }
+ ]
+}

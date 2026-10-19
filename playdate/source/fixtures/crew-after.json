@@ -1,0 +1,122 @@
+{
+ "crew": [
+  {
+   "id": "crew-cit-a2y0o1k1y3n5s2g-1-4-2",
+   "person": {
+    "id": "cit-a2y0o1k1y3n5s2g-1-4-2",
+    "name": "Irma Kowalski",
+    "face": "face:462"
+   },
+   "role": "typist",
+   "skills": [
+    {
+     "k": "sneak",
+     "v": 1
+    },
+    {
+     "k": "charm",
+     "v": 2
+    },
+    {
+     "k": "muscle",
+     "v": 0
+    },
+    {
+     "k": "access",
+     "v": 0
+    },
+    {
+     "k": "nerve",
+     "v": 1
+    },
+    {
+     "k": "knowhow",
+     "v": 2
+    }
+   ],
+   "loyalty": 2,
+   "status": "free",
+   "note": "Types 110 words a minute. Can sign anybody's name."
+  },
+  {
+   "id": "crew-cit-a2y0o1k1y3n5s2g-1-4-1",
+   "person": {
+    "id": "cit-a2y0o1k1y3n5s2g-1-4-1",
+    "name": "Hector Reyes",
+    "face": "face:210"
+   },
+   "role": "groundskeeper",
+   "skills": [
+    {
+     "k": "sneak",
+     "v": 0
+    },
+    {
+     "k": "charm",
+     "v": 1
+    },
+    {
+     "k": "muscle",
+     "v": 1
+    },
+    {
+     "k": "access",
+     "v": 4
+    },
+    {
+     "k": "nerve",
+     "v": 0
+    },
+    {
+     "k": "knowhow",
+     "v": 1
+    }
+   ],
+   "loyalty": 0,
+   "status": "free",
+   "note": "Has a key to the equipment shed and the umpires' room."
+  }
+ ],
+ "max": 3,
+ "allies": [
+  {
+   "id": "crew-cit-a122v3u0q0b0q0h-1-4-2",
+   "person": {
+    "id": "cit-a122v3u0q0b0q0h-1-4-2",
+    "name": "Quincy Watanabe",
+    "face": "face:226"
+   },
+   "role": "choir boy (big for his age)",
+   "skills": [
+    {
+     "k": "sneak",
+     "v": 2
+    },
+    {
+     "k": "charm",
+     "v": 2
+    },
+    {
+     "k": "muscle",
+     "v": 0
+    },
+    {
+     "k": "access",
+     "v": 0
+    },
+    {
+     "k": "nerve",
+     "v": 1
+    },
+    {
+     "k": "knowhow",
+     "v": 0
+    }
+   ],
+   "loyalty": 2,
+   "status": "free",
+   "note": "Sings in the St. Jude's choir. Has fast hands.",
+   "owner": "Dotty Dial"
+  }
+ ]
+}

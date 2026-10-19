@@ -1,0 +1,7 @@
+name=DEADBALL
+author=Deadball
+description=Bet on a shared, simulated baseball league. Run a crew. Ruin a season.
+bundleID=com.deadball.game
+version=0.1.0
+buildNumber=1
+imagePath=images/launcher

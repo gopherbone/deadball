@@ -1,0 +1,15 @@
+{
+ "result": "You stay home for a week. Heat cools a little.",
+ "account": {
+  "id": "a2y0o1k1y3n5s2g",
+  "name": "Lefty Loot",
+  "money": 285,
+  "heat": 12,
+  "crewSize": 2,
+  "unreadMail": 19,
+  "cards": 14,
+  "joinedDay": 0,
+  "rank": "Rube",
+  "syndicateId": "sy3p6h1h2u3h2i6d"
+ }
+}

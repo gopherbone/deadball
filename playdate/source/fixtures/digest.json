@@ -1,0 +1,54 @@
+{
+ "sinceDay": 5,
+ "day": 6,
+ "cursor": "1792367360144",
+ "empty": false,
+ "bets": {
+  "won": 2,
+  "lost": 1,
+  "staked": 190,
+  "paid": 306,
+  "net": 116
+ },
+ "props": {
+  "won": 0,
+  "lost": 0,
+  "refunded": 0,
+  "net": 0,
+  "items": []
+ },
+ "jobs": [
+  {
+   "id": "op3e64406r1f5s5p",
+   "name": "Rabbit balls",
+   "where": "@ HCL",
+   "target": "HCL",
+   "gameId": "S1D5ML1",
+   "status": "cancelled",
+   "result": "Called off. Everyone was refunded.",
+   "arrests": 0,
+   "cost": 0
+  },
+  {
+   "id": "op3r4v6b0r1e0c19",
+   "name": "Grease the mound",
+   "where": "@ STA",
+   "target": "CSR",
+   "gameId": "S1D5ML0",
+   "status": "blown",
+   "result": "Grease the mound: failed.",
+   "arrests": 0,
+   "cost": 40
+  }
+ ],
+ "arrests": [],
+ "cards": {
+  "sold": 0,
+  "soldFor": 0,
+  "won": 0,
+  "outbid": 0
+ },
+ "net": 76,
+ "moneyChange": 96,
+ "money": 685
+}

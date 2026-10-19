@@ -1,0 +1,296 @@
+{
+ "team": {
+  "id": "STA-AA",
+  "abbr": "STAAA",
+  "city": "Durango",
+  "name": "Possums",
+  "level": "AA"
+ },
+ "owner": {
+  "faction": "The Archdiocese of St. Albans",
+  "leader": {
+   "id": "n41",
+   "name": "Clem Escobar",
+   "face": "face:508"
+  },
+  "wants": [
+   "respectability",
+   "the Haldane land",
+   "a miracle"
+  ]
+ },
+ "manager": {
+  "id": "n43",
+  "name": "Lonnie Tubbs",
+  "face": "face:251",
+  "pos": "MGR"
+ },
+ "park": "Municipal Field",
+ "chain": [
+  {
+   "id": "STA",
+   "abbr": "STA",
+   "city": "St. Albans",
+   "name": "Friars",
+   "level": "ML",
+   "record": "1-5"
+  },
+  {
+   "id": "STA-AA",
+   "abbr": "STAAA",
+   "city": "Durango",
+   "name": "Possums",
+   "level": "AA",
+   "record": "4-2"
+  },
+  {
+   "id": "STA-B",
+   "abbr": "STAB",
+   "city": "Joliet",
+   "name": "Owls",
+   "level": "B",
+   "record": "3-3"
+  },
+  {
+   "id": "STA-D",
+   "abbr": "STAD",
+   "city": "Utica",
+   "name": "Pickles",
+   "level": "D",
+   "record": "5-1"
+  }
+ ],
+ "roster": [
+  {
+   "id": "p130",
+   "name": "Ulysses Fuentes",
+   "face": "face:125",
+   "teamAbbr": "STAAA",
+   "pos": "C",
+   "line": ".300, 0 HR, 4 RBI"
+  },
+  {
+   "id": "p131",
+   "name": "Nate Puckett",
+   "face": "face:371",
+   "teamAbbr": "STAAA",
+   "pos": "C",
+   "line": ".250, 1 HR, 6 RBI"
+  },
+  {
+   "id": "p132",
+   "name": "Duke Salazar",
+   "face": "face:514",
+   "teamAbbr": "STAAA",
+   "pos": "1B",
+   "line": ".000, 0 HR, 0 RBI"
+  },
+  {
+   "id": "p133",
+   "name": "Orlando Watanabe",
+   "face": "face:415",
+   "teamAbbr": "STAAA",
+   "pos": "1B",
+   "line": ".000, 0 HR, 0 RBI"
+  },
+  {
+   "id": "p135",
+   "name": "Leon Hennessy",
+   "face": "face:386",
+   "teamAbbr": "STAAA",
+   "pos": "SS",
+   "line": ".182, 0 HR, 2 RBI"
+  },
+  {
+   "id": "p136",
+   "name": "Lou Fuentes",
+   "face": "face:199",
+   "teamAbbr": "STAAA",
+   "pos": "SS",
+   "line": ".280, 0 HR, 0 RBI"
+  },
+  {
+   "id": "p137",
+   "name": "Luis Batista",
+   "face": "face:501",
+   "teamAbbr": "STAAA",
+   "pos": "3B",
+   "line": ".000, 0 HR, 0 RBI"
+  },
+  {
+   "id": "p138",
+   "name": "Ernesto Huckaby",
+   "face": "face:11",
+   "teamAbbr": "STAAA",
+   "pos": "LF",
+   "line": ".522, 0 HR, 5 RBI"
+  },
+  {
+   "id": "p139",
+   "name": "Willie Tanaka",
+   "face": "face:0",
+   "teamAbbr": "STAAA",
+   "pos": "CF",
+   "line": ".304, 0 HR, 8 RBI"
+  },
+  {
+   "id": "p140",
+   "name": "Jimmy Vukovich",
+   "face": "face:2",
+   "teamAbbr": "STAAA",
+   "pos": "CF",
+   "line": ".238, 0 HR, 3 RBI"
+  },
+  {
+   "id": "p141",
+   "name": "Irv Dunphy",
+   "face": "face:330",
+   "teamAbbr": "STAAA",
+   "pos": "RF",
+   "line": ".000, 0 HR, 0 RBI"
+  },
+  {
+   "id": "p142",
+   "name": "Dutch Quintana",
+   "face": "face:141",
+   "teamAbbr": "STAAA",
+   "pos": "3B",
+   "line": ".240, 1 HR, 4 RBI"
+  },
+  {
+   "id": "p159",
+   "name": "Ernesto Fuentes",
+   "face": "face:226",
+   "teamAbbr": "STAAA",
+   "pos": "1B",
+   "line": ".348, 1 HR, 9 RBI"
+  },
+  {
+   "id": "p143",
+   "name": "Hector Grimsley",
+   "face": "face:144",
+   "teamAbbr": "STAAA",
+   "pos": "P",
+   "line": "0-0, 47.25, 2 K"
+  },
+  {
+   "id": "p144",
+   "name": "Joe Toomey",
+   "face": "face:557",
+   "teamAbbr": "STAAA",
+   "pos": "P",
+   "line": "0-0, 12.00, 4 K"
+  },
+  {
+   "id": "p145",
+   "name": "Reggie Feeney",
+   "face": "face:158",
+   "teamAbbr": "STAAA",
+   "pos": "P",
+   "line": "0-0, 6.23, 4 K"
+  },
+  {
+   "id": "p146",
+   "name": "Lou Paredes",
+   "face": "face:583",
+   "teamAbbr": "STAAA",
+   "pos": "P",
+   "line": "0-1, 9.64, 5 K"
+  },
+  {
+   "id": "p147",
+   "name": "Benny Fogarty",
+   "face": "face:341",
+   "teamAbbr": "STAAA",
+   "pos": "P",
+   "line": "1-1, 7.88, 7 K"
+  },
+  {
+   "id": "p148",
+   "name": "Otis Washington",
+   "face": "face:351",
+   "teamAbbr": "STAAA",
+   "pos": "P",
+   "line": "1-0, 1.29, 9 K"
+  },
+  {
+   "id": "p149",
+   "name": "Ernesto Brannigan",
+   "face": "face:19",
+   "teamAbbr": "STAAA",
+   "pos": "P",
+   "line": "1-0, 0.00, 9 K"
+  },
+  {
+   "id": "p150",
+   "name": "Marty Delgado",
+   "face": "face:223",
+   "teamAbbr": "STAAA",
+   "pos": "P",
+   "line": "0-0, 0.00"
+  },
+  {
+   "id": "p151",
+   "name": "Manny McCann",
+   "face": "face:64",
+   "teamAbbr": "STAAA",
+   "pos": "P",
+   "line": "0-0, 9.00, 1 K"
+  },
+  {
+   "id": "p152",
+   "name": "Hank Irvin",
+   "face": "face:193",
+   "teamAbbr": "STAAA",
+   "pos": "P",
+   "line": "0-0, 9.00, 6 K"
+  },
+  {
+   "id": "p153",
+   "name": "Herb O'Rourke",
+   "face": "face:324",
+   "teamAbbr": "STAAA",
+   "pos": "P",
+   "line": "0-0, 0.00, 4 K"
+  },
+  {
+   "id": "p154",
+   "name": "Marty Whitlock",
+   "face": "face:359",
+   "teamAbbr": "STAAA",
+   "pos": "P",
+   "line": "1-0, 9.00, 4 K"
+  },
+  {
+   "id": "p155",
+   "name": "Felix Paige",
+   "face": "face:95",
+   "teamAbbr": "STAAA",
+   "pos": "P",
+   "line": "0-0, 1.29, 3 K"
+  }
+ ],
+ "relations": [
+  {
+   "name": "The Haldane Organization",
+   "value": -5,
+   "reason": "the Holy War"
+  },
+  {
+   "name": "Brother Amos's Fellowship",
+   "value": -4,
+   "reason": "doctrinal dispute"
+  },
+  {
+   "name": "The Church of the Second Spitball",
+   "value": -4,
+   "reason": "heresy"
+  }
+ ],
+ "moves": [
+  {
+   "day": 3,
+   "text": "Called up Jack Reyes"
+  }
+ ]
+}

@@ -1,0 +1,41 @@
+{
+ "story": {
+  "id": "s1-story:S1D5ML0:recap",
+  "day": 5,
+  "kind": "recap",
+  "headline": "Friars Score 9 in Win Over Rustlers",
+  "dek": "Wally Puckett goes 3-for-5 with a home run and 1 RBI; Vance gets the win",
+  "body": [
+   "ST. ALBANS — The Friars scored 9 runs on 15 hits Saturday and beat the Rustlers, 9-2, at Sanctuary Field. The Rustlers used 4 pitchers.",
+   "Wally Puckett went 3-for-5 with a home run and 1 RBI. He stole 1 base. \"I felt fine. I always feel fine,\" he said.",
+   "Jesús Vance (five innings, 6 hits, 2 earned runs, 2 strikeouts) got the win. Rico Gallagher took the loss. He allowed 5 runs in two innings.",
+   "\"We caught the ball. That was most of it,\" said Friars manager Rico Washington. Rustlers manager Paige said, \"We'll be here tomorrow. We'll try again.\"",
+   "Attendance was 10,746. Time of game was 2:41. Ulysses Delahanty was the plate umpire."
+  ],
+  "faceIds": [
+   "face:359",
+   "face:228",
+   "face:16",
+   "face:19"
+  ],
+  "people": [
+   "p108",
+   "p120",
+   "p416",
+   "p432"
+  ],
+  "teams": [
+   "CSR",
+   "STA"
+  ],
+  "gameId": "S1D5ML0",
+  "section": "Sports",
+  "dateline": "Sat, April 6, 1996",
+  "prominence": 2,
+  "photo": "bb-bat-02",
+  "photoCaption": "At the plate, 1923",
+  "at": 1792367332397,
+  "ago": 28
+ },
+ "comments": []
+}

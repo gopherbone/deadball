@@ -1,0 +1,256 @@
+{
+ "bets": [
+  {
+   "id": "b0n6a4a5y2x0e2q",
+   "gameId": "S1D5EL0",
+   "side": "away",
+   "amount": 30,
+   "status": "settled",
+   "payout": 0,
+   "won": false,
+   "placedAt": 1792367294440,
+   "placedIn": -66,
+   "game": {
+    "id": "S1D5EL0",
+    "day": 5,
+    "firstPitchAt": 1792367308683,
+    "firstPitchIn": -51,
+    "finalAt": 1792367336683,
+    "finalIn": -23,
+    "status": "final",
+    "home": {
+     "id": "SBS",
+     "abbr": "SBS",
+     "city": "Salt Basin",
+     "name": "Saints",
+     "level": "EL",
+     "record": "2-4"
+    },
+    "away": {
+     "id": "BVG",
+     "abbr": "BVG",
+     "city": "Bone Valley",
+     "name": "Ghosts",
+     "level": "EL",
+     "record": "2-4"
+    },
+    "probables": {
+     "home": {
+      "id": "p926",
+      "name": "Rube Quigley",
+      "face": "face:492",
+      "teamAbbr": "SBS",
+      "pos": "P",
+      "line": "0-0, 12.46"
+     },
+     "away": {
+      "id": "p978",
+      "name": "Earl Pettibone",
+      "face": "face:367",
+      "teamAbbr": "BVG",
+      "pos": "P",
+      "line": "0-1, 7.11"
+     }
+    },
+    "pool": {
+     "home": 1081,
+     "away": 499,
+     "pays": {
+      "home": 1.45,
+      "away": 3.15
+     },
+     "house": {
+      "home": 1036,
+      "away": 469
+     }
+    },
+    "umpire": {
+     "id": "n1413",
+     "name": "Cy Pickles",
+     "face": "face:594",
+     "pos": "UMP"
+    },
+    "weather": "47F, wind 6 mph out to CF, rain likely",
+    "park": "The Salt Flat",
+    "circuit": "enhanced",
+    "score": {
+     "home": 8,
+     "away": 6,
+     "inning": "FINAL"
+    },
+    "myBet": {
+     "side": "away",
+     "amount": 30
+    }
+   }
+  },
+  {
+   "id": "b482f5w3e1d004b",
+   "gameId": "S1D5ML1",
+   "side": "away",
+   "amount": 60,
+   "status": "settled",
+   "payout": 107,
+   "won": true,
+   "placedAt": 1792367294431,
+   "placedIn": -66,
+   "game": {
+    "id": "S1D5ML1",
+    "day": 5,
+    "firstPitchAt": 1792367312968,
+    "firstPitchIn": -47,
+    "finalAt": 1792367340968,
+    "finalIn": -19,
+    "status": "final",
+    "home": {
+     "id": "HCL",
+     "abbr": "HCL",
+     "city": "Harbor City",
+     "name": "Lamplighters",
+     "level": "ML",
+     "record": "2-3"
+    },
+    "away": {
+     "id": "ELC",
+     "abbr": "ELC",
+     "city": "Electric City",
+     "name": "Comets",
+     "level": "ML",
+     "record": "5-0"
+    },
+    "probables": {
+     "home": {
+      "id": "p13",
+      "name": "Rollie Esposito",
+      "face": "face:450",
+      "teamAbbr": "HCL",
+      "pos": "P",
+      "line": "0-1, 6.75"
+     },
+     "away": {
+      "id": "p748",
+      "name": "Vern Cruz",
+      "face": "face:475",
+      "teamAbbr": "ELC",
+      "pos": "P",
+      "line": "0-0, 0.00"
+     }
+    },
+    "pool": {
+     "home": 623,
+     "away": 782,
+     "pays": {
+      "home": 2.23,
+      "away": 1.78
+     },
+     "house": {
+      "home": 583,
+      "away": 722
+     }
+    },
+    "umpire": {
+     "id": "n7",
+     "name": "Rico Novak",
+     "face": "face:124",
+     "pos": "UMP"
+    },
+    "weather": "48F, wind 8 mph out to RF, rain likely",
+    "park": "Bellwood Park",
+    "circuit": "continental",
+    "score": {
+     "home": 1,
+     "away": 11,
+     "inning": "FINAL"
+    },
+    "myBet": {
+     "side": "away",
+     "amount": 60
+    }
+   }
+  },
+  {
+   "id": "b3t1x2p1w3s1t0i",
+   "gameId": "S1D5ML0",
+   "side": "home",
+   "amount": 100,
+   "status": "settled",
+   "payout": 199,
+   "won": true,
+   "placedAt": 1792367294422,
+   "placedIn": -66,
+   "game": {
+    "id": "S1D5ML0",
+    "day": 5,
+    "firstPitchAt": 1792367304397,
+    "firstPitchIn": -56,
+    "finalAt": 1792367332397,
+    "finalIn": -28,
+    "status": "final",
+    "home": {
+     "id": "STA",
+     "abbr": "STA",
+     "city": "St. Albans",
+     "name": "Friars",
+     "level": "ML",
+     "record": "1-4"
+    },
+    "away": {
+     "id": "CSR",
+     "abbr": "CSR",
+     "city": "Cold Spring",
+     "name": "Rustlers",
+     "level": "ML",
+     "record": "2-3"
+    },
+    "probables": {
+     "home": {
+      "id": "p120",
+      "name": "Jesús Vance",
+      "face": "face:228",
+      "teamAbbr": "STA",
+      "pos": "P",
+      "line": "1-0, 3.60"
+     },
+     "away": {
+      "id": "p440",
+      "name": "Emil Okafor",
+      "face": "face:122",
+      "teamAbbr": "CSR",
+      "pos": "P",
+      "line": "0-0, 1.50"
+     }
+    },
+    "pool": {
+     "home": 677,
+     "away": 698,
+     "pays": {
+      "home": 1.99,
+      "away": 1.93
+     },
+     "house": {
+      "home": 577,
+      "away": 548
+     }
+    },
+    "umpire": {
+     "id": "n9",
+     "name": "Ulysses Delahanty",
+     "face": "face:237",
+     "pos": "UMP"
+    },
+    "weather": "38F, wind 6 mph out to RF, showers",
+    "park": "Sanctuary Field",
+    "circuit": "continental",
+    "score": {
+     "home": 9,
+     "away": 2,
+     "inning": "FINAL"
+    },
+    "myBet": {
+     "side": "home",
+     "amount": 100
+    }
+   }
+  }
+ ]
+}

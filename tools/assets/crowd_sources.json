@@ -1,0 +1,342 @@
+{
+ "note": "crop = fractional (x0,y0,x1,y1) of the cached Commons thumbnail (1024-1280 px wide). key = LoC pk.",
+ "backdrops": [
+  {
+   "key": "2014690753",
+   "pk": "2014690753",
+   "caption": "Crowd - Union Sq.",
+   "kind": "cheering",
+   "crop": [
+    0.04,
+    0.04,
+    0.97,
+    0.96
+   ],
+   "focus": [
+    0.5,
+    0.4
+   ],
+   "banner": null,
+   "contrast": 1.1,
+   "mix": 0.0,
+   "sharpen": 1.2
+  },
+  {
+   "key": "2014682261",
+   "pk": "2014682261",
+   "caption": "Crowd in Polo Grounds grandstand; Cubs at Giants - final game (baseball",
+   "kind": "grandstand",
+   "crop": [
+    0.03,
+    0.1,
+    0.97,
+    0.96
+   ],
+   "focus": [
+    0.5,
+    0.5
+   ],
+   "banner": [
+    0,
+    0,
+    400,
+    50
+   ],
+   "contrast": 1.1,
+   "mix": 0.0,
+   "sharpen": 1.2
+  },
+  {
+   "key": "2014682277",
+   "pk": "2014682277",
+   "caption": "Crowd leaving Polo Grounds; Cubs at Giants - final game (baseball)",
+   "kind": "packed",
+   "crop": [
+    0.3,
+    0.12,
+    0.97,
+    0.68
+   ],
+   "focus": [
+    0.5,
+    0.5
+   ],
+   "banner": null,
+   "contrast": 1.1,
+   "mix": 0.0,
+   "sharpen": 1.2
+  },
+  {
+   "key": "2014694421",
+   "pk": "2014694421",
+   "caption": "Bleachers, World Series, Polo Grounds (baseball)",
+   "kind": "bleachers",
+   "crop": [
+    0.03,
+    0.08,
+    0.98,
+    0.96
+   ],
+   "focus": [
+    0.5,
+    0.3
+   ],
+   "banner": [
+    0,
+    0,
+    400,
+    44
+   ],
+   "contrast": 1.1,
+   "mix": 0.0,
+   "sharpen": 1.2
+  },
+  {
+   "key": "2001704367",
+   "pk": "2001704367",
+   "caption": "Crowd of people on roofs of rowhouses watching world series game between Boston Braves and Phila. Athletics at Shibe Park, Phila. Oct. 9, 1914",
+   "kind": "rooftop",
+   "crop": [
+    0.01,
+    0.08,
+    0.99,
+    0.97
+   ],
+   "focus": [
+    0.5,
+    0.3
+   ],
+   "banner": [
+    0,
+    0,
+    400,
+    40
+   ],
+   "contrast": 1.1,
+   "mix": 0.0,
+   "sharpen": 1.2
+  },
+  {
+   "key": "92513260",
+   "pk": "92513260",
+   "caption": "Huge crowd of baseball fans watching baseball scoreboard during World Series game in New York City",
+   "kind": "street",
+   "crop": [
+    0.03,
+    0.04,
+    0.96,
+    0.97
+   ],
+   "focus": [
+    0.5,
+    0.5
+   ],
+   "banner": null,
+   "contrast": 1.1,
+   "mix": 0.0,
+   "sharpen": 1.2
+  },
+  {
+   "key": "93511657",
+   "pk": "93511657",
+   "caption": "Baseball fans - crowd in front of the City Hall, Detroit, Oct. 6, 1908, watching the Free Press scoreboard containing the Detroit-Chicago score when the Tigers cinched the American League",
+   "kind": "scoreboard",
+   "crop": [
+    0.14,
+    0.21,
+    0.88,
+    0.79
+   ],
+   "focus": [
+    0.5,
+    0.6
+   ],
+   "banner": [
+    0,
+    0,
+    400,
+    48
+   ],
+   "contrast": 1.1,
+   "mix": 0.0,
+   "sharpen": 1.2
+  },
+  {
+   "key": "2014700022",
+   "pk": "2014700022",
+   "caption": "Bleachers, Baker Bowl, Philadelphia (baseball)",
+   "kind": "bleachers",
+   "crop": [
+    0.03,
+    0.12,
+    0.97,
+    0.75
+   ],
+   "focus": [
+    0.5,
+    0.4
+   ],
+   "banner": [
+    0,
+    196,
+    400,
+    240
+   ],
+   "contrast": 1.1,
+   "mix": 0.0,
+   "sharpen": 1.2
+  },
+  {
+   "key": "2001704381",
+   "pk": "2001704381",
+   "caption": "Baseball fans - at Polo Grounds, N.Y. April 12, 1911",
+   "kind": "fans",
+   "crop": [
+    0.02,
+    0.08,
+    0.98,
+    0.95
+   ],
+   "focus": [
+    0.5,
+    0.4
+   ],
+   "banner": null,
+   "contrast": 1.1,
+   "mix": 0.0,
+   "sharpen": 1.2
+  },
+  {
+   "key": "89714123",
+   "pk": "89714123",
+   "caption": "World Series crowd for first game, Polo Grounds, N.Y.",
+   "kind": "packed",
+   "crop": [
+    0.02,
+    0.05,
+    0.98,
+    0.96
+   ],
+   "focus": [
+    0.5,
+    0.6
+   ],
+   "banner": null,
+   "contrast": 1.1,
+   "mix": 0.0,
+   "sharpen": 1.2
+  },
+  {
+   "key": "2014682317",
+   "pk": "2014682317",
+   "caption": "Crowd in Polo Grounds grandstand; Cubs at Giants - final game (baseball)",
+   "kind": "fans",
+   "crop": [
+    0.03,
+    0.06,
+    0.97,
+    0.97
+   ],
+   "focus": [
+    0.5,
+    0.5
+   ],
+   "banner": null,
+   "contrast": 1.1,
+   "mix": 0.0,
+   "sharpen": 1.2
+  },
+  {
+   "key": "2014682453",
+   "pk": "2014682453",
+   "caption": "Bryan audience (New York)",
+   "kind": "cheering",
+   "crop": [
+    0.03,
+    0.3,
+    0.97,
+    0.97
+   ],
+   "focus": [
+    0.5,
+    0.5
+   ],
+   "banner": null,
+   "contrast": 1.1,
+   "mix": 0.0,
+   "sharpen": 1.2
+  }
+ ],
+ "textures": [
+  {
+   "style": "mixed",
+   "key": "2014682277",
+   "pk": "2014682277",
+   "caption": "Crowd leaving Polo Grounds; Cubs at Giants - final game (baseball)",
+   "crop": [
+    0.35,
+    0.3,
+    0.63,
+    0.5
+   ],
+   "contrast": 1.1,
+   "mix": 0.2
+  },
+  {
+   "style": "dark",
+   "key": "2014688675",
+   "pk": "2014688675",
+   "caption": "A huge crowd",
+   "crop": [
+    0.35,
+    0.45,
+    0.63,
+    0.65
+   ],
+   "contrast": 1.1,
+   "mix": 0.2
+  },
+  {
+   "style": "light",
+   "key": "2014692002",
+   "pk": "2014692002",
+   "caption": "Crowd at Roosevelt's arrival - Chicago",
+   "crop": [
+    0.05,
+    0.55,
+    0.33,
+    0.75
+   ],
+   "contrast": 1.1,
+   "mix": 0.2
+  },
+  {
+   "style": "sparse",
+   "key": "2014700022",
+   "pk": "2014700022",
+   "caption": "Bleachers, Baker Bowl, Philadelphia (baseball)",
+   "crop": [
+    0.3,
+    0.35,
+    0.58,
+    0.53
+   ],
+   "contrast": 1.1,
+   "mix": 0.2
+  },
+  {
+   "style": "packed",
+   "key": "89714123",
+   "pk": "89714123",
+   "caption": "World Series crowd for first game, Polo Grounds, N.Y.",
+   "crop": [
+    0.1,
+    0.3,
+    0.55,
+    0.75
+   ],
+   "contrast": 1.1,
+   "mix": 0.2
+  }
+ ]
+}

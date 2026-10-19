@@ -1,0 +1,713 @@
+{
+  "aliases": {
+    "take_me_out": "take_me_out_organ"
+  },
+  "_aliases_note": "take_me_out plays one of: take_me_out_meeker (1908 Edison cylinder), take_me_out_haydn (1908 Victor disc), take_me_out_organ (our organ arrangement, compose.py), take_me_out_ballpark (live ballpark organ + crowd). Change the line above to switch.",
+  "music": {
+    "gladiators": {
+      "src": "tools/audio/.cache/music/gladiators_us_marine_band.oga",
+      "loop": false,
+      "title": "Entrance of the Gladiators (Fučík)",
+      "author": "United States Marine Band",
+      "year": "c.1999",
+      "page_url": "https://commons.wikimedia.org/wiki/File:Julius_Fu%C4%8D%C3%ADk%27s_%22Entrance_of_the_Gladiators%22,_performed_by_the_U.S._Marine_Band.oga",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/73/Julius_Fu%C4%8D%C3%ADk%27s_%22Entrance_of_the_Gladiators%22%2C_performed_by_the_U.S._Marine_Band.oga",
+      "license": "Public domain (US federal government work, PD-USMC; Commons tags PD US Marines + CC-PD-Mark). Composition PD (1897).",
+      "credit_notes": null,
+      "start": 1,
+      "end": 27
+    },
+    "stars_stripes": {
+      "src": "tools/audio/.cache/music/stars_stripes_sousa_band_1909.mp3",
+      "loop": false,
+      "title": "Stars and stripes forever: march",
+      "author": "Sousa's Band (Edison Amberol (4-min cylinder) 285)",
+      "year": "1909",
+      "page_url": "https://cylinders.library.ucsb.edu/detail.php?query_type=mms_id&query=990025416660203776",
+      "url": "https://cylinders.s3-us-west-2.amazonaws.com/1000/1741/cusb-cyl1741d.mp3",
+      "license": "Public domain (US) — recorded 1909, UCSB: pre-1923 cylinders free for any use, commercial or non-commercial (cylinders.library.ucsb.edu/licensing.php)",
+      "credit_notes": "Optional courtesy credit: University of California, Santa Barbara Library (UCSB Cylinder Audio Archive), Cylinder 1741",
+      "start": 225,
+      "end": 257
+    },
+    "summertime": {
+      "src": "tools/audio/.cache/music/summertime_sousa_band_1905.ogg",
+      "loop": true,
+      "title": "In the Good Old Summertime",
+      "author": "Sousa's Band (Victor)",
+      "year": "1905",
+      "page_url": "https://commons.wikimedia.org/wiki/File:In_The_Good_Old_Summertime.ogg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b4/In_The_Good_Old_Summertime.ogg",
+      "license": "Public domain (US) — recorded 27 Oct 1905 (pre-1923, expired under MMA). Commons tag \"PD US record expired\". Credit line on Commons: \"Nipper's Greatest Hits: 1901-1920\" (transfer source).",
+      "credit_notes": null,
+      "start": 104,
+      "end": 137
+    },
+    "sweet_georgia": {
+      "src": "tools/audio/.cache/music/sweet_georgia_ben_bernie_1925.mp3",
+      "loop": true,
+      "title": "Sweet Georgia Brown",
+      "author": "Ben Bernie and His Hotel Roosevelt Orchestra (Vocalion 15002 (per standard discographies; not verified on page))",
+      "year": "1925",
+      "page_url": "https://commons.wikimedia.org/wiki/File:1925_(USA)_Archives_1925_03_19_Ben_Bernie_Orchestra_-_Sweet_Georgia_Brown.mp3",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/1e/1925_%28USA%29_Archives_1925_03_19_Ben_Bernie_Orchestra_-_Sweet_Georgia_Brown.mp3",
+      "license": "Public domain (US) — recorded 19 Mar 1925 and issued 1925 (Vocalion); 1925 publications entered US PD on 1 Jan 2026 under MMA (100-yr term for 1923-46 recordings). Commons tag \"PD US record expired\"; source archive.org item 1925-USA-Archives-1925-03-19-Ben-Bernie-Orch-Sweet-Georgia-Brown (no licenseurl on IA item). Composition (Bernie/Pinkard/Casey 1925) PD since 2021.",
+      "credit_notes": null,
+      "start": 20,
+      "end": 50
+    },
+    "turkey_straw": {
+      "src": "tools/audio/.cache/music/turkey_straw_yerkes_jazarimba_1918.mp3",
+      "loop": false,
+      "title": "Turkey in the straw",
+      "author": "Yerkes Jazarimba Orchestra (Harry A. Yerkes; arr. Otto Bonnell / Joe Arzonia) (Columbia (via National Jukebox) —)",
+      "year": "1918-02-26",
+      "page_url": "https://archive.org/details/loc-jukebox-658483-turkey-in-the-straw",
+      "url": "https://archive.org/download/loc-jukebox-658483-turkey-in-the-straw/jukebox-658483_turkey-in-the-straw.mp3",
+      "license": "Public domain (US) — published 1918; pre-1923 recording expired under Music Modernization Act 17 USC 1401. archive.org licenseurl: https://creativecommons.org/publicdomain/mark/1.0/ (PDM). Source: Library of Congress National Jukebox (mirrored on archive.org; loc.gov rate-limited us with HTTP 429)",
+      "credit_notes": "Optional courtesy credit: Library of Congress National Jukebox (Sony Music Entertainment / UMG collections)",
+      "start": 3,
+      "end": 24
+    },
+    "funeral_march": {
+      "src": "tools/audio/.cache/music/funeral_march_pryors_band_1913.mp3",
+      "loop": false,
+      "title": "Chopin's funeral march",
+      "author": "Arthur Pryor's Band (Victor (via National Jukebox) C-807 (12-inch))",
+      "year": "1913-06-10",
+      "page_url": "https://archive.org/details/loc-jukebox-421981-chopin-s-funeral-march",
+      "url": "https://archive.org/download/loc-jukebox-421981-chopin-s-funeral-march/jukebox-421981_chopin-s-funeral-march.mp3",
+      "license": "Public domain (US) — published 1913; pre-1923 recording expired under Music Modernization Act 17 USC 1401. archive.org licenseurl: https://creativecommons.org/publicdomain/mark/1.0/ (PDM). Source: Library of Congress National Jukebox (mirrored on archive.org; loc.gov rate-limited us with HTTP 429)",
+      "credit_notes": "Optional courtesy credit: Library of Congress National Jukebox (Sony Music Entertainment / UMG collections)",
+      "start": 1,
+      "end": 28
+    },
+    "hat_dance": {
+      "src": "tools/audio/.cache/music/hat_dance_street_mariachi_fs177304.mp3",
+      "loop": true,
+      "title": "jarabe tapatio mariachi",
+      "author": "lenguaverde (Freesound uploader/recordist)",
+      "year": "None",
+      "page_url": "https://freesound.org/people/lenguaverde/sounds/177304/",
+      "url": "https://cdn.freesound.org/previews/177/177304_1441734-hq.mp3",
+      "license": "CC0 1.0 (verified on sound page)",
+      "credit_notes": null,
+      "start": 118,
+      "end": 146
+    },
+    "pop_weasel": {
+      "src": "tools/audio/.cache/music/pop_weasel_dalmaine_1911.mp3",
+      "loop": false,
+      "title": "Pop! Goes the weasel",
+      "author": "Charles D'Almaine (violin) (Indestructible Record (4-min) 3194)",
+      "year": "1911",
+      "page_url": "https://cylinders.library.ucsb.edu/detail.php?query_type=mms_id&query=990036905210203776",
+      "url": "https://cylinders.s3-us-west-2.amazonaws.com/11000/11279/cusb-cyl11279d.mp3",
+      "license": "Public domain (US) — recorded 1911, UCSB: pre-1923 cylinders free for any use, commercial or non-commercial (cylinders.library.ucsb.edu/licensing.php)",
+      "credit_notes": "Optional courtesy credit: University of California, Santa Barbara Library (UCSB Cylinder Audio Archive), Cylinder 11279",
+      "start": 2,
+      "end": 22
+    },
+    "hail_chief": {
+      "src": "tools/audio/.cache/music/hail_chief_us_army_band_long.ogg",
+      "loop": false,
+      "title": "Four Ruffles and Flourishes, Hail to the Chief (long version)",
+      "author": "U.S. Army Band \"Pershing's Own\"",
+      "year": "c.2000s",
+      "page_url": "https://commons.wikimedia.org/wiki/File:Four_ruffles_and_flourishes,_hail_to_the_chief_(long_version).ogg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/7c/Four_ruffles_and_flourishes%2C_hail_to_the_chief_%28long_version%29.ogg",
+      "license": "Public domain (US federal government work, US Army Band; album \"American Spirit\" track 28)",
+      "credit_notes": null,
+      "start": 0,
+      "end": 30
+    },
+    "wedding_march": {
+      "src": "tools/audio/.cache/music/wedding_march_indestructible_1909.mp3",
+      "loop": false,
+      "title": "Mendelssohn's wedding march",
+      "author": "Indestructible Military Band (Indestructible Record 1200)",
+      "year": "1909",
+      "page_url": "https://cylinders.library.ucsb.edu/detail.php?query_type=mms_id&query=990025866550203776",
+      "url": "https://cylinders.s3-us-west-2.amazonaws.com/4000/4416/cusb-cyl4416d.mp3",
+      "license": "Public domain (US) — recorded 1909, UCSB: pre-1923 cylinders free for any use, commercial or non-commercial (cylinders.library.ucsb.edu/licensing.php)",
+      "credit_notes": "Optional courtesy credit: University of California, Santa Barbara Library (UCSB Cylinder Audio Archive), Cylinder 4416",
+      "start": 4,
+      "end": 30
+    },
+    "ragtime": {
+      "src": "tools/audio/.cache/music/bonus_black_diamond_rag_nymb_1912.mp3",
+      "loop": true,
+      "title": "Black diamond rag",
+      "author": "New York Military Band (Edison Amberol (4-min) 1089)",
+      "year": "1912",
+      "page_url": "https://cylinders.library.ucsb.edu/detail.php?query_type=mms_id&query=990034389050203776",
+      "url": "https://cylinders.s3-us-west-2.amazonaws.com/9000/9424/cusb-cyl9424d.mp3",
+      "license": "Public domain (US) — recorded 1912, UCSB: pre-1923 cylinders free for any use, commercial or non-commercial (cylinders.library.ucsb.edu/licensing.php)",
+      "credit_notes": "Optional courtesy credit: University of California, Santa Barbara Library (UCSB Cylinder Audio Archive), Cylinder 9424",
+      "start": 2,
+      "end": 40
+    },
+    "casey": {
+      "src": "tools/audio/.cache/music/bonus_casey_at_the_bat_1909_victor.mp3",
+      "loop": false,
+      "title": "Casey at the bat",
+      "author": "Probably DeWolf Hopper (mirror metadata lists only author Ernest L. Thayer) (Victor (via National Jukebox) C-3537 take 4)",
+      "year": "1909-06-16",
+      "page_url": "https://archive.org/details/loc-jukebox-123360-casey-at-the-bat",
+      "url": "https://archive.org/download/loc-jukebox-123360-casey-at-the-bat/jukebox-123360_casey-at-the-bat.mp3",
+      "license": "Public domain (US) — published 1909; pre-1923 recording expired under Music Modernization Act 17 USC 1401. archive.org licenseurl: https://creativecommons.org/publicdomain/mark/1.0/ (PDM). Source: Library of Congress National Jukebox (mirrored on archive.org; loc.gov rate-limited us with HTTP 429)",
+      "credit_notes": "Optional courtesy credit: Library of Congress National Jukebox (Sony Music Entertainment / UMG collections)",
+      "start": 255,
+      "end": 276.5,
+      "lowpass": 5000
+    },
+    "charge_band": {
+      "src": "tools/audio/.cache/music/charge_usaf_heritage_band.mp3",
+      "loop": false,
+      "title": "Charge",
+      "author": "United States Air Force Heritage of America Band (Concert Band) (USAF Ceremonial Music disc 1 track 27)",
+      "year": "2005",
+      "page_url": "https://commons.wikimedia.org/wiki/File:Charge_-_Concert_Band_-_United_States_Air_Force_Heritage_of_America_Band.mp3",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d6/Charge_-_Concert_Band_-_United_States_Air_Force_Heritage_of_America_Band.mp3",
+      "license": "Public domain (US federal government work, PD-USAF) — from music.af.mil Public Domain Music; Commons category \"PD US Air Force\"",
+      "credit_notes": null,
+      "fade_out": 0.3
+    },
+    "charge": {
+      "src": "tools/audio/.cache/sfx/organ_riff_charge_c1.mp3",
+      "title": "Baseball calvary sting long sustain.wav",
+      "author": "vckhaze",
+      "page_url": "https://freesound.org/people/vckhaze/sounds/380696/",
+      "url": "https://cdn.freesound.org/previews/380/380696_167075-hq.mp3",
+      "license": "CC0 1.0",
+      "credit_notes": null,
+      "start": 0.0,
+      "end": 4.0,
+      "fade_out": 0.6,
+      "loop": false
+    }
+  },
+  "sfx": {
+    "bat_crack": [
+      {
+        "src": "tools/audio/.cache/sfx/bat_crack_c9.mp3",
+        "title": "Hitting baseball w. wooden bat.wav",
+        "author": "CGEffex",
+        "page_url": "https://freesound.org/people/CGEffex/sounds/93136/",
+        "url": "https://cdn.freesound.org/previews/93/93136_1386366-hq.mp3",
+        "license": "CC BY 4.0",
+        "credit_notes": "\"Hitting baseball w. wooden bat.wav\" by CGEffex (https://freesound.org/people/CGEffex/sounds/93136/), licensed CC BY 4.0",
+        "start": 4.82,
+        "end": 5.3
+      },
+      {
+        "src": "tools/audio/.cache/sfx/bat_crack_c9.mp3",
+        "title": "Hitting baseball w. wooden bat.wav",
+        "author": "CGEffex",
+        "page_url": "https://freesound.org/people/CGEffex/sounds/93136/",
+        "url": "https://cdn.freesound.org/previews/93/93136_1386366-hq.mp3",
+        "license": "CC BY 4.0",
+        "credit_notes": "\"Hitting baseball w. wooden bat.wav\" by CGEffex (https://freesound.org/people/CGEffex/sounds/93136/), licensed CC BY 4.0",
+        "start": 10.74,
+        "end": 11.2
+      },
+      {
+        "src": "tools/audio/.cache/sfx/bat_crack_c7.mp3",
+        "title": "Bat Hit 4 FF100.aif",
+        "author": "martinimeniscus",
+        "page_url": "https://freesound.org/people/martinimeniscus/sounds/162867/",
+        "url": "https://cdn.freesound.org/previews/162/162867_2320755-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.03,
+        "end": 0.45
+      }
+    ],
+    "mitt_pop": [
+      {
+        "src": "tools/audio/.cache/sfx/mitt_pop_c8.mp3",
+        "title": "Glove Catch 10 FF005.aif",
+        "author": "martinimeniscus",
+        "page_url": "https://freesound.org/people/martinimeniscus/sounds/164525/",
+        "url": "https://cdn.freesound.org/previews/164/164525_2320755-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.07,
+        "end": 0.4
+      },
+      {
+        "src": "tools/audio/.cache/sfx/mitt_pop_c6.mp3",
+        "title": "Glove Catch 12 FF003.aif",
+        "author": "martinimeniscus",
+        "page_url": "https://freesound.org/people/martinimeniscus/sounds/164536/",
+        "url": "https://cdn.freesound.org/previews/164/164536_2320755-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.21,
+        "end": 0.55
+      }
+    ],
+    "crowd_roar": [
+      {
+        "src": "tools/audio/.cache/sfx/crowd_mlb_homerun.mp3",
+        "title": "Crowd and field noise before and during homerun hit at MLB baseball stadium",
+        "author": "bmadore",
+        "page_url": "https://freesound.org/people/bmadore/sounds/691975/",
+        "url": "https://cdn.freesound.org/previews/691/691975_5111753-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 13.0,
+        "end": 20.5,
+        "fade_in": 0.5,
+        "fade_out": 1.0
+      },
+      {
+        "src": "tools/audio/.cache/sfx/crowd_roar_c2.mp3",
+        "title": "Crowd Cheer",
+        "author": "FoolBoyMedia",
+        "page_url": "https://freesound.org/people/FoolBoyMedia/sounds/397434/",
+        "url": "https://cdn.freesound.org/previews/397/397434_4019029-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 1.0,
+        "end": 6.0,
+        "fade_in": 0.2,
+        "fade_out": 0.8
+      }
+    ],
+    "crowd_cheer": [
+      {
+        "src": "tools/audio/.cache/sfx/crowd_roar_c1.mp3",
+        "title": "RoaringCrowd.wav",
+        "author": "benfree",
+        "page_url": "https://freesound.org/people/benfree/sounds/130568/",
+        "url": "https://cdn.freesound.org/previews/130/130568_2024417-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 15.5,
+        "end": 19.3,
+        "fade_out": 0.6
+      }
+    ],
+    "crowd_ambience": [
+      {
+        "src": "tools/audio/.cache/sfx/crowd_ambience_fenway.mp3",
+        "title": "Fenway Ambience 1.m4a",
+        "author": "Douglas711",
+        "page_url": "https://freesound.org/people/Douglas711/sounds/424295/",
+        "url": "https://cdn.freesound.org/previews/424/424295_3609277-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 13.0,
+        "end": 23.0,
+        "fade_in": 0.05,
+        "fade_out": 0.05
+      }
+    ],
+    "crowd_boo": [
+      {
+        "src": "tools/audio/.cache/sfx/crowd_boo_c1.mp3",
+        "title": "Crowd Boo.wav",
+        "author": "deleted_user_2104797",
+        "page_url": "https://freesound.org/people/deleted_user_2104797/sounds/324893/",
+        "url": "https://cdn.freesound.org/previews/324/324893_2104797-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 16.5,
+        "end": 20.5,
+        "fade_out": 0.5
+      },
+      {
+        "src": "tools/audio/.cache/sfx/crowd_boo_c2.mp3",
+        "title": "Voice_Crowd_Small_Expression_Boo_Stereo",
+        "author": "Nox_Sound",
+        "page_url": "https://freesound.org/people/Nox_Sound/sounds/752707/",
+        "url": "https://cdn.freesound.org/previews/752/752707_9250976-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.0,
+        "end": 2.2,
+        "fade_out": 0.3
+      }
+    ],
+    "crowd_ooh": [
+      {
+        "src": "tools/audio/.cache/sfx/crowd_ooh_c1.mp3",
+        "title": "Crowd Oooh.wav",
+        "author": "deleted_user_2104797",
+        "page_url": "https://freesound.org/people/deleted_user_2104797/sounds/324890/",
+        "url": "https://cdn.freesound.org/previews/324/324890_2104797-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.8,
+        "end": 4.5,
+        "fade_out": 0.5
+      }
+    ],
+    "crowd_groan": [
+      {
+        "src": "tools/audio/.cache/sfx/crowd_groan_c1.mp3",
+        "title": "CRWDAngr_Crowd Groans At Bad Joke 01_ShaneVincent_GSC24_FUMA-AmbeoVR.wav",
+        "author": "ShangusBurger",
+        "page_url": "https://freesound.org/people/ShangusBurger/sounds/764035/",
+        "url": "https://cdn.freesound.org/previews/764/764035_11744683-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.4,
+        "end": 2.6,
+        "fade_out": 0.3
+      }
+    ],
+    "crowd_clap": [
+      {
+        "src": "tools/audio/.cache/sfx/crowd_clap_rhythm_c1.mp3",
+        "title": "bb-clapRhm.mp3",
+        "author": "jasinski",
+        "page_url": "https://freesound.org/people/jasinski/sounds/18364/",
+        "url": "https://cdn.freesound.org/previews/18/18364_71309-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.0,
+        "end": 4.0,
+        "fade_out": 0.3
+      }
+    ],
+    "applause": [
+      {
+        "src": "tools/audio/.cache/sfx/applause_c1.mp3",
+        "title": "R02-07-Steady Applause Medium Crowd.wav",
+        "author": "craigsmith",
+        "page_url": "https://freesound.org/people/craigsmith/sounds/480683/",
+        "url": "https://cdn.freesound.org/previews/480/480683_2524442-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.5,
+        "end": 6.5,
+        "fade_out": 0.8
+      }
+    ],
+    "whistle": [
+      {
+        "src": "tools/audio/.cache/sfx/whistle_ref_c1.mp3",
+        "title": "Referee whistle blow, gymnasium.wav",
+        "author": "SpliceSound",
+        "page_url": "https://freesound.org/people/SpliceSound/sounds/218318/",
+        "url": "https://cdn.freesound.org/previews/218/218318_1480854-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.1,
+        "end": 0.6
+      }
+    ],
+    "police_whistle": [
+      {
+        "src": "tools/audio/.cache/sfx/whistle_police_c1.mp3",
+        "title": "police whistle nearby good detail and echo India.flac",
+        "author": "kyles",
+        "page_url": "https://freesound.org/people/kyles/sounds/451464/",
+        "url": "https://cdn.freesound.org/previews/451/451464_612689-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.0,
+        "end": 2.5
+      }
+    ],
+    "vendor_call": [
+      {
+        "src": "tools/audio/.cache/sfx/vendor_beer_c1.mp3",
+        "title": "Beer Sale At the Game",
+        "author": "jdbingle",
+        "page_url": "https://freesound.org/people/jdbingle/sounds/784896/",
+        "url": "https://cdn.freesound.org/previews/784/784896_2543759-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.0,
+        "end": 7.8,
+        "fade_out": 0.5
+      }
+    ],
+    "vendor_bell": [
+      {
+        "src": "tools/audio/.cache/sfx/bell_hand_c1.mp3",
+        "title": "Hand Bell.wav",
+        "author": "WebbFilmsUK",
+        "page_url": "https://freesound.org/people/WebbFilmsUK/sounds/200318/",
+        "url": "https://cdn.freesound.org/previews/200/200318_2641534-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.1,
+        "end": 3.0,
+        "fade_out": 0.6
+      }
+    ],
+    "telegraph": [
+      {
+        "src": "tools/audio/.cache/sfx/telegraph_c1.mp3",
+        "title": "broadcast-news-keyer.wav",
+        "author": "wcfl10",
+        "page_url": "https://freesound.org/people/wcfl10/sounds/112773/",
+        "url": "https://cdn.freesound.org/previews/112/112773_156950-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.0,
+        "end": 1.75
+      }
+    ],
+    "teletype": [
+      {
+        "src": "tools/audio/.cache/sfx/teletype_c2.ogg",
+        "title": "WWS Teleprinterautomaticprinting",
+        "author": "Work With Sounds / Konrad Gutkowski",
+        "page_url": "https://commons.wikimedia.org/wiki/File:WWS_Teleprinterautomaticprinting.ogg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/WWS_Teleprinterautomaticprinting.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+        "license": "CC BY 4.0",
+        "credit_notes": "\"WWS Teleprinterautomaticprinting\" by Work With Sounds / Konrad Gutkowski (https://commons.wikimedia.org/wiki/File:WWS_Teleprinterautomaticprinting.ogg), licensed CC BY 4.0",
+        "start": 2.0,
+        "end": 12.0,
+        "rate": 16000,
+        "fade_in": 0.05,
+        "fade_out": 0.05
+      }
+    ],
+    "typewriter": [
+      {
+        "src": "tools/audio/.cache/sfx/typewriter_c1.ogg",
+        "title": "WWS Typewriter",
+        "author": "Work With Sounds / Konrad Gutkowski",
+        "page_url": "https://commons.wikimedia.org/wiki/File:WWS_Typewriter.ogg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/25/WWS_Typewriter.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+        "license": "CC BY 4.0",
+        "credit_notes": "\"WWS Typewriter\" by Work With Sounds / Konrad Gutkowski (https://commons.wikimedia.org/wiki/File:WWS_Typewriter.ogg), licensed CC BY 4.0",
+        "start": 6.1,
+        "end": 10.0
+      }
+    ],
+    "typewriter_bell": [
+      {
+        "src": "tools/audio/.cache/sfx/typewriter_bell_c1.mp3",
+        "title": "Typewriter Bell.wav",
+        "author": "ramsamba",
+        "page_url": "https://freesound.org/people/ramsamba/sounds/318687/",
+        "url": "https://cdn.freesound.org/previews/318/318687_1147663-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.0,
+        "end": 0.86
+      }
+    ],
+    "modem": [
+      {
+        "src": "tools/audio/.cache/sfx/modem_c2.mp3",
+        "title": "The Sound of dial-up Internet",
+        "author": "wtermini",
+        "page_url": "https://freesound.org/people/wtermini/sounds/546450/",
+        "url": "https://cdn.freesound.org/previews/546/546450_11279746-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": "excerpt: dial + DTMF, then answer tone and handshake",
+        "segments": [
+          [
+            0.9,
+            4.0
+          ],
+          [
+            10.0,
+            18.5
+          ]
+        ],
+        "fade_out": 0.4
+      }
+    ],
+    "modem_full": [
+      {
+        "src": "tools/audio/.cache/sfx/modem_c2.mp3",
+        "title": "The Sound of dial-up Internet",
+        "author": "wtermini",
+        "page_url": "https://freesound.org/people/wtermini/sounds/546450/",
+        "url": "https://cdn.freesound.org/previews/546/546450_11279746-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.9,
+        "end": 26.6,
+        "rate": 16000,
+        "fade_out": 0.2
+      }
+    ],
+    "cash_register": [
+      {
+        "src": "tools/audio/.cache/sfx/cash_register_c1.ogg",
+        "title": "WWS CashregisteratWolkoffHouseMuseum",
+        "author": "Work With Sounds / Werstas",
+        "page_url": "https://commons.wikimedia.org/wiki/File:WWS_CashregisteratWolkoffHouseMuseum.ogg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/4/46/WWS_CashregisteratWolkoffHouseMuseum.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+        "license": "CC BY 4.0",
+        "credit_notes": "\"WWS CashregisteratWolkoffHouseMuseum\" by Work With Sounds / Werstas (https://commons.wikimedia.org/wiki/File:WWS_CashregisteratWolkoffHouseMuseum.ogg), licensed CC BY 4.0",
+        "start": 8.2,
+        "end": 10.1
+      }
+    ],
+    "pack_tear": [
+      {
+        "src": "tools/audio/.cache/sfx/pack_tear_c3.mp3",
+        "title": "SFX_STICKERRIPPER_candyWrapper_38.wav",
+        "author": "MrFossy",
+        "page_url": "https://freesound.org/people/MrFossy/sounds/590213/",
+        "url": "https://cdn.freesound.org/previews/590/590213_129727-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.25,
+        "end": 0.85
+      },
+      {
+        "src": "tools/audio/.cache/sfx/pack_tear_c1.mp3",
+        "title": "18_Opening_Chip_Bag.wav",
+        "author": "lmbubec",
+        "page_url": "https://freesound.org/people/lmbubec/sounds/118808/",
+        "url": "https://cdn.freesound.org/previews/118/118808_1990688-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.05,
+        "end": 1.2
+      }
+    ],
+    "card_flip": [
+      {
+        "src": "tools/audio/.cache/sfx/card_flick_c1.mp3",
+        "title": "card_deck_flick_click.mp3",
+        "author": "Geoff-Bremner-Audio",
+        "page_url": "https://freesound.org/people/Geoff-Bremner-Audio/sounds/682449/",
+        "url": "https://cdn.freesound.org/previews/682/682449_10643461-hq.mp3",
+        "license": "CC BY 4.0",
+        "credit_notes": "\"card_deck_flick_click.mp3\" by Geoff-Bremner-Audio (https://freesound.org/people/Geoff-Bremner-Audio/sounds/682449/), licensed CC BY 4.0",
+        "start": 0.18,
+        "end": 0.37
+      }
+    ],
+    "card_shuffle": [
+      {
+        "src": "tools/audio/.cache/sfx/card_shuffle_c1.mp3",
+        "title": "Shuffling cards (riffle) 03.WAV",
+        "author": "VKProduktion",
+        "page_url": "https://freesound.org/people/VKProduktion/sounds/217503/",
+        "url": "https://cdn.freesound.org/previews/217/217503_4034520-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.1,
+        "end": 2.75
+      }
+    ],
+    "siren": [
+      {
+        "src": "tools/audio/.cache/sfx/siren_c1.mp3",
+        "title": "S06-04 Old mechanical police siren.wav",
+        "author": "craigsmith",
+        "page_url": "https://freesound.org/people/craigsmith/sounds/675700/",
+        "url": "https://cdn.freesound.org/previews/675/675700_2524442-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 1.5,
+        "end": 7.0,
+        "fade_out": 1.0
+      }
+    ],
+    "handcuffs": [
+      {
+        "src": "tools/audio/.cache/sfx/handcuffs_c1.mp3",
+        "title": "cuffs locking.mp3",
+        "author": "Mbytemama93",
+        "page_url": "https://freesound.org/people/Mbytemama93/sounds/666604/",
+        "url": "https://cdn.freesound.org/previews/666/666604_14511033-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 5.1,
+        "end": 6.8
+      }
+    ],
+    "jail_door": [
+      {
+        "src": "tools/audio/.cache/sfx/jail_door_c2.mp3",
+        "title": "Cell door 5.aiff",
+        "author": "kd_jack",
+        "page_url": "https://freesound.org/people/kd_jack/sounds/214233/",
+        "url": "https://cdn.freesound.org/previews/214/214233_1560047-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 1.35,
+        "end": 3.8,
+        "fade_out": 0.4
+      }
+    ],
+    "phone_ring": [
+      {
+        "src": "tools/audio/.cache/sfx/phone_ring_c2.mp3",
+        "title": "Ringtone: 1960s office phone",
+        "author": "knufds",
+        "page_url": "https://freesound.org/people/knufds/sounds/345805/",
+        "url": "https://cdn.freesound.org/previews/345/345805_191884-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.4,
+        "end": 3.35
+      }
+    ],
+    "pa_chime": [
+      {
+        "src": "tools/audio/.cache/sfx/chime_c1.mp3",
+        "title": "Doorbell",
+        "author": "oganesson",
+        "page_url": "https://freesound.org/people/oganesson/sounds/555016/",
+        "url": "https://cdn.freesound.org/previews/555/555016_12434214-hq.mp3",
+        "license": "CC0 1.0",
+        "credit_notes": null,
+        "start": 0.0,
+        "end": 1.9,
+        "fade_out": 0.3
+      }
+    ]
+  },
+  "organ": {
+    "combo_c3": {
+      "src": "tools/audio/.cache/sfx/organ_combo_C3.mp3",
+      "title": "Transistor Organ Violin - C3",
+      "author": "cabled_mess",
+      "page_url": "https://freesound.org/people/cabled_mess/sounds/399738/",
+      "url": "https://cdn.freesound.org/previews/399/399738_5450487-hq.mp3",
+      "license": "CC0 1.0",
+      "credit_notes": null,
+      "start": 0.0,
+      "end": 2.2,
+      "midi": 48,
+      "cents": -3
+    },
+    "combo_c4": {
+      "src": "tools/audio/.cache/sfx/organ_combo_C4.mp3",
+      "title": "Transistor Organ Violin - C4",
+      "author": "cabled_mess",
+      "page_url": "https://freesound.org/people/cabled_mess/sounds/399736/",
+      "url": "https://cdn.freesound.org/previews/399/399736_5450487-hq.mp3",
+      "license": "CC0 1.0",
+      "credit_notes": null,
+      "start": 0.0,
+      "end": 2.2,
+      "midi": 60,
+      "cents": -2
+    },
+    "combo_c5": {
+      "src": "tools/audio/.cache/sfx/organ_combo_C5.mp3",
+      "title": "Transistor Organ Violin - C5",
+      "author": "cabled_mess",
+      "page_url": "https://freesound.org/people/cabled_mess/sounds/399737/",
+      "url": "https://cdn.freesound.org/previews/399/399737_5450487-hq.mp3",
+      "license": "CC0 1.0",
+      "credit_notes": null,
+      "start": 0.0,
+      "end": 2.2,
+      "midi": 72,
+      "cents": -2
+    }
+  },
+  "organ_roles": {
+    "lead": "combo_c5",
+    "chords": "combo_c4",
+    "bass": "combo_c3"
+  }
+}

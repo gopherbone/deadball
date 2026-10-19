@@ -1,0 +1,304 @@
+{
+ "team": {
+  "id": "STA",
+  "abbr": "STA",
+  "city": "St. Albans",
+  "name": "Friars",
+  "level": "ML"
+ },
+ "owner": {
+  "faction": "The Archdiocese of St. Albans",
+  "leader": {
+   "id": "n41",
+   "name": "Clem Escobar",
+   "face": "face:508"
+  },
+  "wants": [
+   "respectability",
+   "the Haldane land",
+   "a miracle"
+  ]
+ },
+ "manager": {
+  "id": "n42",
+  "name": "Rico Washington",
+  "face": "face:275",
+  "pos": "MGR"
+ },
+ "park": "Sanctuary Field",
+ "chain": [
+  {
+   "id": "STA",
+   "abbr": "STA",
+   "city": "St. Albans",
+   "name": "Friars",
+   "level": "ML",
+   "record": "1-5"
+  },
+  {
+   "id": "STA-AA",
+   "abbr": "STAAA",
+   "city": "Durango",
+   "name": "Possums",
+   "level": "AA",
+   "record": "4-2"
+  },
+  {
+   "id": "STA-B",
+   "abbr": "STAB",
+   "city": "Joliet",
+   "name": "Owls",
+   "level": "B",
+   "record": "3-3"
+  },
+  {
+   "id": "STA-D",
+   "abbr": "STAD",
+   "city": "Utica",
+   "name": "Pickles",
+   "level": "D",
+   "record": "5-1"
+  }
+ ],
+ "roster": [
+  {
+   "id": "p104",
+   "name": "Jack Stottlemyre",
+   "face": "face:74",
+   "teamAbbr": "STA",
+   "pos": "C",
+   "line": ".261, 0 HR, 1 RBI"
+  },
+  {
+   "id": "p105",
+   "name": "Jack Moran",
+   "face": "face:269",
+   "teamAbbr": "STA",
+   "pos": "C",
+   "line": ".000, 0 HR, 0 RBI"
+  },
+  {
+   "id": "p107",
+   "name": "Mel Lindqvist",
+   "face": "face:119",
+   "teamAbbr": "STA",
+   "pos": "1B",
+   "line": ".000, 0 HR, 0 RBI"
+  },
+  {
+   "id": "p108",
+   "name": "Wally Puckett",
+   "face": "face:359",
+   "teamAbbr": "STA",
+   "pos": "2B",
+   "line": ".250, 1 HR, 2 RBI"
+  },
+  {
+   "id": "p109",
+   "name": "Ernesto Paredes",
+   "face": "face:158",
+   "teamAbbr": "STA",
+   "pos": "SS",
+   "line": ".000, 0 HR, 0 RBI"
+  },
+  {
+   "id": "p110",
+   "name": "Hector Haskins",
+   "face": "face:102",
+   "teamAbbr": "STA",
+   "pos": "SS",
+   "line": ".238, 0 HR, 0 RBI"
+  },
+  {
+   "id": "p111",
+   "name": "Ollie Novak",
+   "face": "face:563",
+   "teamAbbr": "STA",
+   "pos": "3B",
+   "line": ".125, 2 HR, 4 RBI"
+  },
+  {
+   "id": "p112",
+   "name": "Emil Watanabe",
+   "face": "face:532",
+   "teamAbbr": "STA",
+   "pos": "LF",
+   "line": ".091, 0 HR, 0 RBI"
+  },
+  {
+   "id": "p113",
+   "name": "Andre Ibarra",
+   "face": "face:475",
+   "teamAbbr": "STA",
+   "pos": "CF",
+   "line": ".095, 0 HR, 1 RBI"
+  },
+  {
+   "id": "p114",
+   "name": "Orlando Herrera",
+   "face": "face:165",
+   "teamAbbr": "STA",
+   "pos": "CF",
+   "line": ".316, 0 HR, 2 RBI"
+  },
+  {
+   "id": "p115",
+   "name": "Marty Yamamoto",
+   "face": "face:29",
+   "teamAbbr": "STA",
+   "pos": "RF",
+   "line": ".208, 2 HR, 4 RBI"
+  },
+  {
+   "id": "p116",
+   "name": "Tito Shaughnessy",
+   "face": "face:491",
+   "teamAbbr": "STA",
+   "pos": "3B",
+   "line": ".190, 1 HR, 2 RBI"
+  },
+  {
+   "id": "p134",
+   "name": "Jack Reyes",
+   "face": "face:109",
+   "teamAbbr": "STA",
+   "pos": "2B",
+   "line": ".200, 0 HR, 2 RBI"
+  },
+  {
+   "id": "p117",
+   "name": "Al Gibson",
+   "face": "face:208",
+   "teamAbbr": "STA",
+   "pos": "P",
+   "line": "0-1, 7.71, 6 K"
+  },
+  {
+   "id": "p118",
+   "name": "Minnie Gibson",
+   "face": "face:172",
+   "teamAbbr": "STA",
+   "pos": "P",
+   "line": "0-1, 4.76, 8 K"
+  },
+  {
+   "id": "p119",
+   "name": "Dutch Ueda",
+   "face": "face:223",
+   "teamAbbr": "STA",
+   "pos": "P",
+   "line": "0-1, 3.38, 5 K"
+  },
+  {
+   "id": "p120",
+   "name": "Jesús Vance",
+   "face": "face:228",
+   "teamAbbr": "STA",
+   "pos": "P",
+   "line": "1-0, 3.60, 2 K"
+  },
+  {
+   "id": "p121",
+   "name": "Clem Salazar",
+   "face": "face:562",
+   "teamAbbr": "STA",
+   "pos": "P",
+   "line": "0-0, 0.00, 4 K"
+  },
+  {
+   "id": "p122",
+   "name": "Vic Jimenez",
+   "face": "face:74",
+   "teamAbbr": "STA",
+   "pos": "P",
+   "line": "0-1, 7.71, 5 K"
+  },
+  {
+   "id": "p123",
+   "name": "Minnie Leonard",
+   "face": "face:1",
+   "teamAbbr": "STA",
+   "pos": "P",
+   "line": "0-1, 8.31, 5 K"
+  },
+  {
+   "id": "p124",
+   "name": "Satchel Pappas",
+   "face": "face:277",
+   "teamAbbr": "STA",
+   "pos": "P",
+   "line": "0-0, 0.00, 4 K"
+  },
+  {
+   "id": "p125",
+   "name": "Floyd Pinkerton",
+   "face": "face:269",
+   "teamAbbr": "STA",
+   "pos": "P",
+   "line": "0-0, 0.00"
+  },
+  {
+   "id": "p126",
+   "name": "Lonnie Bumgardner",
+   "face": "face:278",
+   "teamAbbr": "STA",
+   "pos": "P",
+   "line": "0-0, 5.40, 3 K"
+  },
+  {
+   "id": "p127",
+   "name": "Tito Salazar",
+   "face": "face:302",
+   "teamAbbr": "STA",
+   "pos": "P",
+   "line": "0-0, 0.00, 3 K"
+  },
+  {
+   "id": "p128",
+   "name": "Luis Pickles",
+   "face": "face:257",
+   "teamAbbr": "STA",
+   "pos": "P",
+   "line": "0-0, 0.00"
+  },
+  {
+   "id": "p129",
+   "name": "Tom Zaleski",
+   "face": "face:408",
+   "teamAbbr": "STA",
+   "pos": "P",
+   "line": "0-0, 4.91, 9 K"
+  }
+ ],
+ "relations": [
+  {
+   "name": "The Haldane Organization",
+   "value": -5,
+   "reason": "the Holy War"
+  },
+  {
+   "name": "Brother Amos's Fellowship",
+   "value": -4,
+   "reason": "doctrinal dispute"
+  },
+  {
+   "name": "The Church of the Second Spitball",
+   "value": -4,
+   "reason": "heresy"
+  }
+ ],
+ "moves": [
+  {
+   "day": 3,
+   "text": "Called up Jack Reyes"
+  },
+  {
+   "day": 3,
+   "text": "Injured: Wes Salazar"
+  },
+  {
+   "day": 2,
+   "text": "Injured: Dutch Ueda"
+  }
+ ]
+}

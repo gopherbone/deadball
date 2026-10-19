@@ -1,0 +1,453 @@
+{
+ "day": 7,
+ "games": [
+  {
+   "id": "S1D7ML0",
+   "day": 7,
+   "firstPitchAt": 1792367370245,
+   "firstPitchIn": 10,
+   "finalAt": 1792367398245,
+   "finalIn": 38,
+   "status": "scheduled",
+   "home": {
+    "id": "MIL",
+    "abbr": "MIL",
+    "city": "Millbrook",
+    "name": "Ironmen",
+    "level": "ML",
+    "record": "6-0"
+   },
+   "away": {
+    "id": "HCL",
+    "abbr": "HCL",
+    "city": "Harbor City",
+    "name": "Lamplighters",
+    "level": "ML",
+    "record": "3-3"
+   },
+   "probables": {
+    "home": {
+     "id": "p329",
+     "name": "Lonnie Quigley",
+     "face": "face:11",
+     "teamAbbr": "MIL",
+     "pos": "P",
+     "line": "1-0, 4.26"
+    },
+    "away": {
+     "id": "p15",
+     "name": "Reggie Jimenez",
+     "face": "face:564",
+     "teamAbbr": "HCL",
+     "pos": "P",
+     "line": "0-0, 2.25"
+    }
+   },
+   "pool": {
+    "home": 361,
+    "away": 115,
+    "pays": {
+     "home": 1.31,
+     "away": 4.13
+    },
+    "house": {
+     "home": 361,
+     "away": 115
+    }
+   },
+   "umpire": {
+    "id": "n14",
+    "name": "Cy Paige",
+    "face": "face:334",
+    "pos": "UMP"
+   },
+   "weather": "55F, wind 4 mph out to LF, showers",
+   "park": "Furnace Field",
+   "circuit": "continental"
+  },
+  {
+   "id": "S1D7ML1",
+   "day": 7,
+   "firstPitchAt": 1792367378816,
+   "firstPitchIn": 19,
+   "finalAt": 1792367406816,
+   "finalIn": 47,
+   "status": "scheduled",
+   "home": {
+    "id": "PEM",
+    "abbr": "PEM",
+    "city": "Port Ellis",
+    "name": "Mariners",
+    "level": "ML",
+    "record": "3-3"
+   },
+   "away": {
+    "id": "CSR",
+    "abbr": "CSR",
+    "city": "Cold Spring",
+    "name": "Rustlers",
+    "level": "ML",
+    "record": "3-3"
+   },
+   "probables": {
+    "home": {
+     "id": "p222",
+     "name": "Ollie Esposito",
+     "face": "face:125",
+     "teamAbbr": "PEM",
+     "pos": "P",
+     "line": "0-1, 2.25"
+    },
+    "away": {
+     "id": "p434",
+     "name": "Jack Barrow",
+     "face": "face:29",
+     "teamAbbr": "CSR",
+     "pos": "P",
+     "line": "1-0, 1.17"
+    }
+   },
+   "pool": {
+    "home": 0,
+    "away": 0,
+    "pays": {
+     "home": 0,
+     "away": 0
+    },
+    "house": {
+     "home": 0,
+     "away": 0
+    }
+   },
+   "umpire": {
+    "id": "n5",
+    "name": "Satchel Underhill",
+    "face": "face:259",
+    "pos": "UMP"
+   },
+   "weather": "52F, wind 12 mph out to CF, showers",
+   "park": "Wharf Street Grounds",
+   "circuit": "continental"
+  },
+  {
+   "id": "S1D7ML2",
+   "day": 7,
+   "firstPitchAt": 1792367387388,
+   "firstPitchIn": 27,
+   "finalAt": 1792367415388,
+   "finalIn": 55,
+   "status": "scheduled",
+   "home": {
+    "id": "ELC",
+    "abbr": "ELC",
+    "city": "Electric City",
+    "name": "Comets",
+    "level": "ML",
+    "record": "5-1"
+   },
+   "away": {
+    "id": "STA",
+    "abbr": "STA",
+    "city": "St. Albans",
+    "name": "Friars",
+    "level": "ML",
+    "record": "1-5"
+   },
+   "probables": {
+    "home": {
+     "id": "p743",
+     "name": "Lou Delahanty",
+     "face": "face:103",
+     "teamAbbr": "ELC",
+     "pos": "P",
+     "line": "1-0, 0.00"
+    },
+    "away": {
+     "id": "p118",
+     "name": "Minnie Gibson",
+     "face": "face:172",
+     "teamAbbr": "STA",
+     "pos": "P",
+     "line": "0-1, 4.76"
+    }
+   },
+   "pool": {
+    "home": 0,
+    "away": 0,
+    "pays": {
+     "home": 0,
+     "away": 0
+    },
+    "house": {
+     "home": 0,
+     "away": 0
+    }
+   },
+   "umpire": {
+    "id": "n4",
+    "name": "Ned Barrow",
+    "face": "face:597",
+    "pos": "UMP"
+   },
+   "weather": "60F, wind 13 mph out to LF, showers",
+   "park": "Dynamo Stadium",
+   "circuit": "continental"
+  },
+  {
+   "id": "S1D7ML3",
+   "day": 7,
+   "firstPitchAt": 1792367395959,
+   "firstPitchIn": 36,
+   "finalAt": 1792367423959,
+   "finalIn": 64,
+   "status": "scheduled",
+   "home": {
+    "id": "NCG",
+    "abbr": "NCG",
+    "city": "New Corinth",
+    "name": "Grays",
+    "level": "ML",
+    "record": "0-6"
+   },
+   "away": {
+    "id": "MRL",
+    "abbr": "MRL",
+    "city": "Marlow",
+    "name": "Pilgrims",
+    "level": "ML",
+    "record": "3-3"
+   },
+   "probables": {
+    "home": {
+     "id": "p535",
+     "name": "Darnell Lindqvist",
+     "face": "face:453",
+     "teamAbbr": "NCG",
+     "pos": "P",
+     "line": "0-1, 7.11"
+    },
+    "away": {
+     "id": "p639",
+     "name": "Darnell Shaughnessy",
+     "face": "face:10",
+     "teamAbbr": "MRL",
+     "pos": "P",
+     "line": "0-0, 0.00"
+    }
+   },
+   "pool": {
+    "home": 0,
+    "away": 0,
+    "pays": {
+     "home": 0,
+     "away": 0
+    },
+    "house": {
+     "home": 0,
+     "away": 0
+    }
+   },
+   "umpire": {
+    "id": "n15",
+    "name": "Rita Novak",
+    "face": "face:460",
+    "pos": "UMP"
+   },
+   "weather": "47F, wind 10 mph out to RF, showers",
+   "park": "Corinth Commons",
+   "circuit": "continental"
+  },
+  {
+   "id": "S1D7EL0",
+   "day": 7,
+   "firstPitchAt": 1792367374531,
+   "firstPitchIn": 14,
+   "finalAt": 1792367402531,
+   "finalIn": 42,
+   "status": "scheduled",
+   "home": {
+    "id": "MFP",
+    "abbr": "MFP",
+    "city": "Mirage Flats",
+    "name": "Phantoms",
+    "level": "EL",
+    "record": "3-3"
+   },
+   "away": {
+    "id": "TJP",
+    "abbr": "TJP",
+    "city": "Tumbleweed Junction",
+    "name": "Prospectors",
+    "level": "EL",
+    "record": "5-1"
+   },
+   "probables": {
+    "home": {
+     "id": "p847",
+     "name": "Emil Jimenez",
+     "face": "face:263",
+     "teamAbbr": "MFP",
+     "pos": "P",
+     "line": "1-0, 0.00"
+    },
+    "away": {
+     "id": "p897",
+     "name": "Tito Fitzgerald",
+     "face": "face:79",
+     "teamAbbr": "TJP",
+     "pos": "P",
+     "line": "1-0, 3.00"
+    }
+   },
+   "pool": {
+    "home": 0,
+    "away": 0,
+    "pays": {
+     "home": 0,
+     "away": 0
+    },
+    "house": {
+     "home": 0,
+     "away": 0
+    }
+   },
+   "umpire": {
+    "id": "n1413",
+    "name": "Cy Pickles",
+    "face": "face:594",
+    "pos": "UMP"
+   },
+   "weather": "53F, wind 5 mph out to LF, showers",
+   "park": "The Oasis",
+   "circuit": "enhanced"
+  },
+  {
+   "id": "S1D7EL1",
+   "day": 7,
+   "firstPitchAt": 1792367383102,
+   "firstPitchIn": 23,
+   "finalAt": 1792367411102,
+   "finalIn": 51,
+   "status": "scheduled",
+   "home": {
+    "id": "BVG",
+    "abbr": "BVG",
+    "city": "Bone Valley",
+    "name": "Ghosts",
+    "level": "EL",
+    "record": "2-4"
+   },
+   "away": {
+    "id": "CCM",
+    "abbr": "CCM",
+    "city": "Crater City",
+    "name": "Meteors",
+    "level": "EL",
+    "record": "2-4"
+   },
+   "probables": {
+    "home": {
+     "id": "p976",
+     "name": "Lou O'Rourke",
+     "face": "face:477",
+     "teamAbbr": "BVG",
+     "pos": "P",
+     "line": "0-1, 10.38"
+    },
+    "away": {
+     "id": "p954",
+     "name": "Cal Swindell",
+     "face": "face:197",
+     "teamAbbr": "CCM",
+     "pos": "P",
+     "line": "0-0, 1.69"
+    }
+   },
+   "pool": {
+    "home": 0,
+    "away": 0,
+    "pays": {
+     "home": 0,
+     "away": 0
+    },
+    "house": {
+     "home": 0,
+     "away": 0
+    }
+   },
+   "umpire": {
+    "id": "n1414",
+    "name": "Ray Stottlemyre",
+    "face": "face:75",
+    "pos": "UMP"
+   },
+   "weather": "46F, wind 3 mph out to LF, rain likely",
+   "park": "Boot Hill Yard",
+   "circuit": "enhanced"
+  },
+  {
+   "id": "S1D7EL2",
+   "day": 7,
+   "firstPitchAt": 1792367391674,
+   "firstPitchIn": 31,
+   "finalAt": 1792367419674,
+   "finalIn": 59,
+   "status": "scheduled",
+   "home": {
+    "id": "SBS",
+    "abbr": "SBS",
+    "city": "Salt Basin",
+    "name": "Saints",
+    "level": "EL",
+    "record": "2-4"
+   },
+   "away": {
+    "id": "AN9",
+    "abbr": "AN9",
+    "city": "Area Nine",
+    "name": "Visitors",
+    "level": "EL",
+    "record": "4-2"
+   },
+   "probables": {
+    "home": {
+     "id": "p927",
+     "name": "Emil Brannigan",
+     "face": "face:212",
+     "teamAbbr": "SBS",
+     "pos": "P",
+     "line": "0-1, 5.40"
+    },
+    "away": {
+     "id": "p876",
+     "name": "Archie Charleston",
+     "face": "face:165",
+     "teamAbbr": "AN9",
+     "pos": "P",
+     "line": "1-1, 6.23"
+    }
+   },
+   "pool": {
+    "home": 0,
+    "away": 0,
+    "pays": {
+     "home": 0,
+     "away": 0
+    },
+    "house": {
+     "home": 0,
+     "away": 0
+    }
+   },
+   "umpire": {
+    "id": "n1412",
+    "name": "Frank Orr",
+    "face": "face:538",
+    "pos": "UMP"
+   },
+   "weather": "38F, wind 6 mph out to CF, showers",
+   "park": "The Salt Flat",
+   "circuit": "enhanced"
+  }
+ ]
+}

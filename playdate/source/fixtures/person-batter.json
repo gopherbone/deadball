@@ -1,0 +1,113 @@
+{
+ "person": {
+  "id": "p108",
+  "name": "Wally Puckett",
+  "face": "face:359",
+  "teamAbbr": "STA",
+  "pos": "2B",
+  "nickname": "Whitey",
+  "age": 28,
+  "bats": "R",
+  "throws": "R",
+  "traits": [
+   "Lazy"
+  ],
+  "mood": "chipper",
+  "status": "active"
+ },
+ "team": {
+  "id": "STA",
+  "abbr": "STA",
+  "city": "St. Albans",
+  "name": "Friars",
+  "level": "ML"
+ },
+ "family": {
+  "parents": [],
+  "children": [],
+  "house": "Puckett",
+  "houseNote": "House Puckett: 1 ballplayer, 0 titles. A name nobody's heard of."
+ },
+ "ties": [
+  {
+   "who": {
+    "id": "p106",
+    "name": "Wes Salazar",
+    "face": "face:583",
+    "teamAbbr": "STA",
+    "pos": "1B"
+   },
+   "value": 4,
+   "reason": "same hometown"
+  },
+  {
+   "who": {
+    "id": "p122",
+    "name": "Vic Jimenez",
+    "face": "face:74",
+    "teamAbbr": "STA",
+    "pos": "P"
+   },
+   "value": 4,
+   "reason": "fishing buddies"
+  },
+  {
+   "who": {
+    "id": "p112",
+    "name": "Emil Watanabe",
+    "face": "face:532",
+    "teamAbbr": "STA",
+    "pos": "LF"
+   },
+   "value": 4,
+   "reason": "same hometown"
+  },
+  {
+   "who": {
+    "id": "p104",
+    "name": "Jack Stottlemyre",
+    "face": "face:74",
+    "teamAbbr": "STA",
+    "pos": "C"
+   },
+   "value": 2,
+   "reason": "roommates on the road"
+  }
+ ],
+ "drama": [],
+ "stats": [
+  {
+   "season": 1,
+   "team": "STA",
+   "line": ".250, 1 HR, 2 RBI, 1 SB"
+  }
+ ],
+ "scouting": [
+  {
+   "label": "Contact",
+   "value": 4
+  },
+  {
+   "label": "Power",
+   "value": 4
+  },
+  {
+   "label": "Eye",
+   "value": 2
+  },
+  {
+   "label": "Speed",
+   "value": 4
+  },
+  {
+   "label": "Glove",
+   "value": 3
+  }
+ ],
+ "notes": ".250, 1 HR, 2 RBI this season. Lately: feeling good.",
+ "faces": [
+  "face:359"
+ ],
+ "visitors": 1,
+ "guestbook": []
+}

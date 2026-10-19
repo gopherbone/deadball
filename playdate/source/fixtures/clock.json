@@ -1,0 +1,18 @@
+{
+ "now": 1792367313433,
+ "season": 1,
+ "day": 5,
+ "phase": "regular",
+ "nextDayAt": 1792367334397,
+ "nextDayIn": 21,
+ "msPerDay": 40000,
+ "year": 1996,
+ "onAir": 3,
+ "nextPitchAt": 1792367317254,
+ "nextPitchIn": 4,
+ "nextGame": {
+  "id": "S1D5EL1",
+  "away": "MFP",
+  "home": "AN9"
+ }
+}

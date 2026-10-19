@@ -1,0 +1,2216 @@
+[
+  {
+    "id": "bat_crack_1",
+    "use": "bat_crack",
+    "file": "tools/audio/.cache/sfx/bat_crack_c9.mp3",
+    "title": "Hitting baseball w. wooden bat.wav",
+    "author": "CGEffex",
+    "page_url": "https://freesound.org/people/CGEffex/sounds/93136/",
+    "source_url": "https://cdn.freesound.org/previews/93/93136_1386366-hq.mp3",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "attribution": "\"Hitting baseball w. wooden bat.wav\" by CGEffex (https://freesound.org/people/CGEffex/sounds/93136/), licensed CC BY 4.0",
+    "duration_s": 23.242,
+    "notes": "BEST: real wooden bat hitting a baseball, 4 clean isolated hits at ~4.86, 10.76, 15.68, 20.82 s (each ~0.1 s transient + short tail); dead silence between. Centroid ~2.4 kHz (woody crack).",
+    "good_part": [
+      4.84,
+      5.3
+    ]
+  },
+  {
+    "id": "bat_crack_2",
+    "use": "bat_crack",
+    "file": "tools/audio/.cache/sfx/bat_crack_c7.mp3",
+    "title": "Bat Hit 4 FF100.aif",
+    "author": "martinimeniscus",
+    "page_url": "https://freesound.org/people/martinimeniscus/sounds/162867/",
+    "source_url": "https://cdn.freesound.org/previews/162/162867_2320755-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 0.801,
+    "notes": "Florentine Films SFX library (CC0) \"Baseball bat hit close, ext.\" Single brighter hit at 0.05 s, centroid ~3.4 kHz.",
+    "good_part": [
+      0.03,
+      0.45
+    ]
+  },
+  {
+    "id": "bat_crack_3",
+    "use": "bat_crack",
+    "file": "tools/audio/.cache/sfx/bat_crack_c1.mp3",
+    "title": "Bat Hit 9 FF095.aif",
+    "author": "martinimeniscus",
+    "page_url": "https://freesound.org/people/martinimeniscus/sounds/162886/",
+    "source_url": "https://cdn.freesound.org/previews/162/162886_2320755-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 0.968,
+    "notes": "Same Florentine Films series (Bat Hit 9). Quieter (-21 dBFS peak), normalize. Hit at 0.02 s.",
+    "good_part": [
+      0.0,
+      0.5
+    ]
+  },
+  {
+    "id": "bat_crack_crowd_1",
+    "use": "bat_crack",
+    "file": "tools/audio/.cache/sfx/bat_crack_crowd_c1.mp3",
+    "title": "BaseballHitAndCrowdCheer.mp3",
+    "author": "AmishRob",
+    "page_url": "https://freesound.org/people/AmishRob/sounds/214989/",
+    "source_url": "https://cdn.freesound.org/previews/214/214989_4023430-hq.mp3",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "attribution": "\"BaseballHitAndCrowdCheer.mp3\" by AmishRob (https://freesound.org/people/AmishRob/sounds/214989/), licensed CC BY 4.0",
+    "duration_s": 7.839,
+    "notes": "Bonus: wooden bat crack (~0.78 s) followed by crowd cheer that fades; a remix of CGEffex bat + AshFox ballpark cheer (both CC BY). Use whole as a home-run stinger.",
+    "good_part": [
+      0.45,
+      7.5
+    ]
+  },
+  {
+    "id": "mitt_pop_1",
+    "use": "mitt_pop",
+    "file": "tools/audio/.cache/sfx/mitt_pop_c8.mp3",
+    "title": "Glove Catch 10 FF005.aif",
+    "author": "martinimeniscus",
+    "page_url": "https://freesound.org/people/martinimeniscus/sounds/164525/",
+    "source_url": "https://cdn.freesound.org/previews/164/164525_2320755-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 0.801,
+    "notes": "BEST CC0: Florentine Films \"Glove Catch 10\" - quick high-pitched catch, light smack at 0.11 s.",
+    "good_part": [
+      0.08,
+      0.4
+    ]
+  },
+  {
+    "id": "mitt_pop_2",
+    "use": "mitt_pop",
+    "file": "tools/audio/.cache/sfx/mitt_pop_c6.mp3",
+    "title": "Glove Catch 12 FF003.aif",
+    "author": "martinimeniscus",
+    "page_url": "https://freesound.org/people/martinimeniscus/sounds/164536/",
+    "source_url": "https://cdn.freesound.org/previews/164/164536_2320755-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 1.301,
+    "notes": "Florentine Films \"Glove Catch 12\" - soft smack, loud, high pitch; hit at 0.25 s.",
+    "good_part": [
+      0.22,
+      0.55
+    ]
+  },
+  {
+    "id": "mitt_pop_3",
+    "use": "mitt_pop",
+    "file": "tools/audio/.cache/sfx/mitt_pop_c4.mp3",
+    "title": "catcher hitting mit.aif",
+    "author": "MAJ061785",
+    "page_url": "https://freesound.org/people/MAJ061785/sounds/85542/",
+    "source_url": "https://cdn.freesound.org/previews/85/85542_1275441-hq.mp3",
+    "license": "CC BY 3.0",
+    "license_url": "http://creativecommons.org/licenses/by/3.0/",
+    "attribution": "\"catcher hitting mit.aif\" by MAJ061785 (https://freesound.org/people/MAJ061785/sounds/85542/), licensed CC BY 3.0",
+    "duration_s": 1.833,
+    "notes": "Catcher mitt, 4 hits at ~0.11, 0.49 (loudest), 0.89, 1.33 s. Deeper/leathery (centroid ~2 kHz) - good catcher pop.",
+    "good_part": [
+      0.45,
+      0.75
+    ]
+  },
+  {
+    "id": "crowd_roar_1",
+    "use": "crowd_roar",
+    "file": "tools/audio/.cache/sfx/crowd_mlb_homerun.mp3",
+    "title": "Crowd and field noise before and during homerun hit at MLB baseball stadium",
+    "author": "bmadore",
+    "page_url": "https://freesound.org/people/bmadore/sounds/691975/",
+    "source_url": "https://cdn.freesound.org/previews/691/691975_5111753-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 61.317,
+    "notes": "Real MLB game (Target Field, 2023). 0-13.5 s quiet walla (~-40 dBFS); distant bat crack ~13.4-14.1 s; crowd cheer swell 14-50 s, peak ~18-25 s. Low level overall: normalize. 0-13 s also usable as ballpark murmur.",
+    "good_part": [
+      14.0,
+      20.0
+    ]
+  },
+  {
+    "id": "crowd_roar_2",
+    "use": "crowd_roar",
+    "file": "tools/audio/.cache/sfx/crowd_roar_c2.mp3",
+    "title": "Crowd Cheer",
+    "author": "FoolBoyMedia",
+    "page_url": "https://freesound.org/people/FoolBoyMedia/sounds/397434/",
+    "source_url": "https://cdn.freesound.org/previews/397/397434_4019029-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 20.405,
+    "notes": "Sports crowd cheering a win, loudest 2-5 s; tail fades 18-20 s. Clean, punchy.",
+    "good_part": [
+      1.0,
+      6.0
+    ]
+  },
+  {
+    "id": "crowd_roar_3",
+    "use": "crowd_roar",
+    "file": "tools/audio/.cache/sfx/crowd_roar_c1.mp3",
+    "title": "RoaringCrowd.wav",
+    "author": "benfree",
+    "page_url": "https://freesound.org/people/benfree/sounds/130568/",
+    "source_url": "https://cdn.freesound.org/previews/130/130568_2024417-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 19.293,
+    "notes": "Backup: rock-concert roaring audience; steady, swells at 10-11 s and 16-19 s.",
+    "good_part": [
+      15.5,
+      19.3
+    ]
+  },
+  {
+    "id": "crowd_ambience_1",
+    "use": "crowd_ambience",
+    "file": "tools/audio/.cache/sfx/crowd_ambience_fenway.mp3",
+    "title": "Fenway Ambience 1.m4a",
+    "author": "Douglas711",
+    "page_url": "https://freesound.org/people/Douglas711/sounds/424295/",
+    "source_url": "https://cdn.freesound.org/previews/424/424295_3609277-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 25.356,
+    "notes": "Real Fenway Park ambience (2015). Fairly steady -13..-17 dBFS; small spikes at ~9 s and ~12.5 s; 13-23 s is steadiest for a loop (crossfade).",
+    "good_part": [
+      13.0,
+      23.0
+    ]
+  },
+  {
+    "id": "crowd_ambience_2",
+    "use": "crowd_ambience",
+    "file": "tools/audio/.cache/sfx/crowd_ambience_nyc.mp3",
+    "title": "baseball game girls NYC, USA.flac",
+    "author": "kyles",
+    "page_url": "https://freesound.org/people/kyles/sounds/452923/",
+    "source_url": "https://cdn.freesound.org/previews/452/452923_612689-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 40.875,
+    "notes": "Baseball game ambience NYC; quieter, variable, cheers at ~2-6 s, 15.5-18 s, 35.5-36.5 s.",
+    "good_part": [
+      22.0,
+      35.0
+    ]
+  },
+  {
+    "id": "crowd_ambience_3",
+    "use": "crowd_ambience",
+    "file": "tools/audio/.cache/sfx/crowd_yells_c1.mp3",
+    "title": "yells.mp3",
+    "author": "jasinski",
+    "page_url": "https://freesound.org/people/jasinski/sounds/18365/",
+    "source_url": "https://cdn.freesound.org/previews/18/18365_71309-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 25.836,
+    "notes": "Baseball game crowd yelling/cheering; 0-9 s steady mid-level, swell 9.5-13.5 s (alt roar).",
+    "good_part": [
+      0.0,
+      9.0
+    ]
+  },
+  {
+    "id": "crowd_boo_1",
+    "use": "crowd_boo",
+    "file": "tools/audio/.cache/sfx/crowd_boo_c1.mp3",
+    "title": "Crowd Boo.wav",
+    "author": "deleted_user_2104797",
+    "page_url": "https://freesound.org/people/deleted_user_2104797/sounds/324893/",
+    "source_url": "https://cdn.freesound.org/previews/324/324893_2104797-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 36.987,
+    "notes": "Small crowd booing/hissing, 4 takes: ~0.5-6.5, 8-14, 16.5-23, 24.5-36 s.",
+    "good_part": [
+      16.5,
+      20.5
+    ]
+  },
+  {
+    "id": "crowd_boo_2",
+    "use": "crowd_boo",
+    "file": "tools/audio/.cache/sfx/crowd_boo_c2.mp3",
+    "title": "Voice_Crowd_Small_Expression_Boo_Stereo",
+    "author": "Nox_Sound",
+    "page_url": "https://freesound.org/people/Nox_Sound/sounds/752707/",
+    "source_url": "https://cdn.freesound.org/previews/752/752707_9250976-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 2.245,
+    "notes": "Short small-crowd \"boo\" expression, whole file.",
+    "good_part": [
+      0.0,
+      2.2
+    ]
+  },
+  {
+    "id": "crowd_boo_3",
+    "use": "crowd_boo",
+    "file": "tools/audio/.cache/sfx/crowd_unhappy_c1.mp3",
+    "title": "S30-19 Unhappy baseball crowd.wav",
+    "author": "craigsmith",
+    "page_url": "https://freesound.org/people/craigsmith/sounds/675066/",
+    "source_url": "https://cdn.freesound.org/previews/675/675066_2524442-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 13.495,
+    "notes": "Vintage-style \"Unhappy baseball crowd\" (craigsmith digitized old SFX library). Dense, steady; good grumble/boo bed 0-12 s.",
+    "good_part": [
+      0.0,
+      4.0
+    ]
+  },
+  {
+    "id": "crowd_yell_ump_1",
+    "use": "crowd_boo",
+    "file": "tools/audio/.cache/sfx/crowd_yell_ump_c1.mp3",
+    "title": "S30-06 Baseball crowd yells at umpire.wav",
+    "author": "craigsmith",
+    "page_url": "https://freesound.org/people/craigsmith/sounds/675060/",
+    "source_url": "https://cdn.freesound.org/previews/675/675060_2524442-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 21.345,
+    "notes": "Bonus: vintage \"Baseball crowd yells at umpire\" (craigsmith). Steady 0-19 s.",
+    "good_part": [
+      0.0,
+      6.0
+    ]
+  },
+  {
+    "id": "applause_1",
+    "use": "applause",
+    "file": "tools/audio/.cache/sfx/applause_c1.mp3",
+    "title": "R02-07-Steady Applause Medium Crowd.wav",
+    "author": "craigsmith",
+    "page_url": "https://freesound.org/people/craigsmith/sounds/480683/",
+    "source_url": "https://cdn.freesound.org/previews/480/480683_2524442-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 6.956,
+    "notes": "Steady applause, medium crowd; fades at end.",
+    "good_part": [
+      0.5,
+      6.5
+    ]
+  },
+  {
+    "id": "applause_2",
+    "use": "applause",
+    "file": "tools/audio/.cache/sfx/crowd_clap_rhythm_c1.mp3",
+    "title": "bb-clapRhm.mp3",
+    "author": "jasinski",
+    "page_url": "https://freesound.org/people/jasinski/sounds/18364/",
+    "source_url": "https://cdn.freesound.org/previews/18/18364_71309-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 3.998,
+    "notes": "Baseball game crowd rhythmic claps (let's-go clapping). Whole file.",
+    "good_part": [
+      0.0,
+      4.0
+    ]
+  },
+  {
+    "id": "crowd_ooh_1",
+    "use": "crowd_ooh",
+    "file": "tools/audio/.cache/sfx/crowd_ooh_c1.mp3",
+    "title": "Crowd Oooh.wav",
+    "author": "deleted_user_2104797",
+    "page_url": "https://freesound.org/people/deleted_user_2104797/sounds/324890/",
+    "source_url": "https://cdn.freesound.org/previews/324/324890_2104797-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 16.187,
+    "notes": "Crowd \"Oooh\" x3: ~0.8-4.5, 5.8-9.8, 11.5-15.5 s.",
+    "good_part": [
+      0.8,
+      4.5
+    ]
+  },
+  {
+    "id": "crowd_ooh_2",
+    "use": "crowd_ooh",
+    "file": "tools/audio/.cache/sfx/crowd_gasp_c1.mp3",
+    "title": "small crowd gasp shock surprise",
+    "author": "HowardV",
+    "page_url": "https://freesound.org/people/HowardV/sounds/264376/",
+    "source_url": "https://cdn.freesound.org/previews/264/264376_1654262-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 8.625,
+    "notes": "~20-person gasp/surprise; sustained -9 dB to 7.5 s, take first 2.5 s with fade.",
+    "good_part": [
+      0.0,
+      2.5
+    ]
+  },
+  {
+    "id": "crowd_groan_1",
+    "use": "crowd_groan",
+    "file": "tools/audio/.cache/sfx/crowd_groan_c1.mp3",
+    "title": "CRWDAngr_Crowd Groans At Bad Joke 01_ShaneVincent_GSC24_FUMA-AmbeoVR.wav",
+    "author": "ShangusBurger",
+    "page_url": "https://freesound.org/people/ShangusBurger/sounds/764035/",
+    "source_url": "https://cdn.freesound.org/previews/764/764035_11744683-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 3.221,
+    "notes": "Medium crowd groaning (at bad joke). Quiet file (-29 dBFS peak) - normalize.",
+    "good_part": [
+      0.4,
+      2.6
+    ]
+  },
+  {
+    "id": "umpire_voice_1",
+    "use": "umpire_call",
+    "file": "tools/audio/.cache/sfx/umpire_voice_c1.mp3",
+    "title": "American Baseball The Umpire.wav",
+    "author": "jcookvoice",
+    "page_url": "https://freesound.org/people/jcookvoice/sounds/625473/",
+    "source_url": "https://cdn.freesound.org/previews/625/625473_9341034-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 24.707,
+    "notes": "Voice actor umpire calls (description: \"Safe\", \"you're out\", \"strike 3 you're out\", \"safe\"). 4 phrases detected at 1.88-3.40, 4.86-7.26, 8.48-9.88, 11.48-12.04 s - presumably in that order; verify by ear. Peaks ~0 dBFS (hot). No plain \"strike!\"/\"play ball\" found under CC0/CC-BY: could be cut from \"strike 3\".",
+    "good_part": [
+      4.86,
+      7.26
+    ]
+  },
+  {
+    "id": "vintage_casey_1",
+    "use": "umpire_call",
+    "file": "tools/audio/.cache/sfx/vintage_casey_at_the_bat_hopper.ogg",
+    "title": "CaseyAtTheBat",
+    "author": "en:DeWolf Hopper",
+    "page_url": "https://commons.wikimedia.org/wiki/File:CaseyAtTheBat.ogg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/9/94/CaseyAtTheBat.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "Public domain",
+    "license_url": "",
+    "attribution": "",
+    "duration_s": 280.32,
+    "notes": "Bonus/lo-fi: DeWolf Hopper reciting \"Casey at the Bat\" (contains \"Strike one!\" / \"Strike two!\" spoken lines in the second half; timestamps not located - needs listening). Commons tags it Public domain, date given as \"c. 1920\": PD in US only if published before 1926 - verify date before shipping.",
+    "good_part": null
+  },
+  {
+    "id": "vintage_skit_1",
+    "use": "umpire_call",
+    "file": "tools/audio/.cache/sfx/vintage_baseball_skit_1916.mp3",
+    "title": "Baseball game (1916, Weber & Fields)",
+    "author": "Lew Fields, Joe Weber",
+    "page_url": "https://commons.wikimedia.org/wiki/File:Baseball_game_(1916,_Weber_%26_Fields).mp3",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/7/79/Baseball_game_%281916%2C_Weber_%26_Fields%29.mp3?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "Public domain",
+    "license_url": "",
+    "attribution": "",
+    "duration_s": 171.621,
+    "notes": "Bonus/lo-fi: Weber & Fields \"Baseball game\" comedy skit, 1916 (Library of Congress, Columbia A2092). Pre-1926 US recording = public domain. May contain umpire/crowd lines; not auditioned.",
+    "good_part": null
+  },
+  {
+    "id": "whistle_ref_1",
+    "use": "umpire_whistle",
+    "file": "tools/audio/.cache/sfx/whistle_ref_c1.mp3",
+    "title": "Referee whistle blow, gymnasium.wav",
+    "author": "SpliceSound",
+    "page_url": "https://freesound.org/people/SpliceSound/sounds/218318/",
+    "source_url": "https://cdn.freesound.org/previews/218/218318_1480854-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 3.329,
+    "notes": "Referee whistle blast in gymnasium, blast 0.12-0.54 s + room tail.",
+    "good_part": [
+      0.1,
+      0.6
+    ]
+  },
+  {
+    "id": "whistle_ref_2",
+    "use": "umpire_whistle",
+    "file": "tools/audio/.cache/sfx/whistle_ref_c2.mp3",
+    "title": "Referee whistle sound.wav",
+    "author": "Rosa-Orenes256",
+    "page_url": "https://freesound.org/people/Rosa-Orenes256/sounds/538422/",
+    "source_url": "https://cdn.freesound.org/previews/538/538422_11966684-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 0.536,
+    "notes": "Short dry referee whistle tweet.",
+    "good_part": [
+      0.0,
+      0.4
+    ]
+  },
+  {
+    "id": "vendor_call_1",
+    "use": "vendor_call",
+    "file": "tools/audio/.cache/sfx/vendor_beer_c1.mp3",
+    "title": "Beer Sale At the Game",
+    "author": "jdbingle",
+    "page_url": "https://freesound.org/people/jdbingle/sounds/784896/",
+    "source_url": "https://cdn.freesound.org/previews/784/784896_2543759-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 7.788,
+    "notes": "Real ballpark vendor shouting \"Cold Beer!\" with crowd behind (pre-2000 pro game). Noisy bed throughout (floor -13 dB); call position not isolated. No CC0/CC-BY \"hot dogs/peanuts\" call found.",
+    "good_part": [
+      0.0,
+      7.8
+    ]
+  },
+  {
+    "id": "vendor_bell_1",
+    "use": "vendor_bell",
+    "file": "tools/audio/.cache/sfx/bell_hand_c1.mp3",
+    "title": "Hand Bell.wav",
+    "author": "WebbFilmsUK",
+    "page_url": "https://freesound.org/people/WebbFilmsUK/sounds/200318/",
+    "source_url": "https://cdn.freesound.org/previews/200/200318_2641534-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 8.954,
+    "notes": "Old-fashioned hand bell ringing, lively room; ring 0.14-5.16 s.",
+    "good_part": [
+      0.1,
+      5.2
+    ]
+  },
+  {
+    "id": "vendor_bell_2",
+    "use": "vendor_bell",
+    "file": "tools/audio/.cache/sfx/bell_service_c1.mp3",
+    "title": "Service bell louder",
+    "author": "Squidems",
+    "page_url": "https://freesound.org/people/Squidems/sounds/709925/",
+    "source_url": "https://cdn.freesound.org/previews/709/709925_3199363-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 6.949,
+    "notes": "Desk/service bell single ding at 1.4 s (also handy as a generic \"ding\"/mail chime).",
+    "good_part": [
+      1.35,
+      4.1
+    ]
+  },
+  {
+    "id": "vendor_bell_3",
+    "use": "vendor_bell",
+    "file": "tools/audio/.cache/sfx/bell_fire_c1.ogg",
+    "title": "WWS Firedepartmentbell",
+    "author": "Work With Sounds / Konrad Gutkowski",
+    "page_url": "https://commons.wikimedia.org/wiki/File:WWS_Firedepartmentbell.ogg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/8/8a/WWS_Firedepartmentbell.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "attribution": "\"WWS Firedepartmentbell\" by Work With Sounds / Konrad Gutkowski (https://commons.wikimedia.org/wiki/File:WWS_Firedepartmentbell.ogg), licensed CC BY 4.0",
+    "duration_s": 20.172,
+    "notes": "19th-c. fire-engine bell (Work With Sounds). Clangs 0.3-4.2 s and 7.3-18.2 s.",
+    "good_part": [
+      7.3,
+      10.0
+    ]
+  },
+  {
+    "id": "bell_signal_1",
+    "use": "vendor_bell",
+    "file": "tools/audio/.cache/sfx/bell_signal_c1.ogg",
+    "title": "WWS Signalbell",
+    "author": "Work With Sounds / Konrad Gutkowski",
+    "page_url": "https://commons.wikimedia.org/wiki/File:WWS_Signalbell.ogg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/5/5f/WWS_Signalbell.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "attribution": "\"WWS Signalbell\" by Work With Sounds / Konrad Gutkowski (https://commons.wikimedia.org/wiki/File:WWS_Signalbell.ogg), licensed CC BY 4.0",
+    "duration_s": 11.003,
+    "notes": "Mine signal bell (WWS): rings at 2.0, 3.6, 5.3, 6.1, 6.9 s.",
+    "good_part": [
+      2.0,
+      3.1
+    ]
+  },
+  {
+    "id": "telegraph_1",
+    "use": "telegraph",
+    "file": "tools/audio/.cache/sfx/telegraph_c1.mp3",
+    "title": "broadcast-news-keyer.wav",
+    "author": "wcfl10",
+    "page_url": "https://freesound.org/people/wcfl10/sounds/112773/",
+    "source_url": "https://cdn.freesound.org/previews/112/112773_156950-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 3.371,
+    "notes": "Old-fashioned newscast telegraph keyer/sounder clicks, 0-1.72 s then silence. Only CC0 telegraph-sounder clip found (Commons/WWS have none).",
+    "good_part": [
+      0.0,
+      1.75
+    ]
+  },
+  {
+    "id": "typewriter_1",
+    "use": "typewriter",
+    "file": "tools/audio/.cache/sfx/typewriter_c1.ogg",
+    "title": "WWS Typewriter",
+    "author": "Work With Sounds / Konrad Gutkowski",
+    "page_url": "https://commons.wikimedia.org/wiki/File:WWS_Typewriter.ogg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/2/25/WWS_Typewriter.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "attribution": "\"WWS Typewriter\" by Work With Sounds / Konrad Gutkowski (https://commons.wikimedia.org/wiki/File:WWS_Typewriter.ogg), licensed CC BY 4.0",
+    "duration_s": 25.898,
+    "notes": "Mechanical \"Erika 5\" (1940) typewriter (Work With Sounds): typing bursts 0.5-2, 2.4-5.5, 6.1-14.3 s; carriage/bell sounds near end ~24.8 s.",
+    "good_part": [
+      6.1,
+      10.0
+    ]
+  },
+  {
+    "id": "typewriter_2",
+    "use": "typewriter",
+    "file": "tools/audio/.cache/sfx/typewriter_c2.mp3",
+    "title": "typewriter_manual_typing.wav",
+    "author": "magedu",
+    "page_url": "https://freesound.org/people/magedu/sounds/277302/",
+    "source_url": "https://cdn.freesound.org/previews/277/277302_4877562-hq.mp3",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "attribution": "\"typewriter_manual_typing.wav\" by magedu (https://freesound.org/people/magedu/sounds/277302/), licensed CC BY 4.0",
+    "duration_s": 4.8,
+    "notes": "Short manual typewriter typing, clean; quiet (-26 dBFS peak) - normalize.",
+    "good_part": [
+      0.2,
+      4.5
+    ]
+  },
+  {
+    "id": "typewriter_bell_1",
+    "use": "typewriter_bell",
+    "file": "tools/audio/.cache/sfx/typewriter_bell_c1.mp3",
+    "title": "Typewriter Bell.wav",
+    "author": "ramsamba",
+    "page_url": "https://freesound.org/people/ramsamba/sounds/318687/",
+    "source_url": "https://cdn.freesound.org/previews/318/318687_1147663-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 0.89,
+    "notes": "Typewriter bell ding, whole file.",
+    "good_part": [
+      0.0,
+      0.86
+    ]
+  },
+  {
+    "id": "teletype_1",
+    "use": "teletype",
+    "file": "tools/audio/.cache/sfx/teletype_c2.ogg",
+    "title": "WWS Teleprinterautomaticprinting",
+    "author": "Work With Sounds / Konrad Gutkowski",
+    "page_url": "https://commons.wikimedia.org/wiki/File:WWS_Teleprinterautomaticprinting.ogg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/WWS_Teleprinterautomaticprinting.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "attribution": "\"WWS Teleprinterautomaticprinting\" by Work With Sounds / Konrad Gutkowski (https://commons.wikimedia.org/wiki/File:WWS_Teleprinterautomaticprinting.ogg), licensed CC BY 4.0",
+    "duration_s": 40.911,
+    "notes": "Lorenz Lo 133 teleprinter automatic printing - very steady chatter 2-40 s, loopable.",
+    "good_part": [
+      2.0,
+      40.0
+    ]
+  },
+  {
+    "id": "teletype_2",
+    "use": "teletype",
+    "file": "tools/audio/.cache/sfx/teletype_c1.ogg",
+    "title": "WWS Teleprintertyping",
+    "author": "Work With Sounds / Konrad Gutkowski",
+    "page_url": "https://commons.wikimedia.org/wiki/File:WWS_Teleprintertyping.ogg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/4/46/WWS_Teleprintertyping.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "attribution": "\"WWS Teleprintertyping\" by Work With Sounds / Konrad Gutkowski (https://commons.wikimedia.org/wiki/File:WWS_Teleprintertyping.ogg), licensed CC BY 4.0",
+    "duration_s": 94.433,
+    "notes": "Same teleprinter, typing mode (94 s), steady chatter.",
+    "good_part": [
+      1.0,
+      20.0
+    ]
+  },
+  {
+    "id": "modem_1",
+    "use": "dialup_modem",
+    "file": "tools/audio/.cache/sfx/modem_c2.mp3",
+    "title": "The Sound of dial-up Internet",
+    "author": "wtermini",
+    "page_url": "https://freesound.org/people/wtermini/sounds/546450/",
+    "source_url": "https://cdn.freesound.org/previews/546/546450_11279746-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 28.674,
+    "notes": "Real dial-up connect recorded from an iMac G3 (2008): dial tone/DTMF ~1-4 s, ringback/answer 6.5-9 s, handshake screech 10-27 s.",
+    "good_part": [
+      1.0,
+      27.0
+    ]
+  },
+  {
+    "id": "cash_register_1",
+    "use": "cash_register",
+    "file": "tools/audio/.cache/sfx/cash_register_c1.ogg",
+    "title": "WWS CashregisteratWolkoffHouseMuseum",
+    "author": "Work With Sounds / Werstas",
+    "page_url": "https://commons.wikimedia.org/wiki/File:WWS_CashregisteratWolkoffHouseMuseum.ogg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/4/46/WWS_CashregisteratWolkoffHouseMuseum.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "attribution": "\"WWS CashregisteratWolkoffHouseMuseum\" by Work With Sounds / Werstas (https://commons.wikimedia.org/wiki/File:WWS_CashregisteratWolkoffHouseMuseum.ogg), licensed CC BY 4.0",
+    "duration_s": 16.214,
+    "notes": "1912 National Cash Register model 642 (Work With Sounds). Key/lever + bell/drawer events at ~1.0-1.3, 8.3-10.0 (loudest), 14.1-14.3 s - pick the \"ka-ching\" by ear.",
+    "good_part": [
+      8.2,
+      10.1
+    ]
+  },
+  {
+    "id": "cash_register_2",
+    "use": "cash_register",
+    "file": "tools/audio/.cache/sfx/cash_register_c3.mp3",
+    "title": "cash register.mp3",
+    "author": "SoundCollectah",
+    "page_url": "https://freesound.org/people/SoundCollectah/sounds/108278/",
+    "source_url": "https://cdn.freesound.org/previews/108/108278_1868848-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.719,
+    "notes": "Mechanical cash register operating, 1.86-6.78 s mechanism, loud hit at 7.66 s.",
+    "good_part": [
+      1.8,
+      8.0
+    ]
+  },
+  {
+    "id": "cash_drawer_1",
+    "use": "cash_register",
+    "file": "tools/audio/.cache/sfx/cash_drawer_c1.mp3",
+    "title": "cash drawer and receipt.wav",
+    "author": "kalisemorrison",
+    "page_url": "https://freesound.org/people/kalisemorrison/sounds/202531/",
+    "source_url": "https://cdn.freesound.org/previews/202/202531_3770352-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 2.322,
+    "notes": "Cash drawer opening + receipt print (modern), drawer ~0.94-2.18 s.",
+    "good_part": [
+      0.9,
+      2.2
+    ]
+  },
+  {
+    "id": "pack_tear_1",
+    "use": "pack_tear",
+    "file": "tools/audio/.cache/sfx/pack_tear_c1.mp3",
+    "title": "18_Opening_Chip_Bag.wav",
+    "author": "lmbubec",
+    "page_url": "https://freesound.org/people/lmbubec/sounds/118808/",
+    "source_url": "https://cdn.freesound.org/previews/118/118808_1990688-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 2.167,
+    "notes": "Opening a chip bag (foil/plastic crinkle + tear) - closest to a card-pack wrapper.",
+    "good_part": [
+      0.05,
+      2.1
+    ]
+  },
+  {
+    "id": "pack_tear_2",
+    "use": "pack_tear",
+    "file": "tools/audio/.cache/sfx/pack_tear_c2.mp3",
+    "title": "Tearing paper - 1",
+    "author": "Valerie-Vivegnis",
+    "page_url": "https://freesound.org/people/Valerie-Vivegnis/sounds/759317/",
+    "source_url": "https://cdn.freesound.org/previews/759/759317_15375955-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 3.776,
+    "notes": "Tearing paper; main rip at 1.26-1.48 s.",
+    "good_part": [
+      1.2,
+      1.6
+    ]
+  },
+  {
+    "id": "pack_tear_3",
+    "use": "pack_tear",
+    "file": "tools/audio/.cache/sfx/pack_tear_c3.mp3",
+    "title": "SFX_STICKERRIPPER_candyWrapper_38.wav",
+    "author": "MrFossy",
+    "page_url": "https://freesound.org/people/MrFossy/sounds/590213/",
+    "source_url": "https://cdn.freesound.org/previews/590/590213_129727-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 1.0,
+    "notes": "Candy-wrapper rip (sticky plastic tear) - short, crisp.",
+    "good_part": [
+      0.25,
+      0.85
+    ]
+  },
+  {
+    "id": "card_shuffle_1",
+    "use": "card_shuffle",
+    "file": "tools/audio/.cache/sfx/card_shuffle_c1.mp3",
+    "title": "Shuffling cards (riffle) 03.WAV",
+    "author": "VKProduktion",
+    "page_url": "https://freesound.org/people/VKProduktion/sounds/217503/",
+    "source_url": "https://cdn.freesound.org/previews/217/217503_4034520-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 5.36,
+    "notes": "Riffle shuffle, 2 takes: 0.12-2.72 and 3.78-5.1 s.",
+    "good_part": [
+      0.1,
+      2.75
+    ]
+  },
+  {
+    "id": "card_shuffle_2",
+    "use": "card_shuffle",
+    "file": "tools/audio/.cache/sfx/card_shuffle_c2.mp3",
+    "title": "Riffle Card Shuffle",
+    "author": "Kodack",
+    "page_url": "https://freesound.org/people/Kodack/sounds/256508/",
+    "source_url": "https://cdn.freesound.org/previews/256/256508_2276808-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 4.252,
+    "notes": "Riffle shuffle 0.3-1.7 s, bridge/flick 3.14-3.78 s.",
+    "good_part": [
+      3.1,
+      3.8
+    ]
+  },
+  {
+    "id": "card_flick_1",
+    "use": "card_flick",
+    "file": "tools/audio/.cache/sfx/card_flick_c1.mp3",
+    "title": "card_deck_flick_click.mp3",
+    "author": "Geoff-Bremner-Audio",
+    "page_url": "https://freesound.org/people/Geoff-Bremner-Audio/sounds/682449/",
+    "source_url": "https://cdn.freesound.org/previews/682/682449_10643461-hq.mp3",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "attribution": "\"card_deck_flick_click.mp3\" by Geoff-Bremner-Audio (https://freesound.org/people/Geoff-Bremner-Audio/sounds/682449/), licensed CC BY 4.0",
+    "duration_s": 0.589,
+    "notes": "Card drawn/flicked from deck, single click at 0.22 s.",
+    "good_part": [
+      0.2,
+      0.35
+    ]
+  },
+  {
+    "id": "police_whistle_1",
+    "use": "siren",
+    "file": "tools/audio/.cache/sfx/whistle_police_c1.mp3",
+    "title": "police whistle nearby good detail and echo India.flac",
+    "author": "kyles",
+    "page_url": "https://freesound.org/people/kyles/sounds/451464/",
+    "source_url": "https://cdn.freesound.org/previews/451/451464_612689-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 2.544,
+    "notes": "Real police whistle blast nearby with echo (India street); some street noise underneath.",
+    "good_part": [
+      0.0,
+      2.5
+    ]
+  },
+  {
+    "id": "siren_1",
+    "use": "siren",
+    "file": "tools/audio/.cache/sfx/siren_c1.mp3",
+    "title": "S06-04 Old mechanical police siren.wav",
+    "author": "craigsmith",
+    "page_url": "https://freesound.org/people/craigsmith/sounds/675700/",
+    "source_url": "https://cdn.freesound.org/previews/675/675700_2524442-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 27.839,
+    "notes": "Old mechanical (hand-crank) police siren, vintage library (craigsmith): wail 1.5-10 s, second wail 13.5-24 s.",
+    "good_part": [
+      1.5,
+      10.0
+    ]
+  },
+  {
+    "id": "handcuffs_1",
+    "use": "handcuffs",
+    "file": "tools/audio/.cache/sfx/handcuffs_c1.mp3",
+    "title": "cuffs locking.mp3",
+    "author": "Mbytemama93",
+    "page_url": "https://freesound.org/people/Mbytemama93/sounds/666604/",
+    "source_url": "https://cdn.freesound.org/previews/666/666604_14511033-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 7.328,
+    "notes": "Handcuffs clicking/locking; ratchets at 5.18-5.92 and 6.5-6.68 s (loudest).",
+    "good_part": [
+      5.1,
+      6.8
+    ]
+  },
+  {
+    "id": "handcuffs_2",
+    "use": "handcuffs",
+    "file": "tools/audio/.cache/sfx/handcuffs_c2.mp3",
+    "title": "Insert key release locking pin then ratchet.wav",
+    "author": "jameswrowles",
+    "page_url": "https://freesound.org/people/jameswrowles/sounds/437227/",
+    "source_url": "https://cdn.freesound.org/previews/437/437227_3874107-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 0.912,
+    "notes": "Steel handcuff locking-pin release + ratchet, close mic; quiet (-28 dBFS) - normalize.",
+    "good_part": [
+      0.0,
+      0.7
+    ]
+  },
+  {
+    "id": "jail_door_1",
+    "use": "jail_door",
+    "file": "tools/audio/.cache/sfx/jail_door_c1.mp3",
+    "title": "JailDoorClose.wav",
+    "author": "TurtleLG",
+    "page_url": "https://freesound.org/people/TurtleLG/sounds/80449/",
+    "source_url": "https://cdn.freesound.org/previews/80/80449_914292-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 6.707,
+    "notes": "Cinematic jail cell door close/clang 0.2-3.9 s (peaks -3 dB).",
+    "good_part": [
+      0.2,
+      4.0
+    ]
+  },
+  {
+    "id": "jail_door_2",
+    "use": "jail_door",
+    "file": "tools/audio/.cache/sfx/jail_door_c2.mp3",
+    "title": "Cell door 5.aiff",
+    "author": "kd_jack",
+    "page_url": "https://freesound.org/people/kd_jack/sounds/214233/",
+    "source_url": "https://cdn.freesound.org/previews/214/214233_1560047-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 3.884,
+    "notes": "Real prison cell door (recorded in a prison): slam 1.4-2.0 s, lock 3.36-3.74 s.",
+    "good_part": [
+      1.35,
+      3.8
+    ]
+  },
+  {
+    "id": "phone_ring_1",
+    "use": "old_phone_ring",
+    "file": "tools/audio/.cache/sfx/phone_ring_c2.mp3",
+    "title": "Ringtone: 1960s office phone",
+    "author": "knufds",
+    "page_url": "https://freesound.org/people/knufds/sounds/345805/",
+    "source_url": "https://cdn.freesound.org/previews/345/345805_191884-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 4.48,
+    "notes": "1950s-60s Bell System rotary desk phone mechanical bell ring (one ring burst 0.44-3.32 s).",
+    "good_part": [
+      0.4,
+      3.35
+    ]
+  },
+  {
+    "id": "phone_ring_2",
+    "use": "old_phone_ring",
+    "file": "tools/audio/.cache/sfx/phone_ring_c1.ogg",
+    "title": "WWS AutomatictelephoneSiemensampHalske8211ringing",
+    "author": "Work With Sounds / Technical Museum of Slovenia",
+    "page_url": "https://commons.wikimedia.org/wiki/File:WWS_AutomatictelephoneSiemensampHalske8211ringing.ogg",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/2/24/WWS_AutomatictelephoneSiemensampHalske8211ringing.ogg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0",
+    "attribution": "\"WWS AutomatictelephoneSiemensampHalske8211ringing\" by Work With Sounds / Technical Museum of Slovenia (https://commons.wikimedia.org/wiki/File:WWS_AutomatictelephoneSiemensampHalske8211ringing.ogg), licensed CC BY 4.0",
+    "duration_s": 23.541,
+    "notes": "Siemens & Halske desktop phone ringing (WWS), 5 rings every 5 s (0.06-1.64, 5.04-6.78, ...).",
+    "good_part": [
+      0.0,
+      1.7
+    ]
+  },
+  {
+    "id": "phone_ring_3",
+    "use": "old_phone_ring",
+    "file": "tools/audio/.cache/sfx/phone_ring_c3.mp3",
+    "title": "Omas Telefon 01.wav",
+    "author": "MrOptimism",
+    "page_url": "https://freesound.org/people/MrOptimism/sounds/509743/",
+    "source_url": "https://cdn.freesound.org/previews/509/509743_3084479-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 11.677,
+    "notes": "1920s-30s grandmother's telephone bell, ring 7.18-9.26 s.",
+    "good_part": [
+      7.1,
+      9.3
+    ]
+  },
+  {
+    "id": "chime_1",
+    "use": "mail_chime",
+    "file": "tools/audio/.cache/sfx/chime_c1.mp3",
+    "title": "Doorbell",
+    "author": "oganesson",
+    "page_url": "https://freesound.org/people/oganesson/sounds/555016/",
+    "source_url": "https://cdn.freesound.org/previews/555/555016_12434214-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 1.997,
+    "notes": "Doorbell \"ding-dong\" (2-tone) - usable for mail chime / stadium PA ding-dong. Noise floor high (-18 dB), may need gating.",
+    "good_part": [
+      0.0,
+      1.9
+    ]
+  },
+  {
+    "id": "chime_2",
+    "use": "mail_chime",
+    "file": "tools/audio/.cache/sfx/chime_c2.mp3",
+    "title": "Doorbell C",
+    "author": "kwahmah_02",
+    "page_url": "https://freesound.org/people/kwahmah_02/sounds/275568/",
+    "source_url": "https://cdn.freesound.org/previews/275/275568_4486188-hq.mp3",
+    "license": "CC BY 3.0",
+    "license_url": "http://creativecommons.org/licenses/by/3.0/",
+    "attribution": "\"Doorbell C\" by kwahmah_02 (https://freesound.org/people/kwahmah_02/sounds/275568/), licensed CC BY 3.0",
+    "duration_s": 2.379,
+    "notes": "Doorbell chime tuned to C (one of a chromatic set by kwahmah_02), clean decay.",
+    "good_part": [
+      0.0,
+      1.8
+    ]
+  },
+  {
+    "id": "organ_riff_1",
+    "use": "organ_riff",
+    "file": "tools/audio/.cache/sfx/organ_riff_baseball_c1.mp3",
+    "title": "baseball organ",
+    "author": "treblebooster",
+    "page_url": "https://freesound.org/people/treblebooster/sounds/151373/",
+    "source_url": "https://cdn.freesound.org/previews/151/151373_2657167-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 12.47,
+    "notes": "Live organ clip recorded at Wrigley Field (ballpark organ through PA + crowd). Recording CC0; organist's tune is trad. ballpark material.",
+    "good_part": [
+      0.0,
+      12.0
+    ]
+  },
+  {
+    "id": "organ_riff_2",
+    "use": "organ_riff",
+    "file": "tools/audio/.cache/sfx/organ_riff_charge_c1.mp3",
+    "title": "Baseball calvary sting long sustain.wav",
+    "author": "vckhaze",
+    "page_url": "https://freesound.org/people/vckhaze/sounds/380696/",
+    "source_url": "https://cdn.freesound.org/previews/380/380696_167075-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 4.571,
+    "notes": "\"Cavalry/charge\" sting a la baseball stadium with long chord ending (studio, clean).",
+    "good_part": [
+      0.0,
+      4.0
+    ]
+  },
+  {
+    "id": "organ_riff_3",
+    "use": "organ_riff",
+    "file": "tools/audio/.cache/sfx/organ_riff_ballpark_charge_c1.mp3",
+    "title": "WALLA_Ballpark Organ Cheering Charge",
+    "author": "AshFox",
+    "page_url": "https://freesound.org/people/AshFox/sounds/191928/",
+    "source_url": "https://cdn.freesound.org/previews/191/191928_923993-hq.mp3",
+    "license": "CC BY 3.0",
+    "license_url": "http://creativecommons.org/licenses/by/3.0/",
+    "attribution": "\"WALLA_Ballpark Organ Cheering Charge\" by AshFox (https://freesound.org/people/AshFox/sounds/191928/), licensed CC BY 3.0",
+    "duration_s": 45.361,
+    "notes": "Live: Rangers Ballpark organ playing the \"Charge\" + crowd cheering (Zoom H2). Organ/crowd loudest 18-25 s.",
+    "good_part": [
+      17.5,
+      26.0
+    ]
+  },
+  {
+    "id": "organ_riff_4",
+    "use": "organ_riff",
+    "file": "tools/audio/.cache/sfx/organ_riff_ballpark_letsgo_c1.mp3",
+    "title": "WALLA Ballpark Let's Go Organ",
+    "author": "AshFox",
+    "page_url": "https://freesound.org/people/AshFox/sounds/191923/",
+    "source_url": "https://cdn.freesound.org/previews/191/191923_923993-hq.mp3",
+    "license": "CC BY 3.0",
+    "license_url": "http://creativecommons.org/licenses/by/3.0/",
+    "attribution": "\"WALLA Ballpark Let's Go Organ\" by AshFox (https://freesound.org/people/AshFox/sounds/191923/), licensed CC BY 3.0",
+    "duration_s": 27.996,
+    "notes": "Live: ballpark organ + crowd chanting \"Let's Go!\".",
+    "good_part": [
+      5.0,
+      18.0
+    ]
+  },
+  {
+    "id": "ballpark_sing_1",
+    "use": "ballpark_ambience",
+    "file": "tools/audio/.cache/sfx/organ_take_me_out.mp3",
+    "title": "Take me Out to the Ball Game",
+    "author": "stomachache",
+    "page_url": "https://freesound.org/people/stomachache/sounds/274515/",
+    "source_url": "https://cdn.freesound.org/previews/274/274515_177850-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 43.721,
+    "notes": "Bonus: Dodger Stadium crowd singing \"Take Me Out to the Ball Game\" (song PD) - mostly crowd voices, loudest ~30-36 s.",
+    "good_part": [
+      30.0,
+      36.0
+    ]
+  },
+  {
+    "id": "organ_combo_a2",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_combo_A2.mp3",
+    "title": "Transistor Organ Violin - A2",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/399692/",
+    "source_url": "https://cdn.freesound.org/previews/399/399692_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.006,
+    "instrument": "transistor combo organ (Violin stop)",
+    "pitch_hz": 109.94,
+    "midi": 45,
+    "note": "A2",
+    "cents_off": -1,
+    "good_part": [
+      0.0,
+      9.0
+    ],
+    "sustain": [
+      0.06,
+      8.94
+    ],
+    "loop": {
+      "start_s": 2.0005,
+      "end_s": 4.7154,
+      "start_sample_44k1": 88224,
+      "end_sample_44k1": 207948,
+      "xcorr": 0.9997,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real transistor combo organ, \"Violin\" stop, DI recording (cabled_mess pack \"Transistor Organ Violin Samples\"). Steady 9 s sustain, no tremolo; extremely loopable. Sustain RMS std 0.58 dB."
+  },
+  {
+    "id": "organ_combo_c3",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_combo_C3.mp3",
+    "title": "Transistor Organ Violin - C3",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/399738/",
+    "source_url": "https://cdn.freesound.org/previews/399/399738_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.007,
+    "instrument": "transistor combo organ (Violin stop)",
+    "pitch_hz": 130.62,
+    "midi": 48,
+    "note": "C3",
+    "cents_off": -3,
+    "good_part": [
+      0.0,
+      9.0
+    ],
+    "sustain": [
+      0.06,
+      8.94
+    ],
+    "loop": {
+      "start_s": 2.0071,
+      "end_s": 5.6795,
+      "start_sample_44k1": 88513,
+      "end_sample_44k1": 250468,
+      "xcorr": 0.9998,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real transistor combo organ, \"Violin\" stop, DI recording (cabled_mess pack \"Transistor Organ Violin Samples\"). Steady 9 s sustain, no tremolo; extremely loopable. Sustain RMS std 0.85 dB."
+  },
+  {
+    "id": "organ_combo_ds3",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_combo_Ds3.mp3",
+    "title": "Transistor Organ Violin - D#3",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/399728/",
+    "source_url": "https://cdn.freesound.org/previews/399/399728_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.002,
+    "instrument": "transistor combo organ (Violin stop)",
+    "pitch_hz": 155.26,
+    "midi": 51,
+    "note": "D#3",
+    "cents_off": -3,
+    "good_part": [
+      0.0,
+      9.0
+    ],
+    "sustain": [
+      0.06,
+      8.94
+    ],
+    "loop": {
+      "start_s": 2.0061,
+      "end_s": 4.7207,
+      "start_sample_44k1": 88469,
+      "end_sample_44k1": 208183,
+      "xcorr": 0.9996,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real transistor combo organ, \"Violin\" stop, DI recording (cabled_mess pack \"Transistor Organ Violin Samples\"). Steady 9 s sustain, no tremolo; extremely loopable. Sustain RMS std 0.8 dB."
+  },
+  {
+    "id": "organ_combo_fs3",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_combo_Fs3.mp3",
+    "title": "Transistor Organ Violin - F#3",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/399707/",
+    "source_url": "https://cdn.freesound.org/previews/399/399707_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.001,
+    "instrument": "transistor combo organ (Violin stop)",
+    "pitch_hz": 184.53,
+    "midi": 54,
+    "note": "F#3",
+    "cents_off": -4,
+    "good_part": [
+      0.0,
+      9.0
+    ],
+    "sustain": [
+      0.06,
+      8.94
+    ],
+    "loop": {
+      "start_s": 2.0013,
+      "end_s": 4.7175,
+      "start_sample_44k1": 88258,
+      "end_sample_44k1": 208042,
+      "xcorr": 0.999,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real transistor combo organ, \"Violin\" stop, DI recording (cabled_mess pack \"Transistor Organ Violin Samples\"). Steady 9 s sustain, no tremolo; extremely loopable. Sustain RMS std 0.48 dB."
+  },
+  {
+    "id": "organ_combo_a3",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_combo_A3.mp3",
+    "title": "Transistor Organ Violin - A3",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/399693/",
+    "source_url": "https://cdn.freesound.org/previews/399/399693_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.0,
+    "instrument": "transistor combo organ (Violin stop)",
+    "pitch_hz": 219.72,
+    "midi": 57,
+    "note": "A3",
+    "cents_off": -2,
+    "good_part": [
+      0.0,
+      9.0
+    ],
+    "sustain": [
+      0.06,
+      8.94
+    ],
+    "loop": {
+      "start_s": 2.0029,
+      "end_s": 4.5585,
+      "start_sample_44k1": 88330,
+      "end_sample_44k1": 201032,
+      "xcorr": 0.9997,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real transistor combo organ, \"Violin\" stop, DI recording (cabled_mess pack \"Transistor Organ Violin Samples\"). Steady 9 s sustain, no tremolo; extremely loopable. Sustain RMS std 0.39 dB."
+  },
+  {
+    "id": "organ_combo_c4",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_combo_C4.mp3",
+    "title": "Transistor Organ Violin - C4",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/399736/",
+    "source_url": "https://cdn.freesound.org/previews/399/399736_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.001,
+    "instrument": "transistor combo organ (Violin stop)",
+    "pitch_hz": 261.31,
+    "midi": 60,
+    "note": "C4",
+    "cents_off": -2,
+    "good_part": [
+      0.0,
+      9.0
+    ],
+    "sustain": [
+      0.06,
+      8.94
+    ],
+    "loop": {
+      "start_s": 2.0008,
+      "end_s": 4.2358,
+      "start_sample_44k1": 88234,
+      "end_sample_44k1": 186799,
+      "xcorr": 0.9996,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real transistor combo organ, \"Violin\" stop, DI recording (cabled_mess pack \"Transistor Organ Violin Samples\"). Steady 9 s sustain, no tremolo; extremely loopable. Sustain RMS std 0.34 dB."
+  },
+  {
+    "id": "organ_combo_ds4",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_combo_Ds4.mp3",
+    "title": "Transistor Organ Violin - D#4",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/399730/",
+    "source_url": "https://cdn.freesound.org/previews/399/399730_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.001,
+    "instrument": "transistor combo organ (Violin stop)",
+    "pitch_hz": 310.43,
+    "midi": 63,
+    "note": "D#4",
+    "cents_off": -4,
+    "good_part": [
+      0.0,
+      9.0
+    ],
+    "sustain": [
+      0.06,
+      8.94
+    ],
+    "loop": {
+      "start_s": 2.001,
+      "end_s": 5.6734,
+      "start_sample_44k1": 88246,
+      "end_sample_44k1": 250197,
+      "xcorr": 0.9998,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real transistor combo organ, \"Violin\" stop, DI recording (cabled_mess pack \"Transistor Organ Violin Samples\"). Steady 9 s sustain, no tremolo; extremely loopable. Sustain RMS std 0.19 dB."
+  },
+  {
+    "id": "organ_combo_fs4",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_combo_Fs4.mp3",
+    "title": "Transistor Organ Violin - F#4",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/399710/",
+    "source_url": "https://cdn.freesound.org/previews/399/399710_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.002,
+    "instrument": "transistor combo organ (Violin stop)",
+    "pitch_hz": 369.44,
+    "midi": 66,
+    "note": "F#4",
+    "cents_off": -3,
+    "good_part": [
+      0.0,
+      9.0
+    ],
+    "sustain": [
+      0.06,
+      8.94
+    ],
+    "loop": {
+      "start_s": 2.0022,
+      "end_s": 5.1956,
+      "start_sample_44k1": 88296,
+      "end_sample_44k1": 229128,
+      "xcorr": 0.9998,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real transistor combo organ, \"Violin\" stop, DI recording (cabled_mess pack \"Transistor Organ Violin Samples\"). Steady 9 s sustain, no tremolo; extremely loopable. Sustain RMS std 0.22 dB."
+  },
+  {
+    "id": "organ_combo_a4",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_combo_A4.mp3",
+    "title": "Transistor Organ Violin - A4",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/399687/",
+    "source_url": "https://cdn.freesound.org/previews/399/399687_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.0,
+    "instrument": "transistor combo organ (Violin stop)",
+    "pitch_hz": 439.88,
+    "midi": 69,
+    "note": "A4",
+    "cents_off": 0,
+    "good_part": [
+      0.0,
+      9.0
+    ],
+    "sustain": [
+      0.06,
+      8.94
+    ],
+    "loop": {
+      "start_s": 2.0003,
+      "end_s": 4.0755,
+      "start_sample_44k1": 88215,
+      "end_sample_44k1": 179729,
+      "xcorr": 0.9994,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real transistor combo organ, \"Violin\" stop, DI recording (cabled_mess pack \"Transistor Organ Violin Samples\"). Steady 9 s sustain, no tremolo; extremely loopable. Sustain RMS std 0.19 dB."
+  },
+  {
+    "id": "organ_combo_c5",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_combo_C5.mp3",
+    "title": "Transistor Organ Violin - C5",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/399737/",
+    "source_url": "https://cdn.freesound.org/previews/399/399737_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.001,
+    "instrument": "transistor combo organ (Violin stop)",
+    "pitch_hz": 522.5,
+    "midi": 72,
+    "note": "C5",
+    "cents_off": -2,
+    "good_part": [
+      0.0,
+      9.0
+    ],
+    "sustain": [
+      0.06,
+      8.94
+    ],
+    "loop": {
+      "start_s": 2.0018,
+      "end_s": 4.8754,
+      "start_sample_44k1": 88281,
+      "end_sample_44k1": 215004,
+      "xcorr": 0.9999,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real transistor combo organ, \"Violin\" stop, DI recording (cabled_mess pack \"Transistor Organ Violin Samples\"). Steady 9 s sustain, no tremolo; extremely loopable. Sustain RMS std 0.12 dB."
+  },
+  {
+    "id": "organ_combo_ds5",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_combo_Ds5.mp3",
+    "title": "Transistor Organ Violin - D#5",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/399729/",
+    "source_url": "https://cdn.freesound.org/previews/399/399729_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.001,
+    "instrument": "transistor combo organ (Violin stop)",
+    "pitch_hz": 621.5,
+    "midi": 75,
+    "note": "D#5",
+    "cents_off": -2,
+    "good_part": [
+      0.0,
+      9.0
+    ],
+    "sustain": [
+      0.06,
+      8.94
+    ],
+    "loop": {
+      "start_s": 2.0005,
+      "end_s": 4.235,
+      "start_sample_44k1": 88222,
+      "end_sample_44k1": 186765,
+      "xcorr": 0.9999,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real transistor combo organ, \"Violin\" stop, DI recording (cabled_mess pack \"Transistor Organ Violin Samples\"). Steady 9 s sustain, no tremolo; extremely loopable. Sustain RMS std 0.09 dB."
+  },
+  {
+    "id": "organ_combo_fs5",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_combo_Fs5.mp3",
+    "title": "Transistor Organ Violin - F#5",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/399711/",
+    "source_url": "https://cdn.freesound.org/previews/399/399711_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.001,
+    "instrument": "transistor combo organ (Violin stop)",
+    "pitch_hz": 738.06,
+    "midi": 78,
+    "note": "F#5",
+    "cents_off": -5,
+    "good_part": [
+      0.0,
+      9.0
+    ],
+    "sustain": [
+      0.06,
+      8.94
+    ],
+    "loop": {
+      "start_s": 2.0012,
+      "end_s": 4.0779,
+      "start_sample_44k1": 88253,
+      "end_sample_44k1": 179836,
+      "xcorr": 0.9998,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real transistor combo organ, \"Violin\" stop, DI recording (cabled_mess pack \"Transistor Organ Violin Samples\"). Steady 9 s sustain, no tremolo; extremely loopable. Sustain RMS std 0.08 dB."
+  },
+  {
+    "id": "organ_combo_a5",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_combo_A5.mp3",
+    "title": "Transistor Organ Violin - A5",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/399688/",
+    "source_url": "https://cdn.freesound.org/previews/399/399688_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.0,
+    "instrument": "transistor combo organ (Violin stop)",
+    "pitch_hz": 879.83,
+    "midi": 81,
+    "note": "A5",
+    "cents_off": 0,
+    "good_part": [
+      0.0,
+      9.0
+    ],
+    "sustain": [
+      0.06,
+      8.94
+    ],
+    "loop": {
+      "start_s": 2.0,
+      "end_s": 5.8316,
+      "start_sample_44k1": 88200,
+      "end_sample_44k1": 257174,
+      "xcorr": 0.9999,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real transistor combo organ, \"Violin\" stop, DI recording (cabled_mess pack \"Transistor Organ Violin Samples\"). Steady 9 s sustain, no tremolo; extremely loopable. Sustain RMS std 0.05 dB."
+  },
+  {
+    "id": "organ_combo_c6",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_combo_C6.mp3",
+    "title": "Transistor Organ Violin - C6",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/399771/",
+    "source_url": "https://cdn.freesound.org/previews/399/399771_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.001,
+    "instrument": "transistor combo organ (Violin stop)",
+    "pitch_hz": 1046.15,
+    "midi": 84,
+    "note": "C6",
+    "cents_off": -1,
+    "good_part": [
+      0.0,
+      9.0
+    ],
+    "sustain": [
+      0.05,
+      8.94
+    ],
+    "loop": {
+      "start_s": 2.0002,
+      "end_s": 4.2346,
+      "start_sample_44k1": 88210,
+      "end_sample_44k1": 186746,
+      "xcorr": 0.9999,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real transistor combo organ, \"Violin\" stop, DI recording (cabled_mess pack \"Transistor Organ Violin Samples\"). Steady 9 s sustain, no tremolo; extremely loopable. Sustain RMS std 0.05 dB."
+  },
+  {
+    "id": "organ_tonewheel_g2",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_tonewheel_G2.mp3",
+    "title": "g2.wav",
+    "author": "hammondman",
+    "page_url": "https://freesound.org/people/hammondman/sounds/333769/",
+    "source_url": "https://cdn.freesound.org/previews/333/333769_3222989-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 2.004,
+    "instrument": "tonewheel (Hammond-style) organ, slow rotary",
+    "pitch_hz": 97.99,
+    "midi": 43,
+    "note": "G2",
+    "cents_off": 0,
+    "good_part": [
+      0.02,
+      2.0
+    ],
+    "sustain": [
+      0.08,
+      1.94
+    ],
+    "loop": {
+      "start_s": 0.4036,
+      "end_s": 0.903,
+      "start_sample_44k1": 17798,
+      "end_sample_44k1": 39821,
+      "xcorr": 0.7889,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real Hammond-type tonewheel organ with slow rotary (Leslie) - pack \"tonewheel organ sound samples\" by hammondman. Only 1.3-2 s long and amplitude-modulated by the rotor: loops are weak (crossfade needed). Sustain RMS std 2.48 dB."
+  },
+  {
+    "id": "organ_tonewheel_c3",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_tonewheel_C3.mp3",
+    "title": "c3.wav",
+    "author": "hammondman",
+    "page_url": "https://freesound.org/people/hammondman/sounds/333751/",
+    "source_url": "https://cdn.freesound.org/previews/333/333751_3222989-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 2.008,
+    "instrument": "tonewheel (Hammond-style) organ, slow rotary",
+    "pitch_hz": 130.86,
+    "midi": 48,
+    "note": "C3",
+    "cents_off": 1,
+    "good_part": [
+      0.0,
+      2.0
+    ],
+    "sustain": [
+      0.07,
+      1.94
+    ],
+    "loop": {
+      "start_s": 0.4018,
+      "end_s": 1.3953,
+      "start_sample_44k1": 17719,
+      "end_sample_44k1": 61532,
+      "xcorr": 0.8719,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real Hammond-type tonewheel organ with slow rotary (Leslie) - pack \"tonewheel organ sound samples\" by hammondman. Only 1.3-2 s long and amplitude-modulated by the rotor: loops are weak (crossfade needed). Sustain RMS std 2.3 dB."
+  },
+  {
+    "id": "organ_tonewheel_f3",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_tonewheel_F3.mp3",
+    "title": "f3.wav",
+    "author": "hammondman",
+    "page_url": "https://freesound.org/people/hammondman/sounds/333766/",
+    "source_url": "https://cdn.freesound.org/previews/333/333766_3222989-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 1.994,
+    "instrument": "tonewheel (Hammond-style) organ, slow rotary",
+    "pitch_hz": 174.75,
+    "midi": 53,
+    "note": "F3",
+    "cents_off": 1,
+    "good_part": [
+      0.01,
+      1.99
+    ],
+    "sustain": [
+      0.07,
+      1.93
+    ],
+    "loop": {
+      "start_s": 0.404,
+      "end_s": 1.3193,
+      "start_sample_44k1": 17818,
+      "end_sample_44k1": 58181,
+      "xcorr": 0.9828,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real Hammond-type tonewheel organ with slow rotary (Leslie) - pack \"tonewheel organ sound samples\" by hammondman. Only 1.3-2 s long and amplitude-modulated by the rotor: loops are weak (crossfade needed). Sustain RMS std 1.06 dB."
+  },
+  {
+    "id": "organ_tonewheel_a3",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_tonewheel_A3.mp3",
+    "title": "a3.wav",
+    "author": "hammondman",
+    "page_url": "https://freesound.org/people/hammondman/sounds/333750/",
+    "source_url": "https://cdn.freesound.org/previews/333/333750_3222989-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 2.0,
+    "instrument": "tonewheel (Hammond-style) organ, slow rotary",
+    "pitch_hz": 219.98,
+    "midi": 57,
+    "note": "A3",
+    "cents_off": 0,
+    "good_part": [
+      0.0,
+      1.99
+    ],
+    "sustain": [
+      0.07,
+      1.93
+    ],
+    "loop": {
+      "start_s": 0.4008,
+      "end_s": 0.9003,
+      "start_sample_44k1": 17674,
+      "end_sample_44k1": 39703,
+      "xcorr": 0.8323,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real Hammond-type tonewheel organ with slow rotary (Leslie) - pack \"tonewheel organ sound samples\" by hammondman. Only 1.3-2 s long and amplitude-modulated by the rotor: loops are weak (crossfade needed). Sustain RMS std 2.01 dB."
+  },
+  {
+    "id": "organ_tonewheel_c4",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_tonewheel_C4.mp3",
+    "title": "c4.wav",
+    "author": "hammondman",
+    "page_url": "https://freesound.org/people/hammondman/sounds/333756/",
+    "source_url": "https://cdn.freesound.org/previews/333/333756_3222989-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 2.003,
+    "instrument": "tonewheel (Hammond-style) organ, slow rotary",
+    "pitch_hz": 261.79,
+    "midi": 60,
+    "note": "C4",
+    "cents_off": 1,
+    "good_part": [
+      0.0,
+      2.0
+    ],
+    "sustain": [
+      0.06,
+      1.94
+    ],
+    "loop": {
+      "start_s": 0.4015,
+      "end_s": 1.1658,
+      "start_sample_44k1": 17706,
+      "end_sample_44k1": 51413,
+      "xcorr": 0.7316,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real Hammond-type tonewheel organ with slow rotary (Leslie) - pack \"tonewheel organ sound samples\" by hammondman. Only 1.3-2 s long and amplitude-modulated by the rotor: loops are weak (crossfade needed). Sustain RMS std 3.08 dB."
+  },
+  {
+    "id": "organ_tonewheel_e4",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_tonewheel_E4.mp3",
+    "title": "e4.wav",
+    "author": "hammondman",
+    "page_url": "https://freesound.org/people/hammondman/sounds/333768/",
+    "source_url": "https://cdn.freesound.org/previews/333/333768_3222989-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 1.601,
+    "instrument": "tonewheel (Hammond-style) organ, slow rotary",
+    "pitch_hz": 329.64,
+    "midi": 64,
+    "note": "E4",
+    "cents_off": 0,
+    "good_part": [
+      0.0,
+      1.6
+    ],
+    "sustain": [
+      0.06,
+      1.54
+    ],
+    "loop": {
+      "start_s": 0.4008,
+      "end_s": 0.861,
+      "start_sample_44k1": 17677,
+      "end_sample_44k1": 37970,
+      "xcorr": 0.7755,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real Hammond-type tonewheel organ with slow rotary (Leslie) - pack \"tonewheel organ sound samples\" by hammondman. Only 1.3-2 s long and amplitude-modulated by the rotor: loops are weak (crossfade needed). Sustain RMS std 2.91 dB."
+  },
+  {
+    "id": "organ_tonewheel_g4",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_tonewheel_G4.mp3",
+    "title": "g4.wav",
+    "author": "hammondman",
+    "page_url": "https://freesound.org/people/hammondman/sounds/333760/",
+    "source_url": "https://cdn.freesound.org/previews/333/333760_3222989-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 1.354,
+    "instrument": "tonewheel (Hammond-style) organ, slow rotary",
+    "pitch_hz": 391.91,
+    "midi": 67,
+    "note": "G4",
+    "cents_off": 0,
+    "good_part": [
+      0.0,
+      1.35
+    ],
+    "sustain": [
+      0.18,
+      1.29
+    ],
+    "loop": {
+      "start_s": 0.4006,
+      "end_s": 0.9728,
+      "start_sample_44k1": 17667,
+      "end_sample_44k1": 42902,
+      "xcorr": 0.9274,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real Hammond-type tonewheel organ with slow rotary (Leslie) - pack \"tonewheel organ sound samples\" by hammondman. Only 1.3-2 s long and amplitude-modulated by the rotor: loops are weak (crossfade needed). Sustain RMS std 4.23 dB."
+  },
+  {
+    "id": "organ_tonewheel_c6",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_tonewheel_C6.mp3",
+    "title": "c5.wav",
+    "author": "hammondman",
+    "page_url": "https://freesound.org/people/hammondman/sounds/333717/",
+    "source_url": "https://cdn.freesound.org/previews/333/333717_3222989-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 1.778,
+    "instrument": "tonewheel (Hammond-style) organ, slow rotary",
+    "pitch_hz": 1050.97,
+    "midi": 84,
+    "note": "C6",
+    "cents_off": 7,
+    "good_part": [
+      0.01,
+      1.77
+    ],
+    "sustain": [
+      0.06,
+      1.71
+    ],
+    "loop": {
+      "start_s": 0.4002,
+      "end_s": 1.0539,
+      "start_sample_44k1": 17650,
+      "end_sample_44k1": 46475,
+      "xcorr": 0.9862,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real Hammond-type tonewheel organ with slow rotary (Leslie) - pack \"tonewheel organ sound samples\" by hammondman. Only 1.3-2 s long and amplitude-modulated by the rotor: loops are weak (crossfade needed). Sustain RMS std 3.91 dB. File on Freesound is named \"c5.wav\" but measures C6 (1051 Hz, no energy at 523 Hz) - id corrected."
+  },
+  {
+    "id": "organ_tonewheel_f5",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_tonewheel_F5.mp3",
+    "title": "f5.wav",
+    "author": "hammondman",
+    "page_url": "https://freesound.org/people/hammondman/sounds/333770/",
+    "source_url": "https://cdn.freesound.org/previews/333/333770_3222989-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 1.305,
+    "instrument": "tonewheel (Hammond-style) organ, slow rotary",
+    "pitch_hz": 700.13,
+    "midi": 77,
+    "note": "F5",
+    "cents_off": 4,
+    "good_part": [
+      0.01,
+      1.3
+    ],
+    "sustain": [
+      0.11,
+      1.24
+    ],
+    "loop": {
+      "start_s": 0.4001,
+      "end_s": 0.9188,
+      "start_sample_44k1": 17645,
+      "end_sample_44k1": 40519,
+      "xcorr": 0.8973,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real Hammond-type tonewheel organ with slow rotary (Leslie) - pack \"tonewheel organ sound samples\" by hammondman. Only 1.3-2 s long and amplitude-modulated by the rotor: loops are weak (crossfade needed). Sustain RMS std 2.91 dB."
+  },
+  {
+    "id": "organ_harmonium_c2",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_harmonium_C2.mp3",
+    "title": "Harmonium-C2",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/523871/",
+    "source_url": "https://cdn.freesound.org/previews/523/523871_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 10.965,
+    "instrument": "harmonium / reed organ",
+    "pitch_hz": 65.46,
+    "midi": 36,
+    "note": "C2",
+    "cents_off": 1,
+    "good_part": [
+      0.19,
+      10.57
+    ],
+    "sustain": [
+      0.31,
+      10.5
+    ],
+    "loop": {
+      "start_s": 2.0022,
+      "end_s": 4.99,
+      "start_sample_44k1": 88298,
+      "end_sample_44k1": 220061,
+      "xcorr": 0.9816,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real harmonium (reed organ), Yale Euterpea Studio recording by donyaquick (CC0) cut into single notes by cabled_mess. Breathy reed tone, slight bellows swell; tuned ~+5..+15 cents sharp. Sustain RMS std 1.19 dB."
+  },
+  {
+    "id": "organ_harmonium_fs2",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_harmonium_Fs2.mp3",
+    "title": "Harmonium-F#2",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/523868/",
+    "source_url": "https://cdn.freesound.org/previews/523/523868_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 9.083,
+    "instrument": "harmonium / reed organ",
+    "pitch_hz": 92.82,
+    "midi": 42,
+    "note": "F#2",
+    "cents_off": 6,
+    "good_part": [
+      0.05,
+      8.77
+    ],
+    "sustain": [
+      0.17,
+      8.7
+    ],
+    "loop": {
+      "start_s": 2.0037,
+      "end_s": 4.3466,
+      "start_sample_44k1": 88365,
+      "end_sample_44k1": 191683,
+      "xcorr": 0.9895,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real harmonium (reed organ), Yale Euterpea Studio recording by donyaquick (CC0) cut into single notes by cabled_mess. Breathy reed tone, slight bellows swell; tuned ~+5..+15 cents sharp. Sustain RMS std 0.85 dB. Weak fundamental (2nd harmonic dominates); pitch set to measured 185.64/2."
+  },
+  {
+    "id": "organ_harmonium_c3",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_harmonium_C3.mp3",
+    "title": "Harmonium-C3",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/523878/",
+    "source_url": "https://cdn.freesound.org/previews/523/523878_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 12.176,
+    "instrument": "harmonium / reed organ",
+    "pitch_hz": 131.23,
+    "midi": 48,
+    "note": "C3",
+    "cents_off": 6,
+    "good_part": [
+      0.07,
+      12.03
+    ],
+    "sustain": [
+      0.2,
+      11.94
+    ],
+    "loop": {
+      "start_s": 2.0001,
+      "end_s": 4.1759,
+      "start_sample_44k1": 88206,
+      "end_sample_44k1": 184155,
+      "xcorr": 0.9938,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real harmonium (reed organ), Yale Euterpea Studio recording by donyaquick (CC0) cut into single notes by cabled_mess. Breathy reed tone, slight bellows swell; tuned ~+5..+15 cents sharp. Sustain RMS std 0.89 dB."
+  },
+  {
+    "id": "organ_harmonium_fs3",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_harmonium_Fs3.mp3",
+    "title": "Harmonium-F#3",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/523861/",
+    "source_url": "https://cdn.freesound.org/previews/523/523861_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 10.052,
+    "instrument": "harmonium / reed organ",
+    "pitch_hz": 186.79,
+    "midi": 54,
+    "note": "F#3",
+    "cents_off": 17,
+    "good_part": [
+      0.02,
+      9.87
+    ],
+    "sustain": [
+      0.19,
+      9.8
+    ],
+    "loop": {
+      "start_s": 2.0006,
+      "end_s": 4.572,
+      "start_sample_44k1": 88226,
+      "end_sample_44k1": 201624,
+      "xcorr": 0.9427,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real harmonium (reed organ), Yale Euterpea Studio recording by donyaquick (CC0) cut into single notes by cabled_mess. Breathy reed tone, slight bellows swell; tuned ~+5..+15 cents sharp. Sustain RMS std 1.1 dB."
+  },
+  {
+    "id": "organ_harmonium_c4",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_harmonium_C4.mp3",
+    "title": "Harmonium-C4",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/523877/",
+    "source_url": "https://cdn.freesound.org/previews/523/523877_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 11.03,
+    "instrument": "harmonium / reed organ",
+    "pitch_hz": 262.79,
+    "midi": 60,
+    "note": "C4",
+    "cents_off": 8,
+    "good_part": [
+      0.06,
+      10.84
+    ],
+    "sustain": [
+      0.16,
+      10.77
+    ],
+    "loop": {
+      "start_s": 2.0005,
+      "end_s": 4.5669,
+      "start_sample_44k1": 88222,
+      "end_sample_44k1": 201402,
+      "xcorr": 0.9946,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real harmonium (reed organ), Yale Euterpea Studio recording by donyaquick (CC0) cut into single notes by cabled_mess. Breathy reed tone, slight bellows swell; tuned ~+5..+15 cents sharp. Sustain RMS std 1.31 dB."
+  },
+  {
+    "id": "organ_harmonium_fs4",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_harmonium_Fs4.mp3",
+    "title": "Harmonium-F#4",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/523862/",
+    "source_url": "https://cdn.freesound.org/previews/523/523862_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 10.138,
+    "instrument": "harmonium / reed organ",
+    "pitch_hz": 370.72,
+    "midi": 66,
+    "note": "F#4",
+    "cents_off": 3,
+    "good_part": [
+      0.06,
+      9.98
+    ],
+    "sustain": [
+      0.15,
+      9.91
+    ],
+    "loop": {
+      "start_s": 2.0007,
+      "end_s": 4.9008,
+      "start_sample_44k1": 88229,
+      "end_sample_44k1": 216124,
+      "xcorr": 0.9947,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real harmonium (reed organ), Yale Euterpea Studio recording by donyaquick (CC0) cut into single notes by cabled_mess. Breathy reed tone, slight bellows swell; tuned ~+5..+15 cents sharp. Sustain RMS std 1.38 dB."
+  },
+  {
+    "id": "organ_harmonium_c5",
+    "use": "organ_notes",
+    "file": "tools/audio/.cache/sfx/organ_harmonium_C5.mp3",
+    "title": "Harmonium-C5",
+    "author": "cabled_mess",
+    "page_url": "https://freesound.org/people/cabled_mess/sounds/523876/",
+    "source_url": "https://cdn.freesound.org/previews/523/523876_5450487-hq.mp3",
+    "license": "CC0 1.0",
+    "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+    "attribution": "",
+    "duration_s": 8.314,
+    "instrument": "harmonium / reed organ",
+    "pitch_hz": 526.45,
+    "midi": 72,
+    "note": "C5",
+    "cents_off": 11,
+    "good_part": [
+      0.01,
+      8.17
+    ],
+    "sustain": [
+      0.08,
+      8.1
+    ],
+    "loop": {
+      "start_s": 2.0001,
+      "end_s": 4.5465,
+      "start_sample_44k1": 88203,
+      "end_sample_44k1": 200499,
+      "xcorr": 0.9939,
+      "note": "zero-crossing loop found on ffmpeg-decoded mono 44.1 kHz audio (mp3 decoder delay may shift by a few samples; re-snap after transcoding)"
+    },
+    "notes": "Real harmonium (reed organ), Yale Euterpea Studio recording by donyaquick (CC0) cut into single notes by cabled_mess. Breathy reed tone, slight bellows swell; tuned ~+5..+15 cents sharp. Sustain RMS std 1.72 dB."
+  },
+  {
+    "id": "vendor_hotdogs_null",
+    "use": "vendor_call",
+    "file": null,
+    "notes": "Searched Freesound (CC0/CC-BY) \"hot dogs vendor\", \"peanuts vendor\", \"vendor call\", \"baseball vendor\", \"get your\"; only \"Cold Beer!\" ballpark vendor (vendor_call_1) found. Synthesize/record \"Hot dogs! Peanuts!\" if needed."
+  },
+  {
+    "id": "umpire_strike_null",
+    "use": "umpire_call",
+    "file": null,
+    "notes": "No clean CC0/CC-BY isolated \"Strike!\"/\"Steee-rike!\"/\"Play ball!\" voice found (searched \"umpire\", \"strike voice\", \"strike three\", \"steerike\", \"play ball\", \"play ball voice\"; CGEffex \"Play Ball!\" is a synthesized tune, not voice). umpire_voice_1 has \"strike 3 you're out\" (cut \"strike\" from it); Casey-at-the-Bat 1920s recording has spoken \"Strike one/two\"."
+  },
+  {
+    "id": "mail_chime_note",
+    "use": "mail_chime",
+    "file": null,
+    "notes": "No AOL voice used. Generic chimes: chime_1 (doorbell ding-dong), chime_2 (tuned doorbell), vendor_bell_2 (service-bell ding). A dedicated \"mail\" chime could be synthesized from organ/bell notes."
+  }
+]

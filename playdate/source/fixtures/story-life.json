@@ -1,0 +1,33 @@
+{
+ "story": {
+  "photo": "wedding-07",
+  "photoCaption": "A wedding, 1910",
+  "id": "s1-story:life:e84",
+  "day": 6,
+  "kind": "life",
+  "headline": "Dandridge Weds",
+  "dek": "Yogi Dandridge marries Crystal Dandridge; teammates attend",
+  "body": [
+   "Yogi Dandridge of the Brewers married Crystal Dandridge on Saturday at St. Jude's. 14 teammates attended.",
+   "The reception was held at a steakhouse near the ballpark. The couple will travel to Niagara Falls during the All-Star break.",
+   "More information is expected later this week."
+  ],
+  "faceIds": [
+   "face:386",
+   "face:176"
+  ],
+  "people": [
+   "p786",
+   "n259"
+  ],
+  "teams": [
+   "ELC-B"
+  ],
+  "section": "Sports",
+  "dateline": "Sun, April 7, 1996",
+  "prominence": 1.2,
+  "at": 1792367359184,
+  "ago": 1
+ },
+ "comments": []
+}

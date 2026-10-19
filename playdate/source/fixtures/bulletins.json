@@ -1,0 +1,55 @@
+{
+ "bulletins": [
+  {
+   "id": "rd-k6b0p3a0x5r1c5h",
+   "at": 1792367294094,
+   "ago": 0,
+   "season": 1,
+   "day": 4,
+   "kind": "retire",
+   "text": "Card Redeemed: Luna Retired",
+   "person": {
+    "id": "p330",
+    "name": "Ned Luna",
+    "face": "face:158"
+   },
+   "team": {
+    "id": "MIL",
+    "abbr": "MIL",
+    "city": "Millbrook",
+    "name": "Ironmen",
+    "level": "ML"
+   },
+   "redeemer": "Lefty Loot",
+   "storyId": "s1-redeem-rd-k6b0p3a0x5r1c5h"
+  },
+  {
+   "id": "rd-k0z2h3r27213g4b",
+   "at": 1792367294068,
+   "ago": 0,
+   "season": 1,
+   "day": 4,
+   "kind": "boost",
+   "text": "Card Redeemed: Gibson Boosted +12 for 7 Days",
+   "person": {
+    "id": "p117",
+    "name": "Al Gibson",
+    "face": "face:208",
+    "teamAbbr": "STA",
+    "pos": "P"
+   },
+   "team": {
+    "id": "STA",
+    "abbr": "STA",
+    "city": "St. Albans",
+    "name": "Friars",
+    "level": "ML"
+   },
+   "redeemer": "Gus Gumshoe",
+   "storyId": "s1-redeem-rd-k0z2h3r27213g4b",
+   "boost": 12,
+   "days": 7,
+   "untilDay": 10
+  }
+ ]
+}

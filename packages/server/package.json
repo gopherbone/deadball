@@ -1,0 +1,23 @@
+{
+  "name": "@deadball/server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "test": "vitest run",
+    "typecheck": "tsc -p . && tsc -p tsconfig.scripts.json",
+    "seed": "node scripts/seed.ts",
+    "fixtures": "node scripts/fixtures.ts",
+    "measure": "node scripts/measure.ts",
+    "economy": "node scripts/economy.ts"
+  },
+  "dependencies": {
+    "@deadball/sim": "*"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.4.4",
+    "@cloudflare/workers-types": "^5.20261018.1",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.151.1"
+  }
+}

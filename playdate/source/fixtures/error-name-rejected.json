@@ -1,0 +1,4 @@
+{
+ "error": "name_rejected",
+ "message": "Name must be at least 3 characters."
+}

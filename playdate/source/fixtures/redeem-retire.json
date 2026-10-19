@@ -1,0 +1,73 @@
+{
+ "result": "Redeemed. Ned Luna has retired from baseball.",
+ "kind": "retire",
+ "card": {
+  "id": "k6b0p3a0x5r1c5h",
+  "defId": "S1-098",
+  "person": {
+   "id": "p330",
+   "name": "Ned Luna",
+   "face": "face:158"
+  },
+  "team": {
+   "id": "MIL",
+   "abbr": "MIL",
+   "city": "Millbrook",
+   "name": "Ironmen",
+   "level": "ML"
+  },
+  "season": 1,
+  "set": "Series 1",
+  "number": 98,
+  "rarity": "original",
+  "front": {
+   "caption": "LUNA, MILLBROOK",
+   "pos": "SP",
+   "redeem": "REDEEMABLE: RETIRES SUBJECT"
+  },
+  "back": {
+   "lines": [
+    "1 OF 1. Signed (Smudged). Out of the",
+    "game for good. Not out of our hearts.",
+    "Owns three restaurants. None of them",
+    "serve food. Fans love Luna. So do the",
+    "umps, suspiciously.",
+    "REDEEM: RETIRES LUNA FROM BASEBALL."
+   ],
+   "stats": []
+  },
+  "value": 2948,
+  "variant": "signed",
+  "redeem": {
+   "kind": "retire",
+   "label": "REDEEMABLE: RETIRES SUBJECT"
+  },
+  "serial": "1/1",
+  "redeemed": true
+ },
+ "story": {
+  "id": "s1-redeem-rd-k6b0p3a0x5r1c5h",
+  "headline": "Card Redeemed: Luna Retired",
+  "dek": "Ned Luna (MIL) retires from baseball after Lefty Loot redeemed the Original 1/1 card"
+ },
+ "effect": {
+  "kind": "retire",
+  "person": {
+   "id": "p330",
+   "name": "Ned Luna",
+   "face": "face:158"
+  }
+ },
+ "account": {
+  "id": "a2y0o1k1y3n5s2g",
+  "name": "Lefty Loot",
+  "money": 775,
+  "heat": 0,
+  "crewSize": 2,
+  "unreadMail": 1,
+  "cards": 14,
+  "joinedDay": 0,
+  "rank": "Rube",
+  "syndicateId": "sy3p6h1h2u3h2i6d"
+ }
+}

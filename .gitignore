@@ -1,0 +1,15 @@
+node_modules/
+.wrangler/
+dist/
+*.pdx
+.dev.vars
+.DS_Store
+playdate/build/
+tools/assets/.cache/
+__pycache__/
+tools/audio/.cache/
+playdate/source/pdex.*
+tools/assets/humanoid/cache/
+*.blend1
+packages/server/.admin-token.prod
+docs/itch/video/

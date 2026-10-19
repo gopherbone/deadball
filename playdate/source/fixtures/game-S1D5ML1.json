@@ -1,0 +1,567 @@
+{
+ "id": "S1D5ML1",
+ "day": 5,
+ "firstPitchAt": 1792367312968,
+ "firstPitchIn": -47,
+ "finalAt": 1792367340968,
+ "finalIn": -19,
+ "status": "final",
+ "home": {
+  "id": "HCL",
+  "abbr": "HCL",
+  "city": "Harbor City",
+  "name": "Lamplighters",
+  "level": "ML",
+  "record": "2-3"
+ },
+ "away": {
+  "id": "ELC",
+  "abbr": "ELC",
+  "city": "Electric City",
+  "name": "Comets",
+  "level": "ML",
+  "record": "5-0"
+ },
+ "probables": {
+  "home": {
+   "id": "p13",
+   "name": "Rollie Esposito",
+   "face": "face:450",
+   "teamAbbr": "HCL",
+   "pos": "P",
+   "line": "0-1, 6.75"
+  },
+  "away": {
+   "id": "p748",
+   "name": "Vern Cruz",
+   "face": "face:475",
+   "teamAbbr": "ELC",
+   "pos": "P",
+   "line": "0-0, 0.00"
+  }
+ },
+ "pool": {
+  "home": 623,
+  "away": 782,
+  "pays": {
+   "home": 2.23,
+   "away": 1.78
+  },
+  "house": {
+   "home": 583,
+   "away": 722
+  }
+ },
+ "umpire": {
+  "id": "n7",
+  "name": "Rico Novak",
+  "face": "face:124",
+  "pos": "UMP"
+ },
+ "weather": "48F, wind 8 mph out to RF, rain likely",
+ "park": "Bellwood Park",
+ "circuit": "continental",
+ "score": {
+  "home": 1,
+  "away": 11,
+  "inning": "FINAL"
+ },
+ "myBet": {
+  "side": "away",
+  "amount": 60
+ },
+ "incidents": [],
+ "box": {
+  "home": {
+   "bat": [
+    {
+     "p": {
+      "id": "p12",
+      "name": "Satchel Gallagher",
+      "face": "face:594",
+      "teamAbbr": "HCL",
+      "pos": "3B"
+     },
+     "ab": 4,
+     "r": 1,
+     "h": 1,
+     "rbi": 0,
+     "bb": 1,
+     "k": 0,
+     "avg": ".286"
+    },
+    {
+     "p": {
+      "id": "p5",
+      "name": "Tony Gooch",
+      "face": "face:223",
+      "teamAbbr": "HCL",
+      "pos": "SS"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 2,
+     "rbi": 0,
+     "bb": 1,
+     "k": 0,
+     "avg": ".450"
+    },
+    {
+     "p": {
+      "id": "p3",
+      "name": "Ned Pickles",
+      "face": "face:503",
+      "teamAbbr": "HCL",
+      "pos": "1B"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 1,
+     "rbi": 1,
+     "bb": 0,
+     "k": 1,
+     "avg": ".381"
+    },
+    {
+     "p": {
+      "id": "p8",
+      "name": "Willie Morales",
+      "face": "face:269",
+      "teamAbbr": "HCL",
+      "pos": "LF"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 0,
+     "k": 1,
+     "avg": ".286"
+    },
+    {
+     "p": {
+      "id": "p0",
+      "name": "Gil Sayre",
+      "face": "face:11",
+      "teamAbbr": "HCL",
+      "pos": "C"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 1,
+     "rbi": 0,
+     "bb": 0,
+     "k": 0,
+     "avg": ".364"
+    },
+    {
+     "p": {
+      "id": "p11",
+      "name": "Emil Mahoney",
+      "face": "face:583",
+      "teamAbbr": "HCL",
+      "pos": "RF"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 0,
+     "k": 2,
+     "avg": ".118"
+    },
+    {
+     "p": {
+      "id": "p10",
+      "name": "Ollie Shaughnessy",
+      "face": "face:123",
+      "teamAbbr": "HCL",
+      "pos": "CF"
+     },
+     "ab": 3,
+     "r": 0,
+     "h": 2,
+     "rbi": 0,
+     "bb": 1,
+     "k": 0,
+     "avg": ".278"
+    },
+    {
+     "p": {
+      "id": "p2",
+      "name": "Ernesto Wiggins",
+      "face": "face:29",
+      "teamAbbr": "HCL",
+      "pos": "1B"
+     },
+     "ab": 2,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 1,
+     "k": 1,
+     "avg": ".222"
+    },
+    {
+     "p": {
+      "id": "p6",
+      "name": "Tito Stottlemyre",
+      "face": "face:476",
+      "teamAbbr": "HCL",
+      "pos": "SS"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 0,
+     "k": 0,
+     "avg": ".150"
+    }
+   ],
+   "pitch": [
+    {
+     "p": {
+      "id": "p13",
+      "name": "Rollie Esposito",
+      "face": "face:450",
+      "teamAbbr": "HCL",
+      "pos": "P"
+     },
+     "ip": "5.1",
+     "h": 4,
+     "r": 4,
+     "er": 4,
+     "bb": 3,
+     "k": 5,
+     "pc": 92
+    },
+    {
+     "p": {
+      "id": "p21",
+      "name": "Al Kowalski",
+      "face": "face:1",
+      "teamAbbr": "HCL",
+      "pos": "P"
+     },
+     "ip": "1.2",
+     "h": 2,
+     "r": 3,
+     "er": 3,
+     "bb": 2,
+     "k": 0,
+     "pc": 46
+    },
+    {
+     "p": {
+      "id": "p24",
+      "name": "Manny Quigley",
+      "face": "face:183",
+      "teamAbbr": "HCL",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 2,
+     "r": 2,
+     "er": 1,
+     "bb": 1,
+     "k": 2,
+     "pc": 24
+    },
+    {
+     "p": {
+      "id": "p16",
+      "name": "Lefty Pickles",
+      "face": "face:493",
+      "teamAbbr": "HCL",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 2,
+     "r": 2,
+     "er": 2,
+     "bb": 1,
+     "k": 1,
+     "pc": 26
+    }
+   ],
+   "r": 1,
+   "h": 7,
+   "e": 1
+  },
+  "away": {
+   "bat": [
+    {
+     "p": {
+      "id": "p732",
+      "name": "Manny Dunphy",
+      "face": "face:351",
+      "teamAbbr": "ELC",
+      "pos": "2B"
+     },
+     "ab": 5,
+     "r": 0,
+     "h": 1,
+     "rbi": 1,
+     "bb": 0,
+     "k": 2,
+     "avg": ".240"
+    },
+    {
+     "p": {
+      "id": "p730",
+      "name": "Hector Washington",
+      "face": "face:97",
+      "teamAbbr": "ELC",
+      "pos": "1B"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 2,
+     "k": 1,
+     "avg": ".227"
+    },
+    {
+     "p": {
+      "id": "p740",
+      "name": "Floyd Yablonski",
+      "face": "face:238",
+      "teamAbbr": "ELC",
+      "pos": "3B"
+     },
+     "ab": 4,
+     "r": 1,
+     "h": 1,
+     "rbi": 2,
+     "bb": 1,
+     "k": 1,
+     "avg": ".391"
+    },
+    {
+     "p": {
+      "id": "p737",
+      "name": "Zeke Jimenez",
+      "face": "face:167",
+      "teamAbbr": "ELC",
+      "pos": "CF"
+     },
+     "ab": 4,
+     "r": 2,
+     "h": 1,
+     "rbi": 0,
+     "bb": 1,
+     "k": 0,
+     "avg": ".381"
+    },
+    {
+     "p": {
+      "id": "p733",
+      "name": "Otis Kowalski",
+      "face": "face:95",
+      "teamAbbr": "ELC",
+      "pos": "SS"
+     },
+     "ab": 4,
+     "r": 2,
+     "h": 2,
+     "rbi": 2,
+     "bb": 1,
+     "k": 1,
+     "avg": ".333"
+    },
+    {
+     "p": {
+      "id": "p728",
+      "name": "Hank Escobar",
+      "face": "face:64",
+      "teamAbbr": "ELC",
+      "pos": "C"
+     },
+     "ab": 4,
+     "r": 2,
+     "h": 1,
+     "rbi": 0,
+     "bb": 0,
+     "k": 1,
+     "avg": ".167"
+    },
+    {
+     "p": {
+      "id": "p738",
+      "name": "Tito Moran",
+      "face": "face:191",
+      "teamAbbr": "ELC",
+      "pos": "CF"
+     },
+     "ab": 5,
+     "r": 2,
+     "h": 3,
+     "rbi": 2,
+     "bb": 0,
+     "k": 1,
+     "avg": ".476"
+    },
+    {
+     "p": {
+      "id": "p735",
+      "name": "Frank Washington",
+      "face": "face:146",
+      "teamAbbr": "ELC",
+      "pos": "3B"
+     },
+     "ab": 3,
+     "r": 0,
+     "h": 0,
+     "rbi": 2,
+     "bb": 2,
+     "k": 1,
+     "avg": ".300"
+    },
+    {
+     "p": {
+      "id": "p729",
+      "name": "Cy Reyes",
+      "face": "face:240",
+      "teamAbbr": "ELC",
+      "pos": "C"
+     },
+     "ab": 5,
+     "r": 2,
+     "h": 1,
+     "rbi": 1,
+     "bb": 0,
+     "k": 0,
+     "avg": ".158"
+    }
+   ],
+   "pitch": [
+    {
+     "p": {
+      "id": "p748",
+      "name": "Vern Cruz",
+      "face": "face:475",
+      "teamAbbr": "ELC",
+      "pos": "P"
+     },
+     "ip": "2.2",
+     "h": 2,
+     "r": 0,
+     "er": 0,
+     "bb": 1,
+     "k": 1,
+     "pc": 45
+    },
+    {
+     "p": {
+      "id": "p742",
+      "name": "Ollie Batista",
+      "face": "face:235",
+      "teamAbbr": "ELC",
+      "pos": "P"
+     },
+     "ip": "2.1",
+     "h": 3,
+     "r": 0,
+     "er": 0,
+     "bb": 0,
+     "k": 1,
+     "pc": 38
+    },
+    {
+     "p": {
+      "id": "p741",
+      "name": "Mickey Carrigan",
+      "face": "face:154",
+      "teamAbbr": "ELC",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 1,
+     "r": 0,
+     "er": 0,
+     "bb": 2,
+     "k": 1,
+     "pc": 25
+    },
+    {
+     "p": {
+      "id": "p749",
+      "name": "Isaiah Yamamoto",
+      "face": "face:342",
+      "teamAbbr": "ELC",
+      "pos": "P"
+     },
+     "ip": "2.0",
+     "h": 1,
+     "r": 1,
+     "er": 1,
+     "bb": 1,
+     "k": 1,
+     "pc": 32
+    },
+    {
+     "p": {
+      "id": "p744",
+      "name": "Kenji Kavanagh",
+      "face": "face:125",
+      "teamAbbr": "ELC",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 0,
+     "r": 0,
+     "er": 0,
+     "bb": 0,
+     "k": 1,
+     "pc": 11
+    }
+   ],
+   "r": 11,
+   "h": 10,
+   "e": 0
+  }
+ },
+ "line": {
+  "home": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  "away": [
+   0,
+   1,
+   2,
+   1,
+   0,
+   0,
+   0,
+   5,
+   2
+  ]
+ },
+ "decisions": {
+  "w": {
+   "id": "p742",
+   "name": "Ollie Batista",
+   "face": "face:235",
+   "teamAbbr": "ELC",
+   "pos": "P"
+  },
+  "l": {
+   "id": "p13",
+   "name": "Rollie Esposito",
+   "face": "face:450",
+   "teamAbbr": "HCL",
+   "pos": "P"
+  }
+ },
+ "storyId": "s1-story:S1D5ML1:recap"
+}

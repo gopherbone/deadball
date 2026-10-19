@@ -1,0 +1,1420 @@
+{
+ "kinds": [
+  {
+   "cost": 40,
+   "gear": [
+    {
+     "id": "vaseline",
+     "name": "Tub of Vaseline",
+     "cost": 10
+    },
+    {
+     "id": "jumpsuit",
+     "name": "Grounds crew jumpsuit",
+     "cost": 25
+    }
+   ],
+   "notes": [
+    "sneak short by 1",
+    "the right person for it"
+   ],
+   "ifWorks": "Their pitchers' control drops.",
+   "ifFails": "The grounds crew notices the shine.",
+   "heat": 1,
+   "kind": "grease_mound",
+   "name": "Grease the mound",
+   "blurb": "Petroleum jelly on the pitching rubber before the game. Their pitchers lose their footing.",
+   "risk": "low",
+   "slots": 2,
+   "needs": "Sneak2 Access2",
+   "successPct": 58
+  },
+  {
+   "cost": 90,
+   "gear": [
+    {
+     "id": "rabbit_crate",
+     "name": "Crate of juiced balls",
+     "cost": 60
+    },
+    {
+     "id": "jumpsuit",
+     "name": "Grounds crew jumpsuit",
+     "cost": 25
+    }
+   ],
+   "notes": [],
+   "ifWorks": "Their pitches flatten. The other club hits for power.",
+   "ifFails": "The umpire opens the crate.",
+   "heat": 1,
+   "kind": "rabbit_balls",
+   "name": "Rabbit balls",
+   "blurb": "Replace the game balls with a crate of tightly wound ones while they pitch.",
+   "risk": "mod",
+   "slots": 2,
+   "needs": "Access3 Knowhow2",
+   "successPct": 63
+  },
+  {
+   "cost": 60,
+   "gear": [
+    {
+     "id": "burlap_sack",
+     "name": "Burlap sack x3",
+     "cost": 15
+    },
+    {
+     "id": "fake_habit",
+     "name": "Fake nun habit",
+     "cost": 40
+    },
+    {
+     "id": "eels",
+     "name": "Bucket of eels",
+     "cost": 25
+    }
+   ],
+   "notes": [
+    "nerve short by 1",
+    "sneak short by 1"
+   ],
+   "ifWorks": "Their relievers lose stamina. Some are treated at the scene.",
+   "ifFails": "The raccoons do not leave the sacks.",
+   "heat": 1,
+   "kind": "raccoons",
+   "name": "Release raccoons",
+   "blurb": "Three sacks of raccoons released into their bullpen before the sixth inning.",
+   "risk": "mod",
+   "slots": 3,
+   "needs": "Knowhow2 Nerve2 Sneak2",
+   "successPct": 23
+  },
+  {
+   "cost": 120,
+   "gear": [
+    {
+     "id": "exlax",
+     "name": "Ex-Lax (bulk)",
+     "cost": 20
+    },
+    {
+     "id": "jumpsuit",
+     "name": "Grounds crew jumpsuit",
+     "cost": 25
+    }
+   ],
+   "notes": [
+    "sneak short by 1"
+   ],
+   "ifWorks": "Their players leave the dugout in the middle innings.",
+   "ifFails": "Our man drinks from the wrong cooler.",
+   "heat": 2,
+   "kind": "cooler",
+   "name": "Spike the cooler",
+   "blurb": "A laxative in their dugout water cooler.",
+   "risk": "high",
+   "slots": 2,
+   "needs": "Access3 Sneak2 Knowhow2",
+   "successPct": 46
+  },
+  {
+   "cost": 250,
+   "gear": [
+    {
+     "id": "envelope",
+     "name": "Fat envelope",
+     "cost": 200
+    },
+    {
+     "id": "rosary",
+     "name": "Blessed rosary",
+     "cost": 5
+    }
+   ],
+   "notes": [
+    "charm short by 1",
+    "nerve short by 1",
+    "the ump is a Boy Scout"
+   ],
+   "ifWorks": "Their hitters see a wide zone. Their pitchers see a narrow one.",
+   "ifFails": "The umpire reports the envelope.",
+   "heat": 2,
+   "kind": "bribe_ump",
+   "name": "Bribe the umpire",
+   "blurb": "An envelope of cash for the plate umpire. Close calls go against them.",
+   "risk": "high",
+   "slots": 1,
+   "needs": "Charm3 Nerve2",
+   "successPct": 3
+  },
+  {
+   "cost": 50,
+   "gear": [
+    {
+     "id": "laser_deluxe",
+     "name": "Military laser",
+     "cost": 45
+    },
+    {
+     "id": "fake_habit",
+     "name": "Fake nun habit",
+     "cost": 40
+    }
+   ],
+   "notes": [
+    "sneak short by 2"
+   ],
+   "ifWorks": "Their batters make less contact while it is on.",
+   "ifFails": "An usher follows the dot back to its source.",
+   "heat": 1,
+   "kind": "laser",
+   "name": "Laser from the bleachers",
+   "blurb": "A laser pointer aimed at their hitters from the bleachers.",
+   "risk": "mod",
+   "slots": 1,
+   "needs": "Sneak3 Nerve1",
+   "successPct": 21
+  },
+  {
+   "cost": 70,
+   "gear": [
+    {
+     "id": "binoculars",
+     "name": "Opera glasses",
+     "cost": 30
+    },
+    {
+     "id": "walkies",
+     "name": "Walkie-talkies",
+     "cost": 50
+    }
+   ],
+   "notes": [
+    "sneak short by 1",
+    "knowhow short by 1"
+   ],
+   "ifWorks": "Hitters facing them know what is coming.",
+   "ifFails": "They change their signs.",
+   "heat": 1,
+   "kind": "steal_signs",
+   "name": "Steal the signs",
+   "blurb": "Opera glasses in center field and a man with a trash can lid in the tunnel.",
+   "risk": "mod",
+   "slots": 2,
+   "needs": "Sneak2 Knowhow3",
+   "successPct": 25
+  },
+  {
+   "cost": 30,
+   "gear": [
+    {
+     "id": "jumpsuit",
+     "name": "Grounds crew jumpsuit",
+     "cost": 25
+    }
+   ],
+   "notes": [
+    "sneak short by 1",
+    "access short by 2"
+   ],
+   "ifWorks": "Superstitious pitchers lose their stuff.",
+   "ifFails": "He finds the glove.",
+   "heat": 1,
+   "kind": "lucky_glove",
+   "name": "Hide the lucky glove",
+   "blurb": "Their closer's glove is taken from the clubhouse and left in a bus station locker.",
+   "risk": "low",
+   "slots": 1,
+   "needs": "Sneak2 Access2",
+   "successPct": 4
+  },
+  {
+   "cost": 45,
+   "gear": [
+    {
+     "id": "bolt_cutters",
+     "name": "Bolt cutters",
+     "cost": 25
+    },
+    {
+     "id": "jumpsuit",
+     "name": "Grounds crew jumpsuit",
+     "cost": 25
+    }
+   ],
+   "notes": [
+    "the right person for it"
+   ],
+   "ifWorks": "Their fielders slip and misplay balls.",
+   "ifFails": "The night watchman is awake.",
+   "heat": 1,
+   "kind": "sprinklers",
+   "name": "Sprinklers overnight",
+   "blurb": "Open the valve on their side of the field at 3 a.m.",
+   "risk": "low",
+   "slots": 2,
+   "needs": "Access2 Knowhow2",
+   "successPct": 77
+  },
+  {
+   "cost": 25,
+   "gear": [
+    {
+     "id": "megaphone",
+     "name": "Megaphone",
+     "cost": 20
+    }
+   ],
+   "notes": [
+    "nerve short by 1"
+   ],
+   "ifWorks": "Hotheads and chokers lose focus. A fight is possible.",
+   "ifFails": "Security removes the squad in the second inning.",
+   "heat": 1,
+   "kind": "heckle",
+   "name": "Heckle squad",
+   "blurb": "Three people behind their dugout with a megaphone and four pages of typed notes.",
+   "risk": "low",
+   "slots": 3,
+   "needs": "Charm1 Nerve2 Muscle1",
+   "successPct": 51
+  },
+  {
+   "cost": 35,
+   "gear": [
+    {
+     "id": "perfume",
+     "name": "Cheap perfume",
+     "cost": 15
+    },
+    {
+     "id": "stationery",
+     "name": "Monogrammed stationery",
+     "cost": 30
+    }
+   ],
+   "notes": [
+    "the right person for it"
+   ],
+   "ifWorks": "His mood drops. His hitting follows.",
+   "ifFails": "His wife recognizes the handwriting as ours.",
+   "heat": 1,
+   "storyline": {
+    "kinds": [
+     "affair",
+     "marriage_trouble"
+    ],
+    "nudge": "inflame",
+    "required": false
+   },
+   "kind": "love_letter",
+   "name": "Forged love letter",
+   "blurb": "A perfumed letter to their best player, delivered to his home.",
+   "risk": "mod",
+   "slots": 2,
+   "needs": "Knowhow2 Charm2",
+   "successPct": 66
+  },
+  {
+   "cost": 150,
+   "gear": [
+    {
+     "id": "camera",
+     "name": "Telephoto camera",
+     "cost": 60
+    },
+    {
+     "id": "stationery",
+     "name": "Monogrammed stationery",
+     "cost": 30
+    }
+   ],
+   "notes": [
+    "sneak short by 1",
+    "nerve short by 2",
+    "the right person for it",
+    "he has secrets"
+   ],
+   "ifWorks": "Their best player has a bad night.",
+   "ifFails": "He takes the photographs to the police.",
+   "heat": 2,
+   "storyline": {
+    "kinds": [
+     "gambling_debt",
+     "affair",
+     "marriage_trouble",
+     "stalker",
+     "feud"
+    ],
+    "nudge": "choice",
+    "required": false
+   },
+   "kind": "blackmail",
+   "name": "Blackmail a player",
+   "blurb": "Photographs, a phone call and a request that he go 0-for-4.",
+   "risk": "high",
+   "slots": 2,
+   "needs": "Sneak2 Charm2 Nerve3",
+   "successPct": 26
+  },
+  {
+   "cost": 20,
+   "gear": [
+    {
+     "id": "stationery",
+     "name": "Monogrammed stationery",
+     "cost": 30
+    }
+   ],
+   "notes": [
+    "the right person for it"
+   ],
+   "ifWorks": "A story runs. Their players read it.",
+   "ifFails": "The newsroom traces the call.",
+   "heat": 1,
+   "storyline": {
+    "kinds": "any",
+    "nudge": "expose",
+    "required": false
+   },
+   "kind": "tip_wire",
+   "name": "Tip off SportsWire",
+   "blurb": "An anonymous call to the SportsWire newsroom about their clubhouse.",
+   "risk": "low",
+   "slots": 1,
+   "needs": "Charm2 Knowhow1",
+   "successPct": 69
+  },
+  {
+   "cost": 200,
+   "gear": [
+    {
+     "id": "burlap_sack",
+     "name": "Burlap sack x3",
+     "cost": 15
+    },
+    {
+     "id": "getaway",
+     "name": "Getaway car",
+     "cost": 100
+    },
+    {
+     "id": "bolt_cutters",
+     "name": "Bolt cutters",
+     "cost": 25
+    }
+   ],
+   "notes": [
+    "muscle short by 2",
+    "sneak short by 1",
+    "nerve short by 1"
+   ],
+   "ifWorks": "Their players are distracted. Fans search the stands.",
+   "ifFails": "The mascot resists. He served in the Marines.",
+   "heat": 2,
+   "kind": "kidnap_mascot",
+   "name": "Kidnap the mascot",
+   "blurb": "Take their mascot before the game. Leave a note.",
+   "risk": "lol",
+   "slots": 3,
+   "needs": "Muscle3 Sneak2 Nerve2",
+   "successPct": 3
+  },
+  {
+   "cost": 180,
+   "gear": [
+    {
+     "id": "bolt_cutters",
+     "name": "Bolt cutters",
+     "cost": 25
+    },
+    {
+     "id": "jumpsuit",
+     "name": "Grounds crew jumpsuit",
+     "cost": 25
+    }
+   ],
+   "notes": [
+    "knowhow short by 1"
+   ],
+   "ifWorks": "A long delay ends both starting pitchers' nights.",
+   "ifFails": "Our electrician touches the wrong cable.",
+   "heat": 2,
+   "kind": "blackout",
+   "name": "Cut the power",
+   "blurb": "Cut the main cable in the transformer room during the game.",
+   "risk": "high",
+   "slots": 2,
+   "needs": "Knowhow3 Access3",
+   "successPct": 48
+  },
+  {
+   "cost": 80,
+   "gear": [
+    {
+     "id": "flowers",
+     "name": "Flowers and a card",
+     "cost": 25
+    },
+    {
+     "id": "envelope",
+     "name": "Fat envelope",
+     "cost": 200
+    }
+   ],
+   "notes": [
+    "charm short by 1"
+   ],
+   "ifWorks": "The storyline cools. Escalation is less likely and a quiet ending more likely.",
+   "ifFails": "The fixer is recognized. Now it is a bigger story.",
+   "heat": 1,
+   "storyline": {
+    "kinds": "any",
+    "nudge": "soothe",
+    "required": true
+   },
+   "kind": "smooth_over",
+   "name": "Smooth it over",
+   "blurb": "A fixer visits the people involved with flowers, an envelope and a calm voice.",
+   "risk": "low",
+   "slots": 2,
+   "needs": "Charm3 Nerve1",
+   "successPct": 42
+  },
+  {
+   "cost": 60,
+   "gear": [
+    {
+     "id": "walkies",
+     "name": "Walkie-talkies",
+     "cost": 50
+    },
+    {
+     "id": "megaphone",
+     "name": "Megaphone",
+     "cost": 20
+    }
+   ],
+   "notes": [
+    "muscle short by 1"
+   ],
+   "ifWorks": "Rival jobs against this club fail more often and are caught more often.",
+   "ifFails": "The guards spend the game at the beer stand.",
+   "heat": 1,
+   "kind": "security",
+   "name": "Sweep the clubhouse",
+   "blurb": "Hire guards for a club's clubhouse for one day. Jobs against them get harder and riskier.",
+   "risk": "low",
+   "slots": 3,
+   "needs": "Muscle2 Access2 Nerve1",
+   "successPct": 50
+  }
+ ],
+ "targets": [
+  {
+   "id": "CSR",
+   "abbr": "CSR",
+   "city": "Cold Spring",
+   "name": "Rustlers",
+   "level": "ML"
+  },
+  {
+   "id": "STA",
+   "abbr": "STA",
+   "city": "St. Albans",
+   "name": "Friars",
+   "level": "ML"
+  }
+ ],
+ "storylines": [
+  {
+   "storylineId": "sl1",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p12",
+     "name": "Satchel Gallagher",
+     "face": "face:594",
+     "teamAbbr": "HCL",
+     "pos": "3B"
+    }
+   ],
+   "teams": [
+    {
+     "id": "HCL",
+     "abbr": "HCL",
+     "city": "Harbor City",
+     "name": "Lamplighters",
+     "level": "ML"
+    }
+   ],
+   "label": "Satchel Gallagher: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl2",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p14",
+     "name": "Benny Guerrero",
+     "face": "face:516",
+     "teamAbbr": "HCL",
+     "pos": "P"
+    }
+   ],
+   "teams": [
+    {
+     "id": "HCL",
+     "abbr": "HCL",
+     "city": "Harbor City",
+     "name": "Lamplighters",
+     "level": "ML"
+    }
+   ],
+   "label": "Benny Guerrero: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl3",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p15",
+     "name": "Reggie Jimenez",
+     "face": "face:564",
+     "teamAbbr": "HCL",
+     "pos": "P"
+    }
+   ],
+   "teams": [
+    {
+     "id": "HCL",
+     "abbr": "HCL",
+     "city": "Harbor City",
+     "name": "Lamplighters",
+     "level": "ML"
+    }
+   ],
+   "label": "Reggie Jimenez: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl4",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p106",
+     "name": "Wes Salazar",
+     "face": "face:583",
+     "teamAbbr": "STA",
+     "pos": "1B"
+    }
+   ],
+   "teams": [
+    {
+     "id": "STA",
+     "abbr": "STA",
+     "city": "St. Albans",
+     "name": "Friars",
+     "level": "ML"
+    }
+   ],
+   "label": "Wes Salazar: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl5",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p110",
+     "name": "Hector Haskins",
+     "face": "face:102",
+     "teamAbbr": "STA",
+     "pos": "SS"
+    }
+   ],
+   "teams": [
+    {
+     "id": "STA",
+     "abbr": "STA",
+     "city": "St. Albans",
+     "name": "Friars",
+     "level": "ML"
+    }
+   ],
+   "label": "Hector Haskins: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl6",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p115",
+     "name": "Marty Yamamoto",
+     "face": "face:29",
+     "teamAbbr": "STA",
+     "pos": "RF"
+    }
+   ],
+   "teams": [
+    {
+     "id": "STA",
+     "abbr": "STA",
+     "city": "St. Albans",
+     "name": "Friars",
+     "level": "ML"
+    }
+   ],
+   "label": "Marty Yamamoto: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl7",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p117",
+     "name": "Al Gibson",
+     "face": "face:208",
+     "teamAbbr": "STA",
+     "pos": "P"
+    }
+   ],
+   "teams": [
+    {
+     "id": "STA",
+     "abbr": "STA",
+     "city": "St. Albans",
+     "name": "Friars",
+     "level": "ML"
+    }
+   ],
+   "label": "Al Gibson: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl8",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p126",
+     "name": "Lonnie Bumgardner",
+     "face": "face:278",
+     "teamAbbr": "STA",
+     "pos": "P"
+    }
+   ],
+   "teams": [
+    {
+     "id": "STA",
+     "abbr": "STA",
+     "city": "St. Albans",
+     "name": "Friars",
+     "level": "ML"
+    }
+   ],
+   "label": "Lonnie Bumgardner: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl9",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p316",
+     "name": "Hank Delahanty",
+     "face": "face:363",
+     "teamAbbr": "MIL",
+     "pos": "2B"
+    }
+   ],
+   "teams": [
+    {
+     "id": "MIL",
+     "abbr": "MIL",
+     "city": "Millbrook",
+     "name": "Ironmen",
+     "level": "ML"
+    }
+   ],
+   "label": "Hank Delahanty: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl10",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p321",
+     "name": "Ulysses Pappas",
+     "face": "face:0",
+     "teamAbbr": "MIL",
+     "pos": "CF"
+    }
+   ],
+   "teams": [
+    {
+     "id": "MIL",
+     "abbr": "MIL",
+     "city": "Millbrook",
+     "name": "Ironmen",
+     "level": "ML"
+    }
+   ],
+   "label": "Ulysses Pappas: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl11",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p323",
+     "name": "Ray Navarro",
+     "face": "face:285",
+     "teamAbbr": "MIL",
+     "pos": "RF"
+    }
+   ],
+   "teams": [
+    {
+     "id": "MIL",
+     "abbr": "MIL",
+     "city": "Millbrook",
+     "name": "Ironmen",
+     "level": "ML"
+    }
+   ],
+   "label": "Ray Navarro: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl12",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p334",
+     "name": "Minnie Gooch",
+     "face": "face:35",
+     "teamAbbr": "MIL",
+     "pos": "P"
+    }
+   ],
+   "teams": [
+    {
+     "id": "MIL",
+     "abbr": "MIL",
+     "city": "Millbrook",
+     "name": "Ironmen",
+     "level": "ML"
+    }
+   ],
+   "label": "Minnie Gooch: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl13",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p335",
+     "name": "Zeke Fuentes",
+     "face": "face:310",
+     "teamAbbr": "MIL",
+     "pos": "P"
+    }
+   ],
+   "teams": [
+    {
+     "id": "MIL",
+     "abbr": "MIL",
+     "city": "Millbrook",
+     "name": "Ironmen",
+     "level": "ML"
+    }
+   ],
+   "label": "Zeke Fuentes: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl14",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p420",
+     "name": "Hideo Dandridge",
+     "face": "face:278",
+     "teamAbbr": "CSR",
+     "pos": "2B"
+    }
+   ],
+   "teams": [
+    {
+     "id": "CSR",
+     "abbr": "CSR",
+     "city": "Cold Spring",
+     "name": "Rustlers",
+     "level": "ML"
+    }
+   ],
+   "label": "Hideo Dandridge: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl15",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p428",
+     "name": "Vic Charleston",
+     "face": "face:158",
+     "teamAbbr": "CSR",
+     "pos": "3B"
+    }
+   ],
+   "teams": [
+    {
+     "id": "CSR",
+     "abbr": "CSR",
+     "city": "Cold Spring",
+     "name": "Rustlers",
+     "level": "ML"
+    }
+   ],
+   "label": "Vic Charleston: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl16",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p440",
+     "name": "Emil Okafor",
+     "face": "face:122",
+     "teamAbbr": "CSR",
+     "pos": "P"
+    }
+   ],
+   "teams": [
+    {
+     "id": "CSR",
+     "abbr": "CSR",
+     "city": "Cold Spring",
+     "name": "Rustlers",
+     "level": "ML"
+    }
+   ],
+   "label": "Emil Okafor: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl17",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p523",
+     "name": "Herb Kessler",
+     "face": "face:52",
+     "teamAbbr": "NCG",
+     "pos": "1B"
+    }
+   ],
+   "teams": [
+    {
+     "id": "NCG",
+     "abbr": "NCG",
+     "city": "New Corinth",
+     "name": "Grays",
+     "level": "ML"
+    }
+   ],
+   "label": "Herb Kessler: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl18",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p529",
+     "name": "Duke Crabtree",
+     "face": "face:501",
+     "teamAbbr": "NCG",
+     "pos": "CF"
+    }
+   ],
+   "teams": [
+    {
+     "id": "NCG",
+     "abbr": "NCG",
+     "city": "New Corinth",
+     "name": "Grays",
+     "level": "ML"
+    }
+   ],
+   "label": "Duke Crabtree: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl19",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p535",
+     "name": "Darnell Lindqvist",
+     "face": "face:453",
+     "teamAbbr": "NCG",
+     "pos": "P"
+    }
+   ],
+   "teams": [
+    {
+     "id": "NCG",
+     "abbr": "NCG",
+     "city": "New Corinth",
+     "name": "Grays",
+     "level": "ML"
+    }
+   ],
+   "label": "Darnell Lindqvist: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl20",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p545",
+     "name": "Manny Jefferson",
+     "face": "face:20",
+     "teamAbbr": "NCG",
+     "pos": "P"
+    }
+   ],
+   "teams": [
+    {
+     "id": "NCG",
+     "abbr": "NCG",
+     "city": "New Corinth",
+     "name": "Grays",
+     "level": "ML"
+    }
+   ],
+   "label": "Manny Jefferson: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl21",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p625",
+     "name": "Bill Stottlemyre",
+     "face": "face:19",
+     "teamAbbr": "MRL",
+     "pos": "C"
+    }
+   ],
+   "teams": [
+    {
+     "id": "MRL",
+     "abbr": "MRL",
+     "city": "Marlow",
+     "name": "Pilgrims",
+     "level": "ML"
+    }
+   ],
+   "label": "Bill Stottlemyre: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl22",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p630",
+     "name": "Sid Esposito",
+     "face": "face:193",
+     "teamAbbr": "MRL",
+     "pos": "SS"
+    }
+   ],
+   "teams": [
+    {
+     "id": "MRL",
+     "abbr": "MRL",
+     "city": "Marlow",
+     "name": "Pilgrims",
+     "level": "ML"
+    }
+   ],
+   "label": "Sid Esposito: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl23",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p737",
+     "name": "Zeke Jimenez",
+     "face": "face:167",
+     "teamAbbr": "ELC",
+     "pos": "CF"
+    }
+   ],
+   "teams": [
+    {
+     "id": "ELC",
+     "abbr": "ELC",
+     "city": "Electric City",
+     "name": "Comets",
+     "level": "ML"
+    }
+   ],
+   "label": "Zeke Jimenez: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl24",
+   "kind": "contract_year",
+   "stage": "playing_for_a_deal",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p745",
+     "name": "Milo Ibarra",
+     "face": "face:71",
+     "teamAbbr": "ELC",
+     "pos": "P"
+    }
+   ],
+   "teams": [
+    {
+     "id": "ELC",
+     "abbr": "ELC",
+     "city": "Electric City",
+     "name": "Comets",
+     "level": "ML"
+    }
+   ],
+   "label": "Milo Ibarra: contract year (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  },
+  {
+   "storylineId": "sl25",
+   "kind": "rivalry",
+   "stage": "simmering",
+   "visibility": "public",
+   "people": [
+    {
+     "id": "p540",
+     "name": "Russ Cruz",
+     "face": "face:338",
+     "teamAbbr": "NCG",
+     "pos": "P"
+    },
+    {
+     "id": "p123",
+     "name": "Minnie Leonard",
+     "face": "face:1",
+     "teamAbbr": "STA",
+     "pos": "P"
+    }
+   ],
+   "teams": [
+    {
+     "id": "NCG",
+     "abbr": "NCG",
+     "city": "New Corinth",
+     "name": "Grays",
+     "level": "ML"
+    },
+    {
+     "id": "STA",
+     "abbr": "STA",
+     "city": "St. Albans",
+     "name": "Friars",
+     "level": "ML"
+    }
+   ],
+   "label": "Russ Cruz: rivalry (public)",
+   "ops": [
+    {
+     "kind": "tip_wire",
+     "nudge": "expose"
+    },
+    {
+     "kind": "smooth_over",
+     "nudge": "soothe"
+    }
+   ]
+  }
+ ]
+}

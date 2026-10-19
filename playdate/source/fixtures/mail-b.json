@@ -1,0 +1,89 @@
+{
+ "mail": [
+  {
+   "id": "mb:b0p1u2k491s2v46",
+   "from": "Bets By Bobby",
+   "subject": "You won $65",
+   "body": [
+    "Final: BVG 6, SBS 8.",
+    "You had $45 on the home side.",
+    "Paid out: $65."
+   ],
+   "at": 1792367336687,
+   "ago": 23,
+   "read": false,
+   "kind": "bank"
+  },
+  {
+   "id": "mb:b5j6x3z0o650g6z",
+   "from": "Bets By Bobby",
+   "subject": "Tough luck",
+   "body": [
+    "Final: CSR 2, STA 9.",
+    "You had $150 on the away side.",
+    "Better luck tomorrow."
+   ],
+   "at": 1792367332404,
+   "ago": 28,
+   "read": false,
+   "kind": "bank"
+  },
+  {
+   "id": "op3r4v6b0r1e0c19:after:1",
+   "from": "The Clubhouse BBS",
+   "subject": "Report: Grease the mound",
+   "body": [
+    "Grease the mound: failed.",
+    "Final: CSR 2, STA 9. The Rustlers lost."
+   ],
+   "at": 1792367332397,
+   "ago": 28,
+   "photo": "grease-03",
+   "photoCaption": "A tin of grease, 1916",
+   "read": false,
+   "kind": "op"
+  },
+  {
+   "id": "op3r4v6b0r1e0c19:m0",
+   "from": "The Clubhouse BBS",
+   "subject": "Grease the mound: did not work",
+   "body": [
+    "Quincy Watanabe could not get past the Rustlers night watchman. The job is off.",
+    "No one saw anything, as far as we know."
+   ],
+   "at": 1792367304397,
+   "ago": 56,
+   "photo": "grease-01",
+   "photoCaption": "A tin of grease, 1957",
+   "read": false,
+   "kind": "op"
+  },
+  {
+   "id": "chip:op3r4v6b0r1e0c19:a122v3u0q0b0q0h",
+   "from": "The Clubhouse BBS",
+   "subject": "Chip in? Grease the mound",
+   "body": [
+    "Lefty Loot has your crew on \"Grease the mound\" against the Rustlers (CSR @ STA, Day 5).",
+    "Your share is $20 of $40. Answer on the syndicate page or the event card before the job locks."
+   ],
+   "at": 1792367294461,
+   "ago": 66,
+   "read": false,
+   "kind": "op"
+  },
+  {
+   "id": "welcome:a122v3u0q0b0q0h",
+   "from": "The Commissioner's Office",
+   "subject": "Welcome to the league",
+   "body": [
+    "Here's $1,000 and a free starter pack. Spend it wisely, or don't.",
+    "Games air every half hour. Bets close at first pitch.",
+    "Remember: nothing in this league is fixed. Officially."
+   ],
+   "at": 1792367291247,
+   "ago": 69,
+   "read": false,
+   "kind": "league"
+  }
+ ]
+}

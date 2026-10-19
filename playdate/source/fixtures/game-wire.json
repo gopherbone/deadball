@@ -1,0 +1,480 @@
+{
+ "lines": [
+  {
+   "i": 0,
+   "text": "TOP 1ST CSR BATS STOP"
+  },
+  {
+   "i": 1,
+   "text": "VANCE ON MOUND FOR STA STOP"
+  },
+  {
+   "i": 6,
+   "text": "WIGGINS CALLED OUT ON STRIKES STOP"
+  },
+  {
+   "i": 9,
+   "text": "PRUITT FLIES OUT TO CENTER STOP"
+  },
+  {
+   "i": 15,
+   "text": "JEFFERSON GROUNDS OUT TO FIRST STOP"
+  },
+  {
+   "i": 16,
+   "text": "BOTTOM 1ST STA BATS STOP"
+  },
+  {
+   "i": 17,
+   "text": "OKAFOR ON MOUND FOR CSR STOP"
+  },
+  {
+   "i": 21,
+   "text": "IBARRA FLIES OUT TO RIGHT STOP"
+  },
+  {
+   "i": 24,
+   "text": "YAMAMOTO DOUBLES TO RIGHT STOP"
+  },
+  {
+   "i": 28,
+   "text": "PUCKETT SINGLES TO RIGHT CENTER STOP"
+  },
+  {
+   "i": 33,
+   "text": "NOVAK FLIES OUT TO LEFT STOP"
+  },
+  {
+   "i": 42,
+   "text": "STOTTLEMYRE FANS STOP"
+  },
+  {
+   "i": 43,
+   "text": "TOP 2ND CSR BATS STOP"
+  },
+  {
+   "i": 46,
+   "text": "FUENTES SINGLES TO LEFT CENTER STOP"
+  },
+  {
+   "i": 52,
+   "text": "CHARLESTON 2-RUN HOMER STOP"
+  },
+  {
+   "i": 54,
+   "text": "SCORE CSR 2 STA 0 STOP"
+  },
+  {
+   "i": 61,
+   "text": "L. IRVIN DOUBLES TO RIGHT STOP"
+  },
+  {
+   "i": 66,
+   "text": "DANDRIDGE FLIES OUT TO LEFT STOP"
+  },
+  {
+   "i": 79,
+   "text": "NAVARRO FLIES OUT TO LEFT STOP"
+  },
+  {
+   "i": 87,
+   "text": "MCCANN WALKS STOP"
+  },
+  {
+   "i": 94,
+   "text": "WIGGINS SINGLES TO LEFT STOP"
+  },
+  {
+   "i": 102,
+   "text": "PRUITT GROUNDS OUT TO THIRD STOP"
+  },
+  {
+   "i": 105,
+   "text": "BOTTOM 2ND STA BATS STOP"
+  },
+  {
+   "i": 108,
+   "text": "HASKINS BLOOPS SINGLE TO CENTER STOP"
+  },
+  {
+   "i": 115,
+   "text": "SHAUGHNESSY CALLED K STOP"
+  },
+  {
+   "i": 121,
+   "text": "HERRERA INFIELD SINGLE TO SHORT STOP"
+  },
+  {
+   "i": 127,
+   "text": "WATANABE STRIKES OUT SWINGING STOP"
+  },
+  {
+   "i": 131,
+   "text": "IBARRA FLIES OUT TO RIGHT STOP"
+  },
+  {
+   "i": 134,
+   "text": "TOP 3RD CSR BATS STOP"
+  },
+  {
+   "i": 139,
+   "text": "JEFFERSON SINGLES STOP"
+  },
+  {
+   "i": 149,
+   "text": "FUENTES FLIES OUT TO CENTER STOP"
+  },
+  {
+   "i": 155,
+   "text": "CHARLESTON FLIES OUT TO LEFT STOP"
+  },
+  {
+   "i": 160,
+   "text": "L. IRVIN GROUNDS OUT TO SHORT STOP"
+  },
+  {
+   "i": 162,
+   "text": "BOTTOM 3RD STA BATS STOP"
+  },
+  {
+   "i": 170,
+   "text": "YAMAMOTO CALLED OUT ON STRIKES STOP"
+  },
+  {
+   "i": 174,
+   "text": "PUCKETT CALLED OUT ON STRIKES STOP"
+  },
+  {
+   "i": 178,
+   "text": "NOVAK CALLED OUT ON STRIKES STOP"
+  },
+  {
+   "i": 179,
+   "text": "TOP 4TH CSR BATS STOP"
+  },
+  {
+   "i": 186,
+   "text": "DANDRIDGE WALKS STOP"
+  },
+  {
+   "i": 191,
+   "text": "NAVARRO INTO DP STOP"
+  },
+  {
+   "i": 194,
+   "text": "MCCANN GROUNDS OUT TO THIRD STOP"
+  },
+  {
+   "i": 195,
+   "text": "BOTTOM 4TH STA BATS STOP"
+  },
+  {
+   "i": 203,
+   "text": "STOTTLEMYRE FLIES OUT TO CENTER STOP"
+  },
+  {
+   "i": 208,
+   "text": "HASKINS DOUBLES TO LEFT CENTER STOP"
+  },
+  {
+   "i": 214,
+   "text": "SHAUGHNESSY WALKS STOP"
+  },
+  {
+   "i": 219,
+   "text": "HERRERA SINGLES TO RIGHT STOP"
+  },
+  {
+   "i": 220,
+   "text": "HASKINS SCORES STOP"
+  },
+  {
+   "i": 220,
+   "text": "SCORE CSR 2 STA 1 STOP"
+  },
+  {
+   "i": 228,
+   "text": "WATANABE STRIKES OUT SWINGING STOP"
+  },
+  {
+   "i": 239,
+   "text": "IBARRA FLIES OUT TO THE MOUND STOP"
+  },
+  {
+   "i": 242,
+   "text": "TOP 5TH CSR BATS STOP"
+  },
+  {
+   "i": 248,
+   "text": "WIGGINS CALLED OUT ON STRIKES STOP"
+  },
+  {
+   "i": 255,
+   "text": "PRUITT WALKS STOP"
+  },
+  {
+   "i": 264,
+   "text": "JEFFERSON FLIES OUT TO CENTER STOP"
+  },
+  {
+   "i": 271,
+   "text": "FUENTES SINGLES SHARP TO RIGHT STOP"
+  },
+  {
+   "i": 278,
+   "text": "CHARLESTON POPS UP TO SECOND STOP"
+  },
+  {
+   "i": 281,
+   "text": "BOTTOM 5TH STA BATS STOP"
+  },
+  {
+   "i": 282,
+   "text": "OKAFOR TIRES E. IRVIN IN STOP"
+  },
+  {
+   "i": 288,
+   "text": "YAMAMOTO CALLED OUT ON STRIKES STOP"
+  },
+  {
+   "i": 291,
+   "text": "PUCKETT SINGLES SHARP TO LEFT STOP"
+  },
+  {
+   "i": 296,
+   "text": "PUCKETT STEALS SECOND STOP"
+  },
+  {
+   "i": 299,
+   "text": "NOVAK GROUNDS OUT TO SHORT STOP"
+  },
+  {
+   "i": 304,
+   "text": "STOTTLEMYRE SINGLES TO CENTER STOP"
+  },
+  {
+   "i": 305,
+   "text": "PUCKETT SCORES STOP"
+  },
+  {
+   "i": 305,
+   "text": "SCORE CSR 2 STA 2 STOP"
+  },
+  {
+   "i": 315,
+   "text": "HASKINS GROUNDS OUT TO FIRST STOP"
+  },
+  {
+   "i": 317,
+   "text": "TOP 6TH CSR BATS STOP"
+  },
+  {
+   "i": 318,
+   "text": "VANCE TIRES BUMGARDNER IN STOP"
+  },
+  {
+   "i": 322,
+   "text": "L. IRVIN POPS UP TO FIRST STOP"
+  },
+  {
+   "i": 329,
+   "text": "DANDRIDGE GROUNDS OUT TO THIRD STOP"
+  },
+  {
+   "i": 333,
+   "text": "NAVARRO FLIES OUT TO LEFT STOP"
+  },
+  {
+   "i": 334,
+   "text": "BOTTOM 6TH STA BATS STOP"
+  },
+  {
+   "i": 335,
+   "text": "GALLAGHER RELIEVES E. IRVIN STOP"
+  },
+  {
+   "i": 341,
+   "text": "SHAUGHNESSY SINGLES TO LEFT STOP"
+  },
+  {
+   "i": 347,
+   "text": "HERRERA INFIELD SINGLE TO SHORT STOP"
+  },
+  {
+   "i": 356,
+   "text": "WATANABE CALLED OUT ON STRIKES STOP"
+  },
+  {
+   "i": 361,
+   "text": "IBARRA SINGLES SHARP TO CENTER STOP"
+  },
+  {
+   "i": 362,
+   "text": "SHAUGHNESSY SCORES STOP"
+  },
+  {
+   "i": 362,
+   "text": "SCORE CSR 2 STA 3 STOP"
+  },
+  {
+   "i": 368,
+   "text": "YAMAMOTO 3-RUN HOMER TO LEFT STOP"
+  },
+  {
+   "i": 371,
+   "text": "SCORE CSR 2 STA 6 STOP"
+  },
+  {
+   "i": 374,
+   "text": "PUCKETT SOLO HOMER STOP"
+  },
+  {
+   "i": 375,
+   "text": "SCORE CSR 2 STA 7 STOP"
+  },
+  {
+   "i": 381,
+   "text": "NOVAK CALLED OUT ON STRIKES STOP"
+  },
+  {
+   "i": 384,
+   "text": "STOTTLEMYRE SINGLES TO CENTER STOP"
+  },
+  {
+   "i": 390,
+   "text": "HASKINS STRIKES OUT SWINGING STOP"
+  },
+  {
+   "i": 391,
+   "text": "TOP 7TH CSR BATS STOP"
+  },
+  {
+   "i": 392,
+   "text": "PAPPAS RELIEVES BUMGARDNER STOP"
+  },
+  {
+   "i": 395,
+   "text": "MCCANN GROUNDS OUT TO THIRD STOP"
+  },
+  {
+   "i": 400,
+   "text": "WIGGINS FLIES OUT TO RIGHT STOP"
+  },
+  {
+   "i": 409,
+   "text": "PRUITT WALKS STOP"
+  },
+  {
+   "i": 417,
+   "text": "JEFFERSON DOUBLES TO CENTER STOP"
+  },
+  {
+   "i": 428,
+   "text": "FUENTES WALKS STOP"
+  },
+  {
+   "i": 435,
+   "text": "CHARLESTON STRIKES OUT SWINGING STOP"
+  },
+  {
+   "i": 436,
+   "text": "BOTTOM 7TH STA BATS STOP"
+  },
+  {
+   "i": 441,
+   "text": "SHAUGHNESSY FANS STOP"
+  },
+  {
+   "i": 444,
+   "text": "HERRERA GROUNDS OUT TO THIRD STOP"
+  },
+  {
+   "i": 451,
+   "text": "WATANABE GROUNDS OUT TO THIRD STOP"
+  },
+  {
+   "i": 452,
+   "text": "TOP 8TH CSR BATS STOP"
+  },
+  {
+   "i": 453,
+   "text": "SALAZAR RELIEVES PAPPAS STOP"
+  },
+  {
+   "i": 458,
+   "text": "L. IRVIN DOUBLES STOP"
+  },
+  {
+   "i": 463,
+   "text": "DANDRIDGE GROUNDS OUT TO SHORT STOP"
+  },
+  {
+   "i": 471,
+   "text": "NAVARRO STRIKES OUT SWINGING STOP"
+  },
+  {
+   "i": 475,
+   "text": "MCCANN GROUNDS OUT TO SECOND STOP"
+  },
+  {
+   "i": 477,
+   "text": "BOTTOM 8TH STA BATS STOP"
+  },
+  {
+   "i": 478,
+   "text": "BRANNIGAN RELIEVES GALLAGHER STOP"
+  },
+  {
+   "i": 480,
+   "text": "IBARRA HIT BY PITCH STOP"
+  },
+  {
+   "i": 486,
+   "text": "YAMAMOTO STRIKES OUT SWINGING STOP"
+  },
+  {
+   "i": 489,
+   "text": "PUCKETT FIELDERS CHOICE 3B STOP"
+  },
+  {
+   "i": 493,
+   "text": "NOVAK 2-RUN HOMER STOP"
+  },
+  {
+   "i": 495,
+   "text": "SCORE CSR 2 STA 9 STOP"
+  },
+  {
+   "i": 504,
+   "text": "STOTTLEMYRE FANS STOP"
+  },
+  {
+   "i": 505,
+   "text": "TOP 9TH CSR BATS STOP"
+  },
+  {
+   "i": 510,
+   "text": "WIGGINS CALLED OUT ON STRIKES STOP"
+  },
+  {
+   "i": 520,
+   "text": "PRUITT SINGLES TO LEFT CENTER STOP"
+  },
+  {
+   "i": 528,
+   "text": "JEFFERSON STRIKES OUT SWINGING STOP"
+  },
+  {
+   "i": 537,
+   "text": "FUENTES CALLED OUT ON STRIKES STOP"
+  },
+  {
+   "i": 538,
+   "text": "FINAL CSR 2 STA 9 STOP"
+  },
+  {
+   "i": 538,
+   "text": "WP VANCE LP GALLAGHER STOP"
+  }
+ ]
+}

@@ -1,0 +1,751 @@
+{
+ "photos": {
+  "2014691022": {
+   "person": "s:dolan cozy"
+  },
+  "2014691346": {
+   "person": "t:judge wescott"
+  },
+  "90706256": {
+   "person": "t:larry schlafly"
+  },
+  "2014697682": {
+   "person": "t:dick rudolph"
+  },
+  "2014692070": {
+   "person": "t:thomas j buck o brien"
+  },
+  "2014685578": {
+   "person": "t:mrs c m depew seated"
+  },
+  "2014687973": {
+   "person": "t:john titus"
+  },
+  "2014691569": {
+   "person": "t:charles m jeff tesreau"
+  },
+  "2014690181": {
+   "person": "t:manager jake stahl"
+  },
+  "2014691973": {
+   "person": "t:charles red dooin"
+  },
+  "2014711299": {
+   "person": "t:shano collins"
+  },
+  "2014687645": {
+   "person": "t:manager william j clymer"
+  },
+  "2014687209": {},
+  "2014701834": {
+   "person": "t:judge wescott"
+  },
+  "2014693768": {
+   "person": "t:ed ruelbach"
+  },
+  "2014696204": {
+   "person": "t:ed ruelbach"
+  },
+  "2014693857": {
+   "person": "s:pratt del"
+  },
+  "2014719446": {
+   "person": "s:pratt del"
+  }
+ },
+ "people": {
+  "t:lady eliz bowes lyon": {
+   "skip": true,
+   "why": "Lady Eliz. Bowes-Lyon"
+  },
+  "t:mrs h p whitney s titanic": {
+   "skip": true,
+   "why": "Mrs. H.P. Whitney's \"Titanic\""
+  },
+  "t:new york female giants": {
+   "skip": true,
+   "why": "New York Female Giants (baseball)"
+  },
+  "t:mrs walter stokes": {
+   "skip": true,
+   "why": "Mrs. Walter Stokes, Mrs. Mort. Schiff"
+  },
+  "t:grand jury": {
+   "skip": true,
+   "why": "Grand Jury at Capt. Walsh's"
+  },
+  "t:lieut porte cabin": {
+   "skip": true,
+   "why": "Lieut. Porte & Cabin of Transatlantic flyer"
+  },
+  "t:col sam hughes mp": {
+   "skip": true,
+   "why": "Col. Sam Hughes MP"
+  },
+  "t:col harry new": {
+   "skip": true,
+   "why": "Col. Harry New"
+  },
+  "t:col chas h hitchcock": {
+   "age": "old"
+  },
+  "t:col wm c brown": {
+   "age": "old"
+  },
+  "t:mrs william b williams": {
+   "age": "old"
+  },
+  "s:boole ella alexander": {
+   "age": "old"
+  },
+  "t:prof david todd": {
+   "age": "old"
+  },
+  "t:judge holt pach": {
+   "age": "old"
+  },
+  "t:dr h claplin": {
+   "age": "old"
+  },
+  "t:dr f a lucas": {
+   "age": "old"
+  },
+  "s:brookings robert s": {
+   "age": "old"
+  },
+  "t:dr rosen": {
+   "age": "old"
+  },
+  "t:judge dillon": {
+   "age": "old"
+  },
+  "t:capt t m potts": {
+   "age": "old"
+  },
+  "t:prof thos jonnesco": {
+   "age": "old"
+  },
+  "t:dr j k dixon": {
+   "age": "old"
+  },
+  "t:mme de montagnac": {
+   "age": "old"
+  },
+  "t:miss elizabeth asquith": {
+   "skip": true,
+   "why": "Miss Elizabeth Asquith"
+  },
+  "t:prof lanson": {
+   "age": "old"
+  },
+  "t:dr hamil": {
+   "age": "old"
+  },
+  "t:dr w c carl": {
+   "age": "old"
+  },
+  "t:lady williams taylor": {
+   "age": "old"
+  },
+  "t:daughter": {
+   "age": "young"
+  },
+  "t:miss stella hammerstein": {
+   "age": "young"
+  },
+  "t:dr w kiesselbach": {
+   "age": "old"
+  },
+  "t:capt maurras": {
+   "age": "old"
+  },
+  "t:old man making toys": {
+   "age": "old"
+  },
+  "t:col chaille long": {
+   "age": "old"
+  },
+  "t:miss e sutro": {
+   "skip": true,
+   "why": "Miss E. Sutro (Mrs. Warren L. Ward)"
+  },
+  "t:gene packard": {
+   "skip": true,
+   "why": "Gene Packard, Cincinnati NL (baseball)"
+  },
+  "t:possibly jean dubuc": {
+   "skip": true,
+   "why": "Possibly Jean DuBuc, Detroit AL (baseball)"
+  },
+  "t:prof o sevcik": {
+   "age": "old"
+  },
+  "t:mrs lillian m stevens": {
+   "age": "young"
+  },
+  "t:dr chas f gilman": {
+   "age": "old"
+  },
+  "t:mrs thos g winter": {
+   "age": "old"
+  },
+  "t:capt w t turner": {
+   "skip": true,
+   "why": "Capt. W.T. Turner"
+  },
+  "t:judge rufus h thayer": {
+   "age": "old"
+  },
+  "t:prof geo d olds": {
+   "age": "old"
+  },
+  "t:dr j s billings": {
+   "age": "old"
+  },
+  "t:prof a g webster": {
+   "age": "old"
+  },
+  "t:dr louisa b aldrich blake": {
+   "age": "old"
+  },
+  "t:mrs margaret h mccarter": {
+   "age": "old"
+  },
+  "t:judge parker speaking": {
+   "skip": true,
+   "why": "Judge Parker speaking (Indianapolis)"
+  },
+  "t:miss v c carson": {
+   "skip": true,
+   "why": "Miss V.C. Carson"
+  },
+  "t:rev wilbur f crafts": {
+   "age": "old"
+  },
+  "t:judge e h lacombe": {
+   "age": "old"
+  },
+  "t:judge wescott": {
+   "age": "old"
+  },
+  "t:lady horne": {
+   "age": "old"
+  },
+  "t:mrs julian heath": {
+   "skip": true,
+   "why": "Mrs. Julian Heath"
+  },
+  "t:ralph sailor stroud": {
+   "skip": true,
+   "why": "Ralph \"Sailor\" Stroud, New York NL (baseball)"
+  },
+  "t:rev edmund obrecht": {
+   "age": "old"
+  },
+  "t:dr moses hyamson": {
+   "age": "old"
+  },
+  "t:lady shaughnessy": {
+   "age": "old"
+  },
+  "t:mrs nellie van slingerland": {
+   "age": "old"
+  },
+  "t:mme diss debarr": {
+   "age": "old"
+  },
+  "t:rev w m grosvenor": {
+   "age": "old"
+  },
+  "t:dr stanley hall": {
+   "skip": true,
+   "why": "Dr. Stanley Hall, J.E. Purdy, Boston - J.E. Purdy"
+  },
+  "t:dr c h best": {
+   "skip": true,
+   "why": "Dr. C.H. Best"
+  },
+  "t:fred haney": {
+   "skip": true,
+   "why": "Fred Haney, Detroit AL, shown in unidentified uniform (baseb"
+  },
+  "t:col r m thompson": {
+   "age": "old"
+  },
+  "t:henry heide jr": {
+   "age": "old"
+  },
+  "t:rev h n couden": {
+   "age": "old"
+  },
+  "t:col thos swope": {
+   "skip": true,
+   "why": "Col. Thos. Swope"
+  },
+  "t:capt f m passow": {
+   "age": "old"
+  },
+  "t:lt col w g everson": {
+   "age": "old"
+  },
+  "t:dr dernburg": {
+   "age": "old"
+  },
+  "t:mrs c m schwab": {
+   "skip": true,
+   "why": "Mrs. C.M. Schwab"
+  },
+  "t:george l highpockets kelly": {
+   "skip": true,
+   "why": "George L. \"Highpockets\" Kelly, New York NL (baseball)"
+  },
+  "t:benj strong jr": {
+   "skip": true,
+   "why": "Benj. Strong Jr."
+  },
+  "t:rev w john murray": {
+   "age": "old"
+  },
+  "t:mrs d b montefore": {
+   "age": "old"
+  },
+  "t:mlle marving t": {
+   "age": "old"
+  },
+  "t:prof frederick starr": {
+   "age": "old"
+  },
+  "t:vedrin": {
+   "skip": true,
+   "why": "Vedrin(es) wins Fres... Laurels. Aviator brings down two Ger"
+  },
+  "t:mrs g cornwallis west": {
+   "skip": true,
+   "why": "Mrs. G. Cornwallis West"
+  },
+  "t:mother": {
+   "age": "old"
+  },
+  "t:rt rev thos j walsh": {
+   "age": "old"
+  },
+  "t:capt b h tillman newport": {
+   "age": "old"
+  },
+  "t:prof dr c duisberg": {
+   "age": "old"
+  },
+  "t:father hyacinthe": {
+   "skip": true,
+   "why": "Father Hyacinthe"
+  },
+  "t:dr e stillman bailey": {
+   "skip": true,
+   "why": "Dr. E. Stillman Bailey"
+  },
+  "t:mme blanche": {
+   "skip": true,
+   "why": "Mme. Blanche"
+  },
+  "t:rev l turkevitch blessing ambulance": {
+   "skip": true,
+   "why": "Rev. L. Turkevitch blessing ambulance"
+  },
+  "t:prof maunder": {
+   "age": "old"
+  },
+  "t:prof gierke": {
+   "age": "old"
+  },
+  "t:col w s schuyler": {
+   "age": "old"
+  },
+  "t:dr j c branner": {
+   "age": "old"
+  },
+  "t:col joel d benton": {
+   "age": "old"
+  },
+  "t:father giovanni semeria": {
+   "age": "old"
+  },
+  "t:capt wm j mcdonald": {
+   "age": "old"
+  },
+  "t:mrs harry l keefe": {
+   "age": "old"
+  },
+  "t:mrs john f lyons": {
+   "age": "old"
+  },
+  "t:mrs j m sutton": {
+   "age": "old"
+  },
+  "t:fred snodgrass": {
+   "age": "young"
+  },
+  "t:earl moore": {
+   "age": "young"
+  },
+  "t:arley wilbur cooper": {
+   "age": "young"
+  },
+  "t:mrs a m werner": {
+   "age": "young"
+  },
+  "t:ray fisher": {
+   "age": "young"
+  },
+  "t:mrs russell hopkins": {
+   "age": "young"
+  },
+  "t:miss adele colgate": {
+   "age": "young"
+  },
+  "t:joe judge": {
+   "age": "young"
+  },
+  "t:charles dutch sterrett": {
+   "age": "young"
+  },
+  "t:hick cady": {
+   "age": "young"
+  },
+  "t:mrs j rigo": {
+   "age": "young"
+  },
+  "t:luther dummy taylor": {
+   "age": "young"
+  },
+  "t:mrs price collier lallie charles photo": {
+   "age": "young"
+  },
+  "t:mme j j jusserand": {
+   "age": "young"
+  },
+  "t:lieut f t evans": {
+   "age": "young"
+  },
+  "t:mrs oliver harriman jr": {
+   "age": "young"
+  },
+  "s:schmidt charles": {
+   "age": "young"
+  },
+  "t:hap myers": {
+   "age": "young"
+  },
+  "t:dr loren wilder": {
+   "age": "young"
+  },
+  "t:lady mary thynne": {
+   "age": "young"
+  },
+  "t:ray keating": {
+   "age": "young"
+  },
+  "t:grover lowdermilk": {
+   "age": "young"
+  },
+  "t:harry krause": {
+   "age": "young"
+  },
+  "t:lady eileen butler": {
+   "age": "young"
+  },
+  "t:james mullin": {
+   "age": "young"
+  },
+  "t:marty krug": {
+   "age": "young"
+  },
+  "t:theodore harrison ted easterly": {
+   "age": "young"
+  },
+  "t:hugh mcquillan": {
+   "age": "young"
+  },
+  "t:daniel john hoffman": {
+   "age": "young"
+  },
+  "t:mrs eyre macklin": {
+   "age": "young"
+  },
+  "t:jimmy esmond": {
+   "age": "young"
+  },
+  "s:shafer ny": {
+   "age": "young"
+  },
+  "t:john dodge": {
+   "age": "young"
+  },
+  "t:dr gerhard a bading": {
+   "age": "young"
+  },
+  "t:miss pauline chase": {
+   "age": "young"
+  },
+  "t:mrs salvador du sol": {
+   "age": "young"
+  },
+  "t:mrs e r thomas": {
+   "age": "young"
+  },
+  "t:hodge": {
+   "age": "young"
+  },
+  "t:mme delaroche": {
+   "age": "young"
+  },
+  "t:mrs b b lindsey": {
+   "age": "young"
+  },
+  "t:pitcher roger e salmon": {
+   "age": "young"
+  },
+  "t:mrs robt t scott": {
+   "age": "young"
+  },
+  "t:miss alexandra carlisle": {
+   "age": "young"
+  },
+  "t:verne clemons": {
+   "age": "young"
+  },
+  "t:miss ina pelly acting as water": {
+   "age": "young"
+  },
+  "t:mme de kosenko": {
+   "age": "young"
+  },
+  "t:actress": {
+   "age": "young"
+  },
+  "t:miss laura cowie": {
+   "age": "young"
+  },
+  "s:pratt del": {
+   "age": "young"
+  },
+  "t:mrs belle mccreary": {
+   "age": "young"
+  },
+  "t:johnny bates": {
+   "age": "young"
+  },
+  "t:miss e little playing tennis": {
+   "age": "young"
+  },
+  "t:miss dolorita o gorman": {
+   "age": "young"
+  },
+  "t:mrs t p edmundson": {
+   "age": "young"
+  },
+  "t:mrs lora wagner": {
+   "age": "young"
+  },
+  "t:mrs ida m french": {
+   "age": "young"
+  },
+  "t:mrs geo r chester": {
+   "age": "young"
+  },
+  "t:walt dickson": {
+   "age": "young"
+  },
+  "t:mrs charlotte v gulick": {
+   "age": "young"
+  },
+  "t:prof anne sewell young": {
+   "age": "young"
+  },
+  "t:elise rice mrs winfield linn": {
+   "age": "young"
+  },
+  "t:capt cecil h fox": {
+   "age": "young"
+  },
+  "t:mlle dormy": {
+   "age": "young"
+  },
+  "t:mildred rice": {
+   "age": "young"
+  },
+  "t:mrs clemme e white": {
+   "age": "young"
+  },
+  "t:capt g c kenney": {
+   "age": "young"
+  },
+  "t:lieut mccubbins": {
+   "age": "young"
+  },
+  "t:miss l c houk": {
+   "age": "young"
+  },
+  "t:lieut e d washburn": {
+   "age": "young"
+  },
+  "t:miss gorst": {
+   "age": "young"
+  },
+  "t:joe bush": {
+   "age": "young"
+  },
+  "t:harry williams": {
+   "age": "young"
+  },
+  "t:miss may": {
+   "age": "young"
+  },
+  "t:mrs c m depew seated": {
+   "age": "young"
+  },
+  "t:mme dimitrieff": {
+   "age": "young"
+  },
+  "t:mrs j ottley corbett": {
+   "age": "young"
+  },
+  "t:capt h b ferguson": {
+   "age": "young"
+  },
+  "t:mrs chas s brown jr": {
+   "age": "young"
+  },
+  "t:larry kopf": {
+   "age": "young"
+  },
+  "t:lady duli": {
+   "age": "young"
+  },
+  "t:elsie hill": {
+   "age": "young"
+  },
+  "t:mrs f von stumm": {
+   "age": "young"
+  },
+  "t:lady kingsley wood": {
+   "age": "young"
+  },
+  "t:mrs irving chase": {
+   "age": "young"
+  },
+  "t:miss marie sperber": {
+   "age": "young"
+  },
+  "t:clarence kraft": {
+   "age": "young"
+  },
+  "t:milton warner": {
+   "age": "young"
+  },
+  "t:mrs john e somerville": {
+   "age": "young"
+  },
+  "t:jack bentley": {
+   "age": "young"
+  },
+  "t:mrs g v l meyer": {
+   "age": "young"
+  },
+  "t:mrs thos bloodgood peck": {
+   "age": "young"
+  },
+  "t:miss edith gaynor": {
+   "age": "young"
+  },
+  "t:lady grey egerton": {
+   "age": "young"
+  },
+  "t:lady hermione lytton": {
+   "age": "young"
+  },
+  "t:mrs e w beattie": {
+   "age": "young"
+  },
+  "t:mrs edw browning": {
+   "age": "young"
+  },
+  "t:george zip zabel": {
+   "age": "young"
+  },
+  "t:mrs w e carlin": {
+   "age": "young"
+  },
+  "t:mrs w w rockhill": {
+   "age": "young"
+  },
+  "t:virgil barnes": {
+   "age": "young"
+  },
+  "t:lady de freyne": {
+   "age": "young"
+  },
+  "t:mrs a van de sande bakhuyzen": {
+   "age": "young"
+  },
+  "t:miss snodgrass": {
+   "age": "young"
+  },
+  "t:lady cholmondeley": {
+   "age": "young"
+  },
+  "t:sandy piez": {
+   "age": "young"
+  },
+  "t:mrs h p davison jr": {
+   "age": "young"
+  },
+  "t:lady katherine hamilton": {
+   "age": "young"
+  },
+  "t:miss caroline reilly": {
+   "age": "young"
+  },
+  "t:lady auchland": {
+   "age": "young"
+  },
+  "t:mme e arredondo": {
+   "age": "young"
+  },
+  "t:miss phyllis neilson terry": {
+   "age": "young"
+  },
+  "t:miss dupont": {
+   "age": "young"
+  },
+  "t:lady belper": {
+   "age": "young"
+  },
+  "t:miss a m scott": {
+   "age": "young"
+  },
+  "t:george a davis": {
+   "age": "young"
+  },
+  "t:mrs barclay warburton": {
+   "age": "young"
+  },
+  "t:mrs j marshall dodge": {
+   "age": "young"
+  },
+  "t:miss francis peck mrs vivian egleston": {
+   "age": "young"
+  },
+  "t:mrs mabel gilmore reinicke": {
+   "age": "young"
+  },
+  "t:lieut com r mclean": {
+   "age": "young"
+  },
+  "t:lady carrington": {
+   "age": "young"
+  },
+  "t:mrs luells johnston": {
+   "age": "young"
+  }
+ }
+}

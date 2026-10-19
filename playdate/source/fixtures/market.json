@@ -1,0 +1,338 @@
+{
+ "listings": [
+  {
+   "id": "l3s6j3h213q396o",
+   "card": {
+    "id": "k4n1m383y4u5e2z",
+    "defId": "S1-145",
+    "person": {
+     "id": "p540",
+     "name": "Russ Cruz",
+     "face": "face:338",
+     "teamAbbr": "NCG",
+     "pos": "P"
+    },
+    "team": {
+     "id": "NCG",
+     "abbr": "NCG",
+     "city": "New Corinth",
+     "name": "Grays",
+     "level": "ML"
+    },
+    "season": 1,
+    "set": "Series 1",
+    "number": 145,
+    "rarity": "common",
+    "front": {
+     "caption": "CRUZ, NEW CORINTH",
+     "pos": "RP"
+    },
+    "back": {
+     "lines": [
+      "Cruz plays pitcher for the Grays and",
+      "does fine, thanks. Pals with Archie",
+      "Lindqvist (roommates on the road). Pals",
+      "with Kip Shaughnessy (Cruz took him",
+      "under his wing). 3 kids, all of whom",
+      "think Cruz is just okay."
+     ],
+     "stats": [
+      [
+       "STF",
+       "CTL",
+       "CMD",
+       "MOV",
+       "VEL"
+      ],
+      [
+       "67",
+       "59",
+       "41",
+       "47",
+       "92"
+      ]
+     ]
+    },
+    "value": 2
+   },
+   "price": 10,
+   "seller": "Dotty Dial",
+   "at": 1792367294143,
+   "ago": 0,
+   "kind": "auction",
+   "status": "active",
+   "watchers": 1,
+   "watching": false,
+   "auction": {
+    "startBid": 10,
+    "currentBid": 10,
+    "bids": 0,
+    "endsAt": 1792388894143,
+    "endsIn": 21600,
+    "minBid": 10,
+    "hasReserve": false
+   }
+  },
+  {
+   "id": "l3w5h5z354k2b6x",
+   "card": {
+    "id": "k4p6t1p3m0d3g0a",
+    "defId": "S1-001",
+    "person": {
+     "id": "p1",
+     "name": "Marty Pruitt",
+     "face": "face:19",
+     "teamAbbr": "HCL",
+     "pos": "C"
+    },
+    "team": {
+     "id": "HCL",
+     "abbr": "HCL",
+     "city": "Harbor City",
+     "name": "Lamplighters",
+     "level": "ML"
+    },
+    "season": 1,
+    "set": "Series 1",
+    "number": 1,
+    "rarity": "gilded",
+    "front": {
+     "caption": "PRUITT, HARBOR CITY",
+     "pos": "C",
+     "redeem": "REDEEMABLE: BOOST +12 FOR 7 DAYS"
+    },
+    "back": {
+     "lines": [
+      "Pruitt is a catcher, technically. Pals",
+      "with Luis Ortega (roommates on the",
+      "road). Teammates no longer talk near",
+      "Pruitt. Smart. Pals with Kenji Swindell",
+      "(card partners).",
+      "REDEEM: +12 CON/POW/EYE FOR 7 GAME DAYS."
+     ],
+     "stats": [
+      [
+       "CON",
+       "POW",
+       "EYE",
+       "SPD",
+       "GLV"
+      ],
+      [
+       "29",
+       "52",
+       "39",
+       "33",
+       "54"
+      ]
+     ]
+    },
+    "value": 272,
+    "redeem": {
+     "kind": "boost",
+     "boost": 12,
+     "days": 7,
+     "label": "REDEEMABLE: BOOST +12 FOR 7 DAYS"
+    },
+    "serial": "01/50"
+   },
+   "price": 135,
+   "seller": "Lefty Loot",
+   "at": 1792367294138,
+   "ago": 0,
+   "kind": "auction",
+   "status": "active",
+   "watchers": 2,
+   "watching": false,
+   "auction": {
+    "startBid": 60,
+    "currentBid": 135,
+    "bids": 3,
+    "endsAt": 1792453694138,
+    "endsIn": 86400,
+    "minBid": 160,
+    "hasReserve": true,
+    "reserveMet": false,
+    "leader": "G***e"
+   }
+  },
+  {
+   "id": "l0k4j5w0h673v1k",
+   "card": {
+    "id": "k5t544o441l5s4c",
+    "defId": "S1-148",
+    "person": {
+     "id": "p545",
+     "name": "Manny Jefferson",
+     "face": "face:20",
+     "teamAbbr": "NCG",
+     "pos": "P"
+    },
+    "team": {
+     "id": "NCG",
+     "abbr": "NCG",
+     "city": "New Corinth",
+     "name": "Grays",
+     "level": "ML"
+    },
+    "season": 1,
+    "set": "Series 1",
+    "number": 148,
+    "rarity": "common",
+    "front": {
+     "caption": "JEFFERSON, NEW CORINTH",
+     "pos": "RP"
+    },
+    "back": {
+     "lines": [
+      "At 35, Jefferson remembers when the",
+      "bases were flour sacks. Married to Trudy",
+      "Jefferson, the brains of the operation.",
+      "Pals with Duke Crabtree (fishing",
+      "buddies). 2 kids, all of whom think",
+      "Jefferson is just okay."
+     ],
+     "stats": [
+      [
+       "STF",
+       "CTL",
+       "CMD",
+       "MOV",
+       "VEL"
+      ],
+      [
+       "58",
+       "71",
+       "49",
+       "63",
+       "94"
+      ]
+     ]
+    },
+    "value": 2
+   },
+   "price": 300,
+   "seller": "Dotty Dial",
+   "at": 1792367294123,
+   "ago": 0,
+   "kind": "fixed",
+   "status": "active",
+   "watchers": 0,
+   "watching": false
+  },
+  {
+   "id": "l0h2r2g2v4o6i6u",
+   "card": {
+    "id": "k665v4l4g2s3z1t",
+    "defId": "S1-131",
+    "person": {
+     "id": "p520",
+     "name": "Kip Bumgardner",
+     "face": "face:550",
+     "teamAbbr": "NCG",
+     "pos": "C"
+    },
+    "team": {
+     "id": "NCG",
+     "abbr": "NCG",
+     "city": "New Corinth",
+     "name": "Grays",
+     "level": "ML"
+    },
+    "season": 1,
+    "set": "Series 1",
+    "number": 131,
+    "rarity": "common",
+    "front": {
+     "caption": "BUMGARDNER, NEW CORINTH",
+     "pos": "C"
+    },
+    "back": {
+     "lines": [
+      "Bumgardner plays catcher for the Grays",
+      "and does fine, thanks. Hits the ball",
+      "very far, often into someone's soup.",
+      "Pals with Ollie Delahanty (fishing",
+      "buddies). Fans love Bumgardner. So do",
+      "the umps, suspiciously."
+     ],
+     "stats": [
+      [
+       "YR",
+       "TM",
+       "AVG",
+       "HR",
+       "RBI",
+       "SB"
+      ],
+      [
+       "S1",
+       "NCG",
+       ".300",
+       "0",
+       "0",
+       "0"
+      ]
+     ]
+    },
+    "value": 1
+   },
+   "price": 15,
+   "seller": "Dotty Dial",
+   "at": 1792367294120,
+   "ago": 0,
+   "kind": "fixed",
+   "status": "active",
+   "watchers": 0,
+   "watching": false
+  },
+  {
+   "id": "l5p5j1j5j546x4c",
+   "card": {
+    "id": "k333u5v5x3t6j0y",
+    "defId": "S1-098",
+    "person": {
+     "id": "p330",
+     "name": "Ned Luna",
+     "face": "face:158"
+    },
+    "team": {
+     "id": "MIL",
+     "abbr": "MIL",
+     "city": "Millbrook",
+     "name": "Ironmen",
+     "level": "ML"
+    },
+    "season": 1,
+    "set": "Series 1",
+    "number": 98,
+    "rarity": "rare",
+    "front": {
+     "caption": "LUNA, MILLBROOK",
+     "pos": "SP"
+    },
+    "back": {
+     "lines": [
+      "FINAL SEASON. Retired from baseball by a",
+      "redeemed card. Out of the game for good.",
+      "Not out of our hearts. Owns three",
+      "restaurants. None of them serve food.",
+      "Fans love Luna. So do the umps,",
+      "suspiciously."
+     ],
+     "stats": []
+    },
+    "value": 50,
+    "finalSeason": true
+   },
+   "price": 45,
+   "seller": "Lefty Loot",
+   "at": 1792367294112,
+   "ago": 0,
+   "kind": "fixed",
+   "status": "active",
+   "watchers": 0,
+   "watching": false
+  }
+ ]
+}

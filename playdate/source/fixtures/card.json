@@ -1,0 +1,39 @@
+{
+ "card": {
+  "id": "k333u5v5x3t6j0y",
+  "defId": "S1-098",
+  "person": {
+   "id": "p330",
+   "name": "Ned Luna",
+   "face": "face:158"
+  },
+  "team": {
+   "id": "MIL",
+   "abbr": "MIL",
+   "city": "Millbrook",
+   "name": "Ironmen",
+   "level": "ML"
+  },
+  "season": 1,
+  "set": "Series 1",
+  "number": 98,
+  "rarity": "rare",
+  "front": {
+   "caption": "LUNA, MILLBROOK",
+   "pos": "SP"
+  },
+  "back": {
+   "lines": [
+    "FINAL SEASON. Retired from baseball by a",
+    "redeemed card. Out of the game for good.",
+    "Not out of our hearts. Owns three",
+    "restaurants. None of them serve food.",
+    "Fans love Luna. So do the umps,",
+    "suspiciously."
+   ],
+   "stats": []
+  },
+  "value": 50,
+  "finalSeason": true
+ }
+}

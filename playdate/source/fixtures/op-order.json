@@ -1,0 +1,119 @@
+{
+ "op": {
+  "id": "op3r4v6b0r1e0c19",
+  "kind": "grease_mound",
+  "name": "Grease the mound",
+  "game": {
+   "id": "S1D5ML0",
+   "day": 5,
+   "firstPitchAt": 1792367304397,
+   "firstPitchIn": 10,
+   "finalAt": 1792367332397,
+   "finalIn": 38,
+   "status": "scheduled",
+   "home": {
+    "id": "STA",
+    "abbr": "STA",
+    "city": "St. Albans",
+    "name": "Friars",
+    "level": "ML",
+    "record": "0-4"
+   },
+   "away": {
+    "id": "CSR",
+    "abbr": "CSR",
+    "city": "Cold Spring",
+    "name": "Rustlers",
+    "level": "ML",
+    "record": "2-2"
+   },
+   "probables": {
+    "home": {
+     "id": "p120",
+     "name": "Jesús Vance",
+     "face": "face:228",
+     "teamAbbr": "STA",
+     "pos": "P",
+     "line": "0-0, 0.00"
+    },
+    "away": {
+     "id": "p440",
+     "name": "Emil Okafor",
+     "face": "face:122",
+     "teamAbbr": "CSR",
+     "pos": "P",
+     "line": "0-0, 0.00"
+    }
+   },
+   "pool": {
+    "home": 339,
+    "away": 361,
+    "pays": {
+     "home": 1.99,
+     "away": 1.86
+    },
+    "house": {
+     "home": 239,
+     "away": 211
+    }
+   },
+   "umpire": {
+    "id": "n9",
+    "name": "Ulysses Delahanty",
+    "face": "face:237",
+    "pos": "UMP"
+   },
+   "weather": "38F, wind 6 mph out to RF, showers",
+   "park": "Sanctuary Field",
+   "circuit": "continental",
+   "myBet": {
+    "side": "home",
+    "amount": 100
+   }
+  },
+  "target": {
+   "id": "CSR",
+   "abbr": "CSR",
+   "city": "Cold Spring",
+   "name": "Rustlers",
+   "level": "ML"
+  },
+  "crew": [
+   {
+    "id": "cit-a2y0o1k1y3n5s2g-1-4-2",
+    "name": "Irma Kowalski",
+    "face": "face:462"
+   },
+   {
+    "id": "cit-a122v3u0q0b0q0h-1-4-2",
+    "name": "Quincy Watanabe",
+    "face": "face:226"
+   }
+  ],
+  "status": "planned",
+  "chipIn": {
+   "total": 40,
+   "yours": 40,
+   "shares": [
+    {
+     "name": "Dotty Dial",
+     "amount": 20,
+     "status": "proposed"
+    }
+   ],
+   "line": "Chip-in: Dotty Dial asked $20. You: $40."
+  }
+ },
+ "account": {
+  "id": "a2y0o1k1y3n5s2g",
+  "name": "Lefty Loot",
+  "money": 359,
+  "heat": 0,
+  "crewSize": 2,
+  "unreadMail": 2,
+  "cards": 14,
+  "joinedDay": 0,
+  "rank": "Rube",
+  "syndicateId": "sy3p6h1h2u3h2i6d"
+ }
+}

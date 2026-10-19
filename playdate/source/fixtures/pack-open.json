@@ -1,0 +1,439 @@
+{
+ "cards": [
+  {
+   "id": "k1x475h2e0i4n5v",
+   "defId": "S1-018",
+   "person": {
+    "id": "p15",
+    "name": "Reggie Jimenez",
+    "face": "face:564",
+    "teamAbbr": "HCL",
+    "pos": "P"
+   },
+   "team": {
+    "id": "HCL",
+    "abbr": "HCL",
+    "city": "Harbor City",
+    "name": "Lamplighters",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 18,
+   "rarity": "common",
+   "front": {
+    "caption": "JIMENEZ, HARBOR CITY",
+    "pos": "SP"
+   },
+   "back": {
+    "lines": [
+     "At 35, Jimenez remembers when the bases",
+     "were flour sacks. Pals with Ned Pickles",
+     "(same hometown). Has a locker next to",
+     "the trainer. By request. Married to",
+     "Harriet Jimenez, the brains of the",
+     "operation."
+    ],
+    "stats": [
+     [
+      "STF",
+      "CTL",
+      "CMD",
+      "MOV",
+      "VEL"
+     ],
+     [
+      "63",
+      "53",
+      "57",
+      "38",
+      "92"
+     ]
+    ]
+   },
+   "value": 1
+  },
+  {
+   "id": "k4f5n5s4d140d3f",
+   "defId": "S1-126",
+   "person": {
+    "id": "p440",
+    "name": "Emil Okafor",
+    "face": "face:122",
+    "teamAbbr": "CSR",
+    "pos": "P"
+   },
+   "team": {
+    "id": "CSR",
+    "abbr": "CSR",
+    "city": "Cold Spring",
+    "name": "Rustlers",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 126,
+   "rarity": "common",
+   "front": {
+    "caption": "OKAFOR, COLD SPRING",
+    "pos": "RP"
+   },
+   "back": {
+    "lines": [
+     "At 36, Okafor remembers when the bases",
+     "were flour sacks. They call him \"Sudsy.\"",
+     "He did not pick it. One kid, who thinks",
+     "Okafor is just okay. Pals with Emil",
+     "Irvin (came up together). Has a 'big",
+     "game face.' It looks like a sneeze."
+    ],
+    "stats": [
+     [
+      "STF",
+      "CTL",
+      "CMD",
+      "MOV",
+      "VEL"
+     ],
+     [
+      "66",
+      "59",
+      "72",
+      "68",
+      "94"
+     ]
+    ]
+   },
+   "value": 4
+  },
+  {
+   "id": "k731r4u3j6i3122",
+   "defId": "S1-011",
+   "person": {
+    "id": "p9",
+    "name": "Eddie Puckett",
+    "face": "face:324",
+    "teamAbbr": "HCL",
+    "pos": "CF"
+   },
+   "team": {
+    "id": "HCL",
+    "abbr": "HCL",
+    "city": "Harbor City",
+    "name": "Lamplighters",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 11,
+   "rarity": "common",
+   "front": {
+    "caption": "PUCKETT, HARBOR CITY",
+    "pos": "CF"
+   },
+   "back": {
+    "lines": [
+     "Puckett made the Lamplighters. Let's",
+     "leave it at that. Pals with Kenji",
+     "Swindell (roommates on the road). Pals",
+     "with Vic O'Rourke (drinking buddies).",
+     "Pals with Ollie Shaughnessy (roommates",
+     "on the road)."
+    ],
+    "stats": [
+     [
+      "CON",
+      "POW",
+      "EYE",
+      "SPD",
+      "GLV"
+     ],
+     [
+      "44",
+      "40",
+      "51",
+      "56",
+      "53"
+     ]
+    ]
+   },
+   "value": 1
+  },
+  {
+   "id": "k0b1p2k431h3q66",
+   "defId": "S1-131",
+   "person": {
+    "id": "p520",
+    "name": "Kip Bumgardner",
+    "face": "face:550",
+    "teamAbbr": "NCG",
+    "pos": "C"
+   },
+   "team": {
+    "id": "NCG",
+    "abbr": "NCG",
+    "city": "New Corinth",
+    "name": "Grays",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 131,
+   "rarity": "common",
+   "front": {
+    "caption": "BUMGARDNER, NEW CORINTH",
+    "pos": "C"
+   },
+   "back": {
+    "lines": [
+     "Bumgardner plays catcher for the Grays",
+     "and does fine, thanks. Hits the ball",
+     "very far, often into someone's soup.",
+     "Pals with Ollie Delahanty (fishing",
+     "buddies). Fans love Bumgardner. So do",
+     "the umps, suspiciously."
+    ],
+    "stats": [
+     [
+      "CON",
+      "POW",
+      "EYE",
+      "SPD",
+      "GLV"
+     ],
+     [
+      "54",
+      "68",
+      "35",
+      "42",
+      "50"
+     ]
+    ]
+   },
+   "value": 1
+  },
+  {
+   "id": "k4a40154c3o3053",
+   "defId": "S1-075",
+   "person": {
+    "id": "p226",
+    "name": "Jimmy Tubbs",
+    "face": "face:29",
+    "teamAbbr": "PEM",
+    "pos": "P"
+   },
+   "team": {
+    "id": "PEM",
+    "abbr": "PEM",
+    "city": "Port Ellis",
+    "name": "Mariners",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 75,
+   "rarity": "common",
+   "front": {
+    "caption": "TUBBS, PORT ELLIS",
+    "pos": "SP"
+   },
+   "back": {
+    "lines": [
+     "Tubbs made the Mariners. Let's leave it",
+     "at that. Thinks the scoreboard is",
+     "watching him. Might be right. Taps home",
+     "plate 11 times. Not 10. Never 10. Son of",
+     "Lou Tubbs, who still keeps the",
+     "scorebook."
+    ],
+    "stats": [
+     [
+      "STF",
+      "CTL",
+      "CMD",
+      "MOV",
+      "VEL"
+     ],
+     [
+      "55",
+      "46",
+      "41",
+      "35",
+      "94"
+     ]
+    ]
+   },
+   "value": 1
+  },
+  {
+   "id": "k5v1p440b4a2n6w",
+   "defId": "S1-170",
+   "person": {
+    "id": "p644",
+    "name": "Irv Bumgardner",
+    "face": "face:557",
+    "teamAbbr": "MRL",
+    "pos": "P"
+   },
+   "team": {
+    "id": "MRL",
+    "abbr": "MRL",
+    "city": "Marlow",
+    "name": "Pilgrims",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 170,
+   "rarity": "common",
+   "front": {
+    "caption": "BUMGARDNER, MARLOW",
+    "pos": "RP"
+   },
+   "back": {
+    "lines": [
+     "Bumgardner plays pitcher for the",
+     "Pilgrims and does fine, thanks. Married",
+     "to Ginny Bumgardner, the brains of the",
+     "operation. Plays best after a 'light",
+     "lunch' (liquid). One kid, who thinks",
+     "Bumgardner is just okay."
+    ],
+    "stats": [
+     [
+      "STF",
+      "CTL",
+      "CMD",
+      "MOV",
+      "VEL"
+     ],
+     [
+      "57",
+      "42",
+      "55",
+      "47",
+      "89"
+     ]
+    ]
+   },
+   "value": 1
+  },
+  {
+   "id": "k026s5p2p721c5y",
+   "defId": "S1-150",
+   "person": {
+    "id": "p541",
+    "name": "Archie Lindqvist",
+    "face": "face:71",
+    "teamAbbr": "NCG",
+    "pos": "P"
+   },
+   "team": {
+    "id": "NCG",
+    "abbr": "NCG",
+    "city": "New Corinth",
+    "name": "Grays",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 150,
+   "rarity": "common",
+   "front": {
+    "caption": "LINDQVIST, NEW CORINTH",
+    "pos": "RP"
+   },
+   "back": {
+    "lines": [
+     "Lindqvist is a pitcher, technically. Has",
+     "a locker next to the trainer. By",
+     "request. Considers the 7th inning",
+     "stretch a happy hour. Pals with Russ",
+     "Cruz (roommates on the road). Pals with",
+     "Pete Stottlemyre (fishing buddies)."
+    ],
+    "stats": [
+     [
+      "STF",
+      "CTL",
+      "CMD",
+      "MOV",
+      "VEL"
+     ],
+     [
+      "42",
+      "43",
+      "51",
+      "45",
+      "93"
+     ]
+    ]
+   },
+   "value": 1
+  },
+  {
+   "id": "k3m0v45421u4m28",
+   "defId": "S1-042",
+   "person": {
+    "id": "p118",
+    "name": "Minnie Gibson",
+    "face": "face:172",
+    "teamAbbr": "STA",
+    "pos": "P"
+   },
+   "team": {
+    "id": "STA",
+    "abbr": "STA",
+    "city": "St. Albans",
+    "name": "Friars",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 42,
+   "rarity": "common",
+   "front": {
+    "caption": "GIBSON, ST. ALBANS",
+    "pos": "SP"
+   },
+   "back": {
+    "lines": [
+     "Gibson plays pitcher for the Friars and",
+     "does fine, thanks. Son of Sid Gibson,",
+     "who still keeps the scorebook. Pals with",
+     "Luis Pickles (roommates on the road).",
+     "Knows things. Tells things. Ask",
+     "SportsWire."
+    ],
+    "stats": [
+     [
+      "STF",
+      "CTL",
+      "CMD",
+      "MOV",
+      "VEL"
+     ],
+     [
+      "69",
+      "59",
+      "39",
+      "48",
+      "93"
+     ]
+    ]
+   },
+   "value": 2
+  }
+ ],
+ "account": {
+  "id": "a2y0o1k1y3n5s2g",
+  "name": "Lefty Loot",
+  "money": 1000,
+  "heat": 0,
+  "crewSize": 0,
+  "unreadMail": 1,
+  "cards": 8,
+  "joinedDay": 0,
+  "rank": "Regular"
+ }
+}

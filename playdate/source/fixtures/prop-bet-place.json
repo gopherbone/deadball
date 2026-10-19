@@ -1,0 +1,63 @@
+{
+ "bet": {
+  "id": "pb1s2e6m6m2i4e4c",
+  "propId": "sl1:yes",
+  "storylineId": "sl1",
+  "headline": "Gallagher Playing for a Contract",
+  "question": "Will Satchel Gallagher stay with Harbor City after his contract year?",
+  "option": "yes",
+  "optionLabel": "Yes",
+  "amount": 10,
+  "status": "open",
+  "placedAt": 1792367294172,
+  "placedIn": 0,
+  "pays": 1.1
+ },
+ "prop": {
+  "id": "sl1:yes",
+  "storylineId": "sl1",
+  "question": "Will Satchel Gallagher stay with Harbor City after his contract year?",
+  "type": "yesno",
+  "options": [
+   {
+    "key": "yes",
+    "label": "Yes",
+    "pool": 489,
+    "pays": 1.1,
+    "house": 479
+   },
+   {
+    "key": "no",
+    "label": "No",
+    "pool": 52,
+    "pays": 10.38,
+    "house": 52
+   }
+  ],
+  "pool": 541,
+  "house": 531,
+  "closesAt": 1792369847386,
+  "closesIn": 2553,
+  "closesDay": 67,
+  "resolveByDay": 201,
+  "resolveByAt": 1792375207386,
+  "resolveByIn": 7913,
+  "status": "open",
+  "myBet": {
+   "option": "yes",
+   "amount": 10
+  }
+ },
+ "account": {
+  "id": "a2y0o1k1y3n5s2g",
+  "name": "Lefty Loot",
+  "money": 879,
+  "heat": 0,
+  "crewSize": 2,
+  "unreadMail": 2,
+  "cards": 14,
+  "joinedDay": 0,
+  "rank": "Regular",
+  "syndicateId": "sy3p6h1h2u3h2i6d"
+ }
+}

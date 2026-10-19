@@ -1,0 +1,643 @@
+{
+ "cards": [
+  {
+   "id": "k333u5v5x3t6j0y",
+   "defId": "S1-098",
+   "person": {
+    "id": "p330",
+    "name": "Ned Luna",
+    "face": "face:158"
+   },
+   "team": {
+    "id": "MIL",
+    "abbr": "MIL",
+    "city": "Millbrook",
+    "name": "Ironmen",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 98,
+   "rarity": "rare",
+   "front": {
+    "caption": "LUNA, MILLBROOK",
+    "pos": "SP"
+   },
+   "back": {
+    "lines": [
+     "FINAL SEASON. Retired from baseball by a",
+     "redeemed card. Out of the game for good.",
+     "Not out of our hearts. Owns three",
+     "restaurants. None of them serve food.",
+     "Fans love Luna. So do the umps,",
+     "suspiciously."
+    ],
+    "stats": []
+   },
+   "value": 50,
+   "finalSeason": true
+  },
+  {
+   "id": "k3y662a2d2z402d",
+   "defId": "S1-067",
+   "person": {
+    "id": "p227",
+    "name": "Harry Crabtree",
+    "face": "face:540",
+    "teamAbbr": "PEM",
+    "pos": "P"
+   },
+   "team": {
+    "id": "PEM",
+    "abbr": "PEM",
+    "city": "Port Ellis",
+    "name": "Mariners",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 67,
+   "rarity": "common",
+   "front": {
+    "caption": "CRABTREE, PORT ELLIS",
+    "pos": "RP"
+   },
+   "back": {
+    "lines": [
+     "At 36, Crabtree remembers when the bases",
+     "were flour sacks. Pals with Joe Novak",
+     "(same hometown). Pals with Chico",
+     "Jablonski (fishing buddies). Checks his",
+     "glove for bugs. The electronic kind.",
+     "Pals with Otis Paige (same hometown)."
+    ],
+    "stats": [
+     [
+      "YR",
+      "TM",
+      "W-L",
+      "ERA",
+      "IP",
+      "K"
+     ],
+     [
+      "S1",
+      "PEM",
+      "0-0",
+      "0.00",
+      "1.0",
+      "0"
+     ]
+    ]
+   },
+   "value": 1
+  },
+  {
+   "id": "k2u6b0c1z0i305c",
+   "defId": "S1-032",
+   "person": {
+    "id": "p111",
+    "name": "Ollie Novak",
+    "face": "face:563",
+    "teamAbbr": "STA",
+    "pos": "3B"
+   },
+   "team": {
+    "id": "STA",
+    "abbr": "STA",
+    "city": "St. Albans",
+    "name": "Friars",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 32,
+   "rarity": "uncommon",
+   "front": {
+    "caption": "NOVAK, ST. ALBANS",
+    "pos": "3B"
+   },
+   "back": {
+    "lines": [
+     "Novak plays third baseman for the Friars",
+     "and does fine, thanks. Married to",
+     "Frankie Novak, the brains of the",
+     "operation. Hits the ball very far, often",
+     "into someone's soup. Pals with Tito",
+     "Salazar (roommates on the road)."
+    ],
+    "stats": [
+     [
+      "YR",
+      "TM",
+      "AVG",
+      "HR",
+      "RBI",
+      "SB"
+     ],
+     [
+      "S1",
+      "STA",
+      ".182",
+      "1",
+      "1",
+      "0"
+     ]
+    ]
+   },
+   "value": 7
+  },
+  {
+   "id": "k2u2g320157395i",
+   "defId": "S1-257",
+   "person": {
+    "id": "p357",
+    "name": "Tom Stottlemyre",
+    "face": "face:226",
+    "teamAbbr": "MILAA",
+    "pos": "P"
+   },
+   "team": {
+    "id": "MIL-AA",
+    "abbr": "MILAA",
+    "city": "Zanesville",
+    "name": "Owls",
+    "level": "AA"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 257,
+   "rarity": "common",
+   "front": {
+    "caption": "STOTTLEMYRE, ZANESVILLE",
+    "pos": "RP"
+   },
+   "back": {
+    "lines": [
+     "A 22-year-old pitcher for the Owls.",
+     "Dreams big. Rides the bus. Pals with",
+     "Wally Coogan (roommates on the road).",
+     "Prays before every at-bat. Results vary",
+     "by deity. Pals with Orlando Pickles",
+     "(card partners)."
+    ],
+    "stats": [
+     [
+      "YR",
+      "TM",
+      "W-L",
+      "ERA",
+      "IP",
+      "K"
+     ],
+     [
+      "S1",
+      "MILAA",
+      "0-0",
+      "0.00",
+      "1.0",
+      "2"
+     ]
+    ]
+   },
+   "value": 2
+  },
+  {
+   "id": "k2f5z335z3y5m0a",
+   "defId": "S1-194",
+   "person": {
+    "id": "p738",
+    "name": "Tito Moran",
+    "face": "face:191",
+    "teamAbbr": "ELC",
+    "pos": "CF"
+   },
+   "team": {
+    "id": "ELC",
+    "abbr": "ELC",
+    "city": "Electric City",
+    "name": "Comets",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 194,
+   "rarity": "common",
+   "front": {
+    "caption": "MORAN, ELECTRIC CITY",
+    "pos": "CF"
+   },
+   "back": {
+    "lines": [
+     "A solid center fielder for the Comets.",
+     "Solid is underrated. Pals with Ray Vance",
+     "(came up together). Gets better as the",
+     "stakes get dumber. Fast. Once scored",
+     "from second on a sneeze. Catches",
+     "everything except a break."
+    ],
+    "stats": [
+     [
+      "YR",
+      "TM",
+      "AVG",
+      "HR",
+      "RBI",
+      "SB"
+     ],
+     [
+      "S1",
+      "ELC",
+      ".500",
+      "1",
+      "1",
+      "0"
+     ]
+    ]
+   },
+   "value": 1
+  },
+  {
+   "id": "k1s401n3i521g4j",
+   "defId": "S1-104",
+   "person": {
+    "id": "p332",
+    "name": "Ike Watanabe",
+    "face": "face:319",
+    "teamAbbr": "MIL",
+    "pos": "P"
+   },
+   "team": {
+    "id": "MIL",
+    "abbr": "MIL",
+    "city": "Millbrook",
+    "name": "Ironmen",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 104,
+   "rarity": "uncommon",
+   "front": {
+    "caption": "WATANABE, MILLBROOK",
+    "pos": "RP"
+   },
+   "back": {
+    "lines": [
+     "Watanabe made the Ironmen. Let's leave",
+     "it at that. Pals with Hank Delahanty",
+     "(card partners). Played through a broken",
+     "toe, the flu and a divorce. Married to",
+     "Hattie Watanabe, the brains of the",
+     "operation."
+    ],
+    "stats": [
+     [
+      "STF",
+      "CTL",
+      "CMD",
+      "MOV",
+      "VEL"
+     ],
+     [
+      "36",
+      "60",
+      "35",
+      "59",
+      "93"
+     ]
+    ]
+   },
+   "value": 3
+  },
+  {
+   "id": "k731r4u3j6i3122",
+   "defId": "S1-011",
+   "person": {
+    "id": "p9",
+    "name": "Eddie Puckett",
+    "face": "face:324",
+    "teamAbbr": "HCL",
+    "pos": "CF"
+   },
+   "team": {
+    "id": "HCL",
+    "abbr": "HCL",
+    "city": "Harbor City",
+    "name": "Lamplighters",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 11,
+   "rarity": "common",
+   "front": {
+    "caption": "PUCKETT, HARBOR CITY",
+    "pos": "CF"
+   },
+   "back": {
+    "lines": [
+     "Puckett made the Lamplighters. Let's",
+     "leave it at that. Pals with Kenji",
+     "Swindell (roommates on the road). Pals",
+     "with Vic O'Rourke (drinking buddies).",
+     "Pals with Ollie Shaughnessy (roommates",
+     "on the road)."
+    ],
+    "stats": [
+     [
+      "CON",
+      "POW",
+      "EYE",
+      "SPD",
+      "GLV"
+     ],
+     [
+      "44",
+      "40",
+      "51",
+      "56",
+      "53"
+     ]
+    ]
+   },
+   "value": 1
+  },
+  {
+   "id": "k5v1p440b4a2n6w",
+   "defId": "S1-170",
+   "person": {
+    "id": "p644",
+    "name": "Irv Bumgardner",
+    "face": "face:557",
+    "teamAbbr": "MRL",
+    "pos": "P"
+   },
+   "team": {
+    "id": "MRL",
+    "abbr": "MRL",
+    "city": "Marlow",
+    "name": "Pilgrims",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 170,
+   "rarity": "common",
+   "front": {
+    "caption": "BUMGARDNER, MARLOW",
+    "pos": "RP"
+   },
+   "back": {
+    "lines": [
+     "Bumgardner plays pitcher for the",
+     "Pilgrims and does fine, thanks. Married",
+     "to Ginny Bumgardner, the brains of the",
+     "operation. Plays best after a 'light",
+     "lunch' (liquid). One kid, who thinks",
+     "Bumgardner is just okay."
+    ],
+    "stats": [
+     [
+      "YR",
+      "TM",
+      "W-L",
+      "ERA",
+      "IP",
+      "K"
+     ],
+     [
+      "S1",
+      "MRL",
+      "1-0",
+      "2.45",
+      "3.2",
+      "4"
+     ]
+    ]
+   },
+   "value": 1
+  },
+  {
+   "id": "k4f5n5s4d140d3f",
+   "defId": "S1-126",
+   "person": {
+    "id": "p440",
+    "name": "Emil Okafor",
+    "face": "face:122",
+    "teamAbbr": "CSR",
+    "pos": "P"
+   },
+   "team": {
+    "id": "CSR",
+    "abbr": "CSR",
+    "city": "Cold Spring",
+    "name": "Rustlers",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 126,
+   "rarity": "common",
+   "front": {
+    "caption": "OKAFOR, COLD SPRING",
+    "pos": "RP"
+   },
+   "back": {
+    "lines": [
+     "At 36, Okafor remembers when the bases",
+     "were flour sacks. They call him \"Sudsy.\"",
+     "He did not pick it. One kid, who thinks",
+     "Okafor is just okay. Pals with Emil",
+     "Irvin (came up together). Has a 'big",
+     "game face.' It looks like a sneeze."
+    ],
+    "stats": [
+     [
+      "YR",
+      "TM",
+      "W-L",
+      "ERA",
+      "IP",
+      "K"
+     ],
+     [
+      "S1",
+      "CSR",
+      "0-0",
+      "0.00",
+      "2.0",
+      "5"
+     ]
+    ]
+   },
+   "value": 4
+  },
+  {
+   "id": "k4a40154c3o3053",
+   "defId": "S1-075",
+   "person": {
+    "id": "p226",
+    "name": "Jimmy Tubbs",
+    "face": "face:29",
+    "teamAbbr": "PEM",
+    "pos": "P"
+   },
+   "team": {
+    "id": "PEM",
+    "abbr": "PEM",
+    "city": "Port Ellis",
+    "name": "Mariners",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 75,
+   "rarity": "common",
+   "front": {
+    "caption": "TUBBS, PORT ELLIS",
+    "pos": "SP"
+   },
+   "back": {
+    "lines": [
+     "Tubbs made the Mariners. Let's leave it",
+     "at that. Thinks the scoreboard is",
+     "watching him. Might be right. Taps home",
+     "plate 11 times. Not 10. Never 10. Son of",
+     "Lou Tubbs, who still keeps the",
+     "scorebook."
+    ],
+    "stats": [
+     [
+      "YR",
+      "TM",
+      "W-L",
+      "ERA",
+      "IP",
+      "K"
+     ],
+     [
+      "S1",
+      "PEM",
+      "0-1",
+      "14.54",
+      "4.1",
+      "2"
+     ]
+    ]
+   },
+   "value": 1
+  },
+  {
+   "id": "k3m0v45421u4m28",
+   "defId": "S1-042",
+   "person": {
+    "id": "p118",
+    "name": "Minnie Gibson",
+    "face": "face:172",
+    "teamAbbr": "STA",
+    "pos": "P"
+   },
+   "team": {
+    "id": "STA",
+    "abbr": "STA",
+    "city": "St. Albans",
+    "name": "Friars",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 42,
+   "rarity": "common",
+   "front": {
+    "caption": "GIBSON, ST. ALBANS",
+    "pos": "SP"
+   },
+   "back": {
+    "lines": [
+     "Gibson plays pitcher for the Friars and",
+     "does fine, thanks. Son of Sid Gibson,",
+     "who still keeps the scorebook. Pals with",
+     "Luis Pickles (roommates on the road).",
+     "Knows things. Tells things. Ask",
+     "SportsWire."
+    ],
+    "stats": [
+     [
+      "YR",
+      "TM",
+      "W-L",
+      "ERA",
+      "IP",
+      "K"
+     ],
+     [
+      "S1",
+      "STA",
+      "0-1",
+      "4.76",
+      "5.2",
+      "8"
+     ]
+    ]
+   },
+   "value": 2
+  },
+  {
+   "id": "k1x475h2e0i4n5v",
+   "defId": "S1-018",
+   "person": {
+    "id": "p15",
+    "name": "Reggie Jimenez",
+    "face": "face:564",
+    "teamAbbr": "HCL",
+    "pos": "P"
+   },
+   "team": {
+    "id": "HCL",
+    "abbr": "HCL",
+    "city": "Harbor City",
+    "name": "Lamplighters",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 18,
+   "rarity": "common",
+   "front": {
+    "caption": "JIMENEZ, HARBOR CITY",
+    "pos": "SP"
+   },
+   "back": {
+    "lines": [
+     "At 35, Jimenez remembers when the bases",
+     "were flour sacks. Pals with Ned Pickles",
+     "(same hometown). Has a locker next to",
+     "the trainer. By request. Married to",
+     "Harriet Jimenez, the brains of the",
+     "operation."
+    ],
+    "stats": [
+     [
+      "YR",
+      "TM",
+      "W-L",
+      "ERA",
+      "IP",
+      "K"
+     ],
+     [
+      "S1",
+      "HCL",
+      "0-0",
+      "2.25",
+      "4.0",
+      "4"
+     ]
+    ]
+   },
+   "value": 1
+  }
+ ],
+ "next": "WzE3OTIzNjcyOTEyNzAsImsxeDQ3NWgyZTBpNG41diJd"
+}

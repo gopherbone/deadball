@@ -1,0 +1,280 @@
+{
+ "cards": [
+  {
+   "id": "k2u2g320157395i",
+   "defId": "S1-257",
+   "person": {
+    "id": "p357",
+    "name": "Tom Stottlemyre",
+    "face": "face:226",
+    "teamAbbr": "MILAA",
+    "pos": "P"
+   },
+   "team": {
+    "id": "MIL-AA",
+    "abbr": "MILAA",
+    "city": "Zanesville",
+    "name": "Owls",
+    "level": "AA"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 257,
+   "rarity": "common",
+   "front": {
+    "caption": "STOTTLEMYRE, ZANESVILLE",
+    "pos": "RP"
+   },
+   "back": {
+    "lines": [
+     "A 22-year-old pitcher for the Owls.",
+     "Dreams big. Rides the bus. Pals with",
+     "Wally Coogan (roommates on the road).",
+     "Prays before every at-bat. Results vary",
+     "by deity. Pals with Orlando Pickles",
+     "(card partners)."
+    ],
+    "stats": [
+     [
+      "STF",
+      "CTL",
+      "CMD",
+      "MOV",
+      "VEL"
+     ],
+     [
+      "38",
+      "46",
+      "49",
+      "66",
+      "95"
+     ]
+    ]
+   },
+   "value": 2
+  },
+  {
+   "id": "k2u6b0c1z0i305c",
+   "defId": "S1-032",
+   "person": {
+    "id": "p111",
+    "name": "Ollie Novak",
+    "face": "face:563",
+    "teamAbbr": "STA",
+    "pos": "3B"
+   },
+   "team": {
+    "id": "STA",
+    "abbr": "STA",
+    "city": "St. Albans",
+    "name": "Friars",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 32,
+   "rarity": "uncommon",
+   "front": {
+    "caption": "NOVAK, ST. ALBANS",
+    "pos": "3B"
+   },
+   "back": {
+    "lines": [
+     "Novak plays third baseman for the Friars",
+     "and does fine, thanks. Married to",
+     "Frankie Novak, the brains of the",
+     "operation. Hits the ball very far, often",
+     "into someone's soup. Pals with Tito",
+     "Salazar (roommates on the road)."
+    ],
+    "stats": [
+     [
+      "CON",
+      "POW",
+      "EYE",
+      "SPD",
+      "GLV"
+     ],
+     [
+      "51",
+      "78",
+      "45",
+      "39",
+      "50"
+     ]
+    ]
+   },
+   "value": 7
+  },
+  {
+   "id": "k2f5z335z3y5m0a",
+   "defId": "S1-194",
+   "person": {
+    "id": "p738",
+    "name": "Tito Moran",
+    "face": "face:191",
+    "teamAbbr": "ELC",
+    "pos": "CF"
+   },
+   "team": {
+    "id": "ELC",
+    "abbr": "ELC",
+    "city": "Electric City",
+    "name": "Comets",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 194,
+   "rarity": "common",
+   "front": {
+    "caption": "MORAN, ELECTRIC CITY",
+    "pos": "CF"
+   },
+   "back": {
+    "lines": [
+     "A solid center fielder for the Comets.",
+     "Solid is underrated. Pals with Ray Vance",
+     "(came up together). Gets better as the",
+     "stakes get dumber. Fast. Once scored",
+     "from second on a sneeze. Catches",
+     "everything except a break."
+    ],
+    "stats": [
+     [
+      "CON",
+      "POW",
+      "EYE",
+      "SPD",
+      "GLV"
+     ],
+     [
+      "49",
+      "43",
+      "35",
+      "77",
+      "65"
+     ]
+    ]
+   },
+   "value": 1
+  },
+  {
+   "id": "k3y662a2d2z402d",
+   "defId": "S1-067",
+   "person": {
+    "id": "p227",
+    "name": "Harry Crabtree",
+    "face": "face:540",
+    "teamAbbr": "PEM",
+    "pos": "P"
+   },
+   "team": {
+    "id": "PEM",
+    "abbr": "PEM",
+    "city": "Port Ellis",
+    "name": "Mariners",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 67,
+   "rarity": "common",
+   "front": {
+    "caption": "CRABTREE, PORT ELLIS",
+    "pos": "RP"
+   },
+   "back": {
+    "lines": [
+     "At 36, Crabtree remembers when the bases",
+     "were flour sacks. Pals with Joe Novak",
+     "(same hometown). Pals with Chico",
+     "Jablonski (fishing buddies). Checks his",
+     "glove for bugs. The electronic kind.",
+     "Pals with Otis Paige (same hometown)."
+    ],
+    "stats": [
+     [
+      "STF",
+      "CTL",
+      "CMD",
+      "MOV",
+      "VEL"
+     ],
+     [
+      "39",
+      "42",
+      "42",
+      "41",
+      "93"
+     ]
+    ]
+   },
+   "value": 1
+  },
+  {
+   "id": "k1s401n3i521g4j",
+   "defId": "S1-104",
+   "person": {
+    "id": "p332",
+    "name": "Ike Watanabe",
+    "face": "face:319",
+    "teamAbbr": "MIL",
+    "pos": "P"
+   },
+   "team": {
+    "id": "MIL",
+    "abbr": "MIL",
+    "city": "Millbrook",
+    "name": "Ironmen",
+    "level": "ML"
+   },
+   "season": 1,
+   "set": "Series 1",
+   "number": 104,
+   "rarity": "uncommon",
+   "front": {
+    "caption": "WATANABE, MILLBROOK",
+    "pos": "RP"
+   },
+   "back": {
+    "lines": [
+     "Watanabe made the Ironmen. Let's leave",
+     "it at that. Pals with Hank Delahanty",
+     "(card partners). Played through a broken",
+     "toe, the flu and a divorce. Married to",
+     "Hattie Watanabe, the brains of the",
+     "operation."
+    ],
+    "stats": [
+     [
+      "STF",
+      "CTL",
+      "CMD",
+      "MOV",
+      "VEL"
+     ],
+     [
+      "36",
+      "60",
+      "35",
+      "59",
+      "93"
+     ]
+    ]
+   },
+   "value": 3
+  }
+ ],
+ "account": {
+  "id": "a2y0o1k1y3n5s2g",
+  "name": "Lefty Loot",
+  "money": 950,
+  "heat": 0,
+  "crewSize": 0,
+  "unreadMail": 1,
+  "cards": 13,
+  "joinedDay": 0,
+  "rank": "Regular"
+ }
+}

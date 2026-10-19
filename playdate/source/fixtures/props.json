@@ -1,0 +1,2965 @@
+{
+ "day": 4,
+ "storylines": [
+  {
+   "id": "sl1",
+   "kind": "contract_year",
+   "headline": "Gallagher Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $409k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p12",
+    "name": "Satchel Gallagher",
+    "face": "face:594",
+    "teamAbbr": "HCL",
+    "pos": "3B"
+   },
+   "team": {
+    "id": "HCL",
+    "abbr": "HCL",
+    "city": "Harbor City",
+    "name": "Lamplighters",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl1:yes",
+     "storylineId": "sl1",
+     "question": "Will Satchel Gallagher stay with Harbor City after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 489,
+       "pays": 1.16,
+       "house": 479
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 87,
+       "pays": 6.56,
+       "house": 52
+      }
+     ],
+     "pool": 576,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open",
+     "myBet": {
+      "option": "yes",
+      "amount": 10
+     }
+    },
+    {
+     "id": "sl1:when",
+     "storylineId": "sl1",
+     "question": "How long until the contract year story involving Satchel Gallagher is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 40,
+       "pays": 18.22,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 145.8,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 145.8,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 684,
+       "pays": 1.06,
+       "house": 674
+      }
+     ],
+     "pool": 734,
+     "house": 689,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open",
+     "myBet": {
+      "option": "later",
+      "amount": 10
+     }
+    },
+    {
+     "id": "sl1:how",
+     "storylineId": "sl1",
+     "question": "How will the contract year story involving Satchel Gallagher end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 548,
+       "pays": 1.33,
+       "house": 538
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 107,
+       "pays": 6.85,
+       "house": 72
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 60,
+       "pays": 12.23,
+       "house": 60
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 24,
+       "pays": 30.58,
+       "house": 24
+      }
+     ],
+     "pool": 739,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open",
+     "myBet": {
+      "option": "re-signed",
+      "amount": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "sl10",
+   "kind": "contract_year",
+   "headline": "Pappas Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $375k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p321",
+    "name": "Ulysses Pappas",
+    "face": "face:0",
+    "teamAbbr": "MIL",
+    "pos": "CF"
+   },
+   "team": {
+    "id": "MIL",
+    "abbr": "MIL",
+    "city": "Millbrook",
+    "name": "Ironmen",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl10:yes",
+     "storylineId": "sl10",
+     "question": "Will Ulysses Pappas stay with Millbrook after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 494,
+       "pays": 1.16,
+       "house": 479
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 87,
+       "pays": 6.62,
+       "house": 52
+      }
+     ],
+     "pool": 581,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open",
+     "myBet": {
+      "option": "yes",
+      "amount": 15
+     }
+    },
+    {
+     "id": "sl10:when",
+     "storylineId": "sl10",
+     "question": "How long until the contract year story involving Ulysses Pappas is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 146.6,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 20,
+       "pays": 36.65,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 146.6,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 708,
+       "pays": 1.03,
+       "house": 673
+      }
+     ],
+     "pool": 738,
+     "house": 688,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open",
+     "myBet": {
+      "option": "d15",
+      "amount": 15
+     }
+    },
+    {
+     "id": "sl10:how",
+     "storylineId": "sl10",
+     "question": "How will the contract year story involving Ulysses Pappas end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 559,
+       "pays": 1.32,
+       "house": 544
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 111,
+       "pays": 6.65,
+       "house": 76
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 49,
+       "pays": 15.08,
+       "house": 49
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 25,
+       "pays": 29.56,
+       "house": 25
+      }
+     ],
+     "pool": 744,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open",
+     "myBet": {
+      "option": "re-signed",
+      "amount": 15
+     }
+    }
+   ]
+  },
+  {
+   "id": "sl11",
+   "kind": "contract_year",
+   "headline": "Navarro Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $241k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p323",
+    "name": "Ray Navarro",
+    "face": "face:285",
+    "teamAbbr": "MIL",
+    "pos": "RF"
+   },
+   "team": {
+    "id": "MIL",
+    "abbr": "MIL",
+    "city": "Millbrook",
+    "name": "Ironmen",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl11:yes",
+     "storylineId": "sl11",
+     "question": "Will Ray Navarro stay with Millbrook after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 454,
+       "pays": 1.27,
+       "house": 434
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 132,
+       "pays": 4.39,
+       "house": 97
+      }
+     ],
+     "pool": 586,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open",
+     "myBet": {
+      "option": "yes",
+      "amount": 20
+     }
+    },
+    {
+     "id": "sl11:when",
+     "storylineId": "sl11",
+     "question": "How long until the contract year story involving Ray Navarro is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 40,
+       "pays": 18.45,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 147.6,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 147.6,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 694,
+       "pays": 1.06,
+       "house": 674
+      }
+     ],
+     "pool": 744,
+     "house": 689,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open",
+     "myBet": {
+      "option": "later",
+      "amount": 20
+     }
+    },
+    {
+     "id": "sl11:how",
+     "storylineId": "sl11",
+     "question": "How will the contract year story involving Ray Navarro end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 586,
+       "pays": 1.26,
+       "house": 566
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 96,
+       "pays": 7.73,
+       "house": 61
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 44,
+       "pays": 16.88,
+       "house": 44
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 23,
+       "pays": 32.3,
+       "house": 23
+      }
+     ],
+     "pool": 749,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open",
+     "myBet": {
+      "option": "re-signed",
+      "amount": 20
+     }
+    }
+   ]
+  },
+  {
+   "id": "sl12",
+   "kind": "contract_year",
+   "headline": "Gooch Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $257k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p334",
+    "name": "Minnie Gooch",
+    "face": "face:35",
+    "teamAbbr": "MIL",
+    "pos": "P"
+   },
+   "team": {
+    "id": "MIL",
+    "abbr": "MIL",
+    "city": "Millbrook",
+    "name": "Ironmen",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl12:yes",
+     "storylineId": "sl12",
+     "question": "Will Minnie Gooch stay with Millbrook after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 496,
+       "pays": 1.17,
+       "house": 471
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 95,
+       "pays": 6.15,
+       "house": 60
+      }
+     ],
+     "pool": 591,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open",
+     "myBet": {
+      "option": "yes",
+      "amount": 25
+     }
+    },
+    {
+     "id": "sl12:when",
+     "storylineId": "sl12",
+     "question": "How long until the contract year story involving Minnie Gooch is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 148.4,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 30,
+       "pays": 24.73,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 148.4,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 708,
+       "pays": 1.04,
+       "house": 673
+      }
+     ],
+     "pool": 748,
+     "house": 688,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open",
+     "myBet": {
+      "option": "d15",
+      "amount": 25
+     }
+    },
+    {
+     "id": "sl12:how",
+     "storylineId": "sl12",
+     "question": "How will the contract year story involving Minnie Gooch end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 573,
+       "pays": 1.3,
+       "house": 548
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 103,
+       "pays": 7.26,
+       "house": 68
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 49,
+       "pays": 15.26,
+       "house": 49
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 29,
+       "pays": 25.79,
+       "house": 29
+      }
+     ],
+     "pool": 754,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open",
+     "myBet": {
+      "option": "re-signed",
+      "amount": 25
+     }
+    }
+   ]
+  },
+  {
+   "id": "sl13",
+   "kind": "contract_year",
+   "headline": "Fuentes Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $343k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p335",
+    "name": "Zeke Fuentes",
+    "face": "face:310",
+    "teamAbbr": "MIL",
+    "pos": "P"
+   },
+   "team": {
+    "id": "MIL",
+    "abbr": "MIL",
+    "city": "Millbrook",
+    "name": "Ironmen",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl13:yes",
+     "storylineId": "sl13",
+     "question": "Will Zeke Fuentes stay with Millbrook after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 510,
+       "pays": 1.15,
+       "house": 480
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 86,
+       "pays": 6.84,
+       "house": 51
+      }
+     ],
+     "pool": 596,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open",
+     "myBet": {
+      "option": "yes",
+      "amount": 30
+     }
+    },
+    {
+     "id": "sl13:when",
+     "storylineId": "sl13",
+     "question": "How long until the contract year story involving Zeke Fuentes is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 40,
+       "pays": 18.67,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 149.4,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 149.4,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 704,
+       "pays": 1.06,
+       "house": 674
+      }
+     ],
+     "pool": 754,
+     "house": 689,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open",
+     "myBet": {
+      "option": "later",
+      "amount": 30
+     }
+    },
+    {
+     "id": "sl13:how",
+     "storylineId": "sl13",
+     "question": "How will the contract year story involving Zeke Fuentes end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 594,
+       "pays": 1.26,
+       "house": 564
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 95,
+       "pays": 7.91,
+       "house": 60
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 44,
+       "pays": 17.09,
+       "house": 44
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 26,
+       "pays": 28.92,
+       "house": 26
+      }
+     ],
+     "pool": 759,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open",
+     "myBet": {
+      "option": "re-signed",
+      "amount": 30
+     }
+    }
+   ]
+  },
+  {
+   "id": "sl14",
+   "kind": "contract_year",
+   "headline": "Dandridge Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $313k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p420",
+    "name": "Hideo Dandridge",
+    "face": "face:278",
+    "teamAbbr": "CSR",
+    "pos": "2B"
+   },
+   "team": {
+    "id": "CSR",
+    "abbr": "CSR",
+    "city": "Cold Spring",
+    "name": "Rustlers",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl14:yes",
+     "storylineId": "sl14",
+     "question": "Will Hideo Dandridge stay with Cold Spring after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 468,
+       "pays": 1.13,
+       "house": 468
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 63,
+       "pays": 8.42,
+       "house": 63
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open"
+    },
+    {
+     "id": "sl14:when",
+     "storylineId": "sl14",
+     "question": "How long until the contract year story involving Hideo Dandridge is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 138,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 138,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 138,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 675,
+       "pays": 1.02,
+       "house": 675
+      }
+     ],
+     "pool": 690,
+     "house": 690,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open"
+    },
+    {
+     "id": "sl14:how",
+     "storylineId": "sl14",
+     "question": "How will the contract year story involving Hideo Dandridge end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 544,
+       "pays": 1.27,
+       "house": 544
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 75,
+       "pays": 9.25,
+       "house": 75
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 51,
+       "pays": 13.6,
+       "house": 51
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 24,
+       "pays": 28.91,
+       "house": 24
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl15",
+   "kind": "contract_year",
+   "headline": "Charleston Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $498k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p428",
+    "name": "Vic Charleston",
+    "face": "face:158",
+    "teamAbbr": "CSR",
+    "pos": "3B"
+   },
+   "team": {
+    "id": "CSR",
+    "abbr": "CSR",
+    "city": "Cold Spring",
+    "name": "Rustlers",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl15:yes",
+     "storylineId": "sl15",
+     "question": "Will Vic Charleston stay with Cold Spring after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 476,
+       "pays": 1.11,
+       "house": 476
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 55,
+       "pays": 9.65,
+       "house": 55
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open"
+    },
+    {
+     "id": "sl15:when",
+     "storylineId": "sl15",
+     "question": "How long until the contract year story involving Vic Charleston is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 138,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 138,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 138,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 675,
+       "pays": 1.02,
+       "house": 675
+      }
+     ],
+     "pool": 690,
+     "house": 690,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open"
+    },
+    {
+     "id": "sl15:how",
+     "storylineId": "sl15",
+     "question": "How will the contract year story involving Vic Charleston end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 532,
+       "pays": 1.3,
+       "house": 532
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 84,
+       "pays": 8.26,
+       "house": 84
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 54,
+       "pays": 12.85,
+       "house": 54
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 24,
+       "pays": 28.91,
+       "house": 24
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl16",
+   "kind": "contract_year",
+   "headline": "Okafor Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $974k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p440",
+    "name": "Emil Okafor",
+    "face": "face:122",
+    "teamAbbr": "CSR",
+    "pos": "P"
+   },
+   "team": {
+    "id": "CSR",
+    "abbr": "CSR",
+    "city": "Cold Spring",
+    "name": "Rustlers",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl16:yes",
+     "storylineId": "sl16",
+     "question": "Will Emil Okafor stay with Cold Spring after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 478,
+       "pays": 1.11,
+       "house": 478
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 53,
+       "pays": 10.01,
+       "house": 53
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open"
+    },
+    {
+     "id": "sl16:when",
+     "storylineId": "sl16",
+     "question": "How long until the contract year story involving Emil Okafor is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 674,
+       "pays": 1.02,
+       "house": 674
+      }
+     ],
+     "pool": 689,
+     "house": 689,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open"
+    },
+    {
+     "id": "sl16:how",
+     "storylineId": "sl16",
+     "question": "How will the contract year story involving Emil Okafor end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 563,
+       "pays": 1.23,
+       "house": 563
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 61,
+       "pays": 11.37,
+       "house": 61
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 41,
+       "pays": 16.92,
+       "house": 41
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 29,
+       "pays": 23.93,
+       "house": 29
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl17",
+   "kind": "contract_year",
+   "headline": "Kessler Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $441k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p523",
+    "name": "Herb Kessler",
+    "face": "face:52",
+    "teamAbbr": "NCG",
+    "pos": "1B"
+   },
+   "team": {
+    "id": "NCG",
+    "abbr": "NCG",
+    "city": "New Corinth",
+    "name": "Grays",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl17:yes",
+     "storylineId": "sl17",
+     "question": "Will Herb Kessler stay with New Corinth after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 468,
+       "pays": 1.13,
+       "house": 468
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 63,
+       "pays": 8.42,
+       "house": 63
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open"
+    },
+    {
+     "id": "sl17:when",
+     "storylineId": "sl17",
+     "question": "How long until the contract year story involving Herb Kessler is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 138.2,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 138.2,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 138.2,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 676,
+       "pays": 1.02,
+       "house": 676
+      }
+     ],
+     "pool": 691,
+     "house": 691,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open"
+    },
+    {
+     "id": "sl17:how",
+     "storylineId": "sl17",
+     "question": "How will the contract year story involving Herb Kessler end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 541,
+       "pays": 1.28,
+       "house": 541
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 76,
+       "pays": 9.13,
+       "house": 76
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 48,
+       "pays": 14.45,
+       "house": 48
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 29,
+       "pays": 23.93,
+       "house": 29
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl18",
+   "kind": "contract_year",
+   "headline": "Crabtree Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $337k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p529",
+    "name": "Duke Crabtree",
+    "face": "face:501",
+    "teamAbbr": "NCG",
+    "pos": "CF"
+   },
+   "team": {
+    "id": "NCG",
+    "abbr": "NCG",
+    "city": "New Corinth",
+    "name": "Grays",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl18:yes",
+     "storylineId": "sl18",
+     "question": "Will Duke Crabtree stay with New Corinth after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 471,
+       "pays": 1.12,
+       "house": 471
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 60,
+       "pays": 8.85,
+       "house": 60
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open"
+    },
+    {
+     "id": "sl18:when",
+     "storylineId": "sl18",
+     "question": "How long until the contract year story involving Duke Crabtree is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 138.2,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 138.2,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 138.2,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 676,
+       "pays": 1.02,
+       "house": 676
+      }
+     ],
+     "pool": 691,
+     "house": 691,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open"
+    },
+    {
+     "id": "sl18:how",
+     "storylineId": "sl18",
+     "question": "How will the contract year story involving Duke Crabtree end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 529,
+       "pays": 1.31,
+       "house": 529
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 80,
+       "pays": 8.67,
+       "house": 80
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 58,
+       "pays": 11.96,
+       "house": 58
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 27,
+       "pays": 25.7,
+       "house": 27
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl19",
+   "kind": "contract_year",
+   "headline": "Lindqvist Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $306k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p535",
+    "name": "Darnell Lindqvist",
+    "face": "face:453",
+    "teamAbbr": "NCG",
+    "pos": "P"
+   },
+   "team": {
+    "id": "NCG",
+    "abbr": "NCG",
+    "city": "New Corinth",
+    "name": "Grays",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl19:yes",
+     "storylineId": "sl19",
+     "question": "Will Darnell Lindqvist stay with New Corinth after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 481,
+       "pays": 1.1,
+       "house": 481
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 50,
+       "pays": 10.62,
+       "house": 50
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open"
+    },
+    {
+     "id": "sl19:when",
+     "storylineId": "sl19",
+     "question": "How long until the contract year story involving Darnell Lindqvist is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 674,
+       "pays": 1.02,
+       "house": 674
+      }
+     ],
+     "pool": 689,
+     "house": 689,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open"
+    },
+    {
+     "id": "sl19:how",
+     "storylineId": "sl19",
+     "question": "How will the contract year story involving Darnell Lindqvist end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 578,
+       "pays": 1.2,
+       "house": 578
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 52,
+       "pays": 13.34,
+       "house": 52
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 42,
+       "pays": 16.52,
+       "house": 42
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 22,
+       "pays": 31.54,
+       "house": 22
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl2",
+   "kind": "contract_year",
+   "headline": "Guerrero Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $336k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p14",
+    "name": "Benny Guerrero",
+    "face": "face:516",
+    "teamAbbr": "HCL",
+    "pos": "P"
+   },
+   "team": {
+    "id": "HCL",
+    "abbr": "HCL",
+    "city": "Harbor City",
+    "name": "Lamplighters",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl2:yes",
+     "storylineId": "sl2",
+     "question": "Will Benny Guerrero stay with Harbor City after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 479,
+       "pays": 1.1,
+       "house": 479
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 52,
+       "pays": 10.21,
+       "house": 52
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open"
+    },
+    {
+     "id": "sl2:when",
+     "storylineId": "sl2",
+     "question": "How long until the contract year story involving Benny Guerrero is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 137.6,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 137.6,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 137.6,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 673,
+       "pays": 1.02,
+       "house": 673
+      }
+     ],
+     "pool": 688,
+     "house": 688,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open"
+    },
+    {
+     "id": "sl2:how",
+     "storylineId": "sl2",
+     "question": "How will the contract year story involving Benny Guerrero end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 560,
+       "pays": 1.23,
+       "house": 560
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 57,
+       "pays": 12.17,
+       "house": 57
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 54,
+       "pays": 12.85,
+       "house": 54
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 23,
+       "pays": 30.17,
+       "house": 23
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl20",
+   "kind": "contract_year",
+   "headline": "Jefferson Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $653k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p545",
+    "name": "Manny Jefferson",
+    "face": "face:20",
+    "teamAbbr": "NCG",
+    "pos": "P"
+   },
+   "team": {
+    "id": "NCG",
+    "abbr": "NCG",
+    "city": "New Corinth",
+    "name": "Grays",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl20:yes",
+     "storylineId": "sl20",
+     "question": "Will Manny Jefferson stay with New Corinth after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 464,
+       "pays": 1.14,
+       "house": 464
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 67,
+       "pays": 7.92,
+       "house": 67
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open"
+    },
+    {
+     "id": "sl20:when",
+     "storylineId": "sl20",
+     "question": "How long until the contract year story involving Manny Jefferson is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 674,
+       "pays": 1.02,
+       "house": 674
+      }
+     ],
+     "pool": 689,
+     "house": 689,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open"
+    },
+    {
+     "id": "sl20:how",
+     "storylineId": "sl20",
+     "question": "How will the contract year story involving Manny Jefferson end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 552,
+       "pays": 1.25,
+       "house": 552
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 68,
+       "pays": 10.2,
+       "house": 68
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 52,
+       "pays": 13.34,
+       "house": 52
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 22,
+       "pays": 31.54,
+       "house": 22
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl21",
+   "kind": "contract_year",
+   "headline": "Stottlemyre Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $607k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p625",
+    "name": "Bill Stottlemyre",
+    "face": "face:19",
+    "teamAbbr": "MRL",
+    "pos": "C"
+   },
+   "team": {
+    "id": "MRL",
+    "abbr": "MRL",
+    "city": "Marlow",
+    "name": "Pilgrims",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl21:yes",
+     "storylineId": "sl21",
+     "question": "Will Bill Stottlemyre stay with Marlow after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 484,
+       "pays": 1.09,
+       "house": 484
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 47,
+       "pays": 11.29,
+       "house": 47
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open"
+    },
+    {
+     "id": "sl21:when",
+     "storylineId": "sl21",
+     "question": "How long until the contract year story involving Bill Stottlemyre is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 138.2,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 138.2,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 138.2,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 676,
+       "pays": 1.02,
+       "house": 676
+      }
+     ],
+     "pool": 691,
+     "house": 691,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open"
+    },
+    {
+     "id": "sl21:how",
+     "storylineId": "sl21",
+     "question": "How will the contract year story involving Bill Stottlemyre end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 563,
+       "pays": 1.23,
+       "house": 563
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 56,
+       "pays": 12.39,
+       "house": 56
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 48,
+       "pays": 14.45,
+       "house": 48
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 27,
+       "pays": 25.7,
+       "house": 27
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl22",
+   "kind": "contract_year",
+   "headline": "Esposito Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $675k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p630",
+    "name": "Sid Esposito",
+    "face": "face:193",
+    "teamAbbr": "MRL",
+    "pos": "SS"
+   },
+   "team": {
+    "id": "MRL",
+    "abbr": "MRL",
+    "city": "Marlow",
+    "name": "Pilgrims",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl22:yes",
+     "storylineId": "sl22",
+     "question": "Will Sid Esposito stay with Marlow after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 480,
+       "pays": 1.1,
+       "house": 480
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 51,
+       "pays": 10.41,
+       "house": 51
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open"
+    },
+    {
+     "id": "sl22:when",
+     "storylineId": "sl22",
+     "question": "How long until the contract year story involving Sid Esposito is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 138.2,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 138.2,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 138.2,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 676,
+       "pays": 1.02,
+       "house": 676
+      }
+     ],
+     "pool": 691,
+     "house": 691,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open"
+    },
+    {
+     "id": "sl22:how",
+     "storylineId": "sl22",
+     "question": "How will the contract year story involving Sid Esposito end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 520,
+       "pays": 1.33,
+       "house": 520
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 68,
+       "pays": 10.2,
+       "house": 68
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 68,
+       "pays": 10.2,
+       "house": 68
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 38,
+       "pays": 18.26,
+       "house": 38
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl23",
+   "kind": "contract_year",
+   "headline": "Jimenez Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $465k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p737",
+    "name": "Zeke Jimenez",
+    "face": "face:167",
+    "teamAbbr": "ELC",
+    "pos": "CF"
+   },
+   "team": {
+    "id": "ELC",
+    "abbr": "ELC",
+    "city": "Electric City",
+    "name": "Comets",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl23:yes",
+     "storylineId": "sl23",
+     "question": "Will Zeke Jimenez stay with Electric City after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 478,
+       "pays": 1.11,
+       "house": 478
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 53,
+       "pays": 10.01,
+       "house": 53
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open"
+    },
+    {
+     "id": "sl23:when",
+     "storylineId": "sl23",
+     "question": "How long until the contract year story involving Zeke Jimenez is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 138.2,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 138.2,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 138.2,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 676,
+       "pays": 1.02,
+       "house": 676
+      }
+     ],
+     "pool": 691,
+     "house": 691,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open"
+    },
+    {
+     "id": "sl23:how",
+     "storylineId": "sl23",
+     "question": "How will the contract year story involving Zeke Jimenez end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 489,
+       "pays": 1.41,
+       "house": 489
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 104,
+       "pays": 6.67,
+       "house": 104
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 69,
+       "pays": 10.05,
+       "house": 69
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 32,
+       "pays": 21.68,
+       "house": 32
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl24",
+   "kind": "contract_year",
+   "headline": "Ibarra Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $346k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p745",
+    "name": "Milo Ibarra",
+    "face": "face:71",
+    "teamAbbr": "ELC",
+    "pos": "P"
+   },
+   "team": {
+    "id": "ELC",
+    "abbr": "ELC",
+    "city": "Electric City",
+    "name": "Comets",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl24:yes",
+     "storylineId": "sl24",
+     "question": "Will Milo Ibarra stay with Electric City after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 464,
+       "pays": 1.14,
+       "house": 464
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 67,
+       "pays": 7.92,
+       "house": 67
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open"
+    },
+    {
+     "id": "sl24:when",
+     "storylineId": "sl24",
+     "question": "How long until the contract year story involving Milo Ibarra is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 674,
+       "pays": 1.02,
+       "house": 674
+      }
+     ],
+     "pool": 689,
+     "house": 689,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open"
+    },
+    {
+     "id": "sl24:how",
+     "storylineId": "sl24",
+     "question": "How will the contract year story involving Milo Ibarra end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 539,
+       "pays": 1.28,
+       "house": 539
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 71,
+       "pays": 9.77,
+       "house": 71
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 61,
+       "pays": 11.37,
+       "house": 61
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 23,
+       "pays": 30.17,
+       "house": 23
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl3",
+   "kind": "contract_year",
+   "headline": "Jimenez Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $379k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p15",
+    "name": "Reggie Jimenez",
+    "face": "face:564",
+    "teamAbbr": "HCL",
+    "pos": "P"
+   },
+   "team": {
+    "id": "HCL",
+    "abbr": "HCL",
+    "city": "Harbor City",
+    "name": "Lamplighters",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl3:yes",
+     "storylineId": "sl3",
+     "question": "Will Reggie Jimenez stay with Harbor City after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 472,
+       "pays": 1.12,
+       "house": 472
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 59,
+       "pays": 9,
+       "house": 59
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open"
+    },
+    {
+     "id": "sl3:when",
+     "storylineId": "sl3",
+     "question": "How long until the contract year story involving Reggie Jimenez is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 674,
+       "pays": 1.02,
+       "house": 674
+      }
+     ],
+     "pool": 689,
+     "house": 689,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open"
+    },
+    {
+     "id": "sl3:how",
+     "storylineId": "sl3",
+     "question": "How will the contract year story involving Reggie Jimenez end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 515,
+       "pays": 1.34,
+       "house": 515
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 89,
+       "pays": 7.79,
+       "house": 89
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 52,
+       "pays": 13.34,
+       "house": 52
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 38,
+       "pays": 18.26,
+       "house": 38
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl4",
+   "kind": "contract_year",
+   "headline": "Salazar Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $390k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p106",
+    "name": "Wes Salazar",
+    "face": "face:583",
+    "teamAbbr": "STA",
+    "pos": "1B"
+   },
+   "team": {
+    "id": "STA",
+    "abbr": "STA",
+    "city": "St. Albans",
+    "name": "Friars",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl4:yes",
+     "storylineId": "sl4",
+     "question": "Will Wes Salazar stay with St. Albans after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 465,
+       "pays": 1.14,
+       "house": 465
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 66,
+       "pays": 8.04,
+       "house": 66
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open"
+    },
+    {
+     "id": "sl4:when",
+     "storylineId": "sl4",
+     "question": "How long until the contract year story involving Wes Salazar is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 138,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 138,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 138,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 675,
+       "pays": 1.02,
+       "house": 675
+      }
+     ],
+     "pool": 690,
+     "house": 690,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open"
+    },
+    {
+     "id": "sl4:how",
+     "storylineId": "sl4",
+     "question": "How will the contract year story involving Wes Salazar end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 542,
+       "pays": 1.28,
+       "house": 542
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 74,
+       "pays": 9.37,
+       "house": 74
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 53,
+       "pays": 13.09,
+       "house": 53
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 25,
+       "pays": 27.76,
+       "house": 25
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl5",
+   "kind": "contract_year",
+   "headline": "Haskins Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $515k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p110",
+    "name": "Hector Haskins",
+    "face": "face:102",
+    "teamAbbr": "STA",
+    "pos": "SS"
+   },
+   "team": {
+    "id": "STA",
+    "abbr": "STA",
+    "city": "St. Albans",
+    "name": "Friars",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl5:yes",
+     "storylineId": "sl5",
+     "question": "Will Hector Haskins stay with St. Albans after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 479,
+       "pays": 1.1,
+       "house": 479
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 52,
+       "pays": 10.21,
+       "house": 52
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open"
+    },
+    {
+     "id": "sl5:when",
+     "storylineId": "sl5",
+     "question": "How long until the contract year story involving Hector Haskins is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 137.8,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 674,
+       "pays": 1.02,
+       "house": 674
+      }
+     ],
+     "pool": 689,
+     "house": 689,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open"
+    },
+    {
+     "id": "sl5:how",
+     "storylineId": "sl5",
+     "question": "How will the contract year story involving Hector Haskins end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 510,
+       "pays": 1.36,
+       "house": 510
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 80,
+       "pays": 8.67,
+       "house": 80
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 66,
+       "pays": 10.51,
+       "house": 66
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 38,
+       "pays": 18.26,
+       "house": 38
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open"
+    }
+   ]
+  }
+ ]
+}

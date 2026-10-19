@@ -1,0 +1,34 @@
+{
+ "story": {
+  "id": "s1-story:crime:exposed:blackmail:6:HCL:cit-a2y0o1k1y3n5s2g-1-4-1",
+  "day": 6,
+  "kind": "scandal",
+  "headline": "Police Seek Suspects in Blackmail Case",
+  "dek": "Hector Reyes, 48, is sought for blackmailing a player with photographs",
+  "body": [
+   "Police are looking for Hector Reyes, 48, a groundskeeper, in connection with blackmailing a player with photographs at the Lamplighters game.",
+   "Officers found a telephoto camera and eleven photographs in a vehicle registered to Reyes. Police said the plan did not work.",
+   "Neighbors described Reyes as quiet. Reyes has one prior arrest, in 1987, for a similar matter.",
+   "\"We want to know who paid for it,\" said Keiko Gibson of the Haldane Organization. The Commissioner's Office said it was \"aware of the matter.\"",
+   "The Lamplighters play again tomorrow. The club said security will be increased."
+  ],
+  "faceIds": [
+   "face:210"
+  ],
+  "people": [
+   "cit-a2y0o1k1y3n5s2g-1-4-1"
+  ],
+  "teams": [
+   "HCL"
+  ],
+  "gameId": "S1D6ML3",
+  "section": "Crime",
+  "dateline": "Sun, April 7, 1996",
+  "prominence": 2,
+  "photo": "camera-01",
+  "photoCaption": "The photographers, 1914",
+  "at": 1792367359184,
+  "ago": 1
+ },
+ "comments": []
+}

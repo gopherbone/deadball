@@ -1,0 +1,141 @@
+{
+ "level": "AA",
+ "rows": [
+  {
+   "teamId": "NCG-AA",
+   "w": 5,
+   "l": 1,
+   "gb": 0,
+   "streak": "L1",
+   "last10": "5-1",
+   "rs": 34,
+   "ra": 17,
+   "team": {
+    "id": "NCG-AA",
+    "abbr": "NCGAA",
+    "city": "Durango",
+    "name": "Prospectors",
+    "level": "AA"
+   }
+  },
+  {
+   "teamId": "PEM-AA",
+   "w": 4,
+   "l": 2,
+   "gb": 1,
+   "streak": "W1",
+   "last10": "4-2",
+   "rs": 50,
+   "ra": 38,
+   "team": {
+    "id": "PEM-AA",
+    "abbr": "PEMAA",
+    "city": "Yazoo",
+    "name": "Tobacconists",
+    "level": "AA"
+   }
+  },
+  {
+   "teamId": "STA-AA",
+   "w": 4,
+   "l": 2,
+   "gb": 1,
+   "streak": "L1",
+   "last10": "4-2",
+   "rs": 39,
+   "ra": 38,
+   "team": {
+    "id": "STA-AA",
+    "abbr": "STAAA",
+    "city": "Durango",
+    "name": "Possums",
+    "level": "AA"
+   }
+  },
+  {
+   "teamId": "CSR-AA",
+   "w": 3,
+   "l": 3,
+   "gb": 2,
+   "streak": "W2",
+   "last10": "3-3",
+   "rs": 24,
+   "ra": 20,
+   "team": {
+    "id": "CSR-AA",
+    "abbr": "CSRAA",
+    "city": "Brockton",
+    "name": "Pickles",
+    "level": "AA"
+   }
+  },
+  {
+   "teamId": "MIL-AA",
+   "w": 3,
+   "l": 3,
+   "gb": 2,
+   "streak": "W1",
+   "last10": "3-3",
+   "rs": 37,
+   "ra": 33,
+   "team": {
+    "id": "MIL-AA",
+    "abbr": "MILAA",
+    "city": "Zanesville",
+    "name": "Owls",
+    "level": "AA"
+   }
+  },
+  {
+   "teamId": "ELC-AA",
+   "w": 3,
+   "l": 3,
+   "gb": 2,
+   "streak": "L1",
+   "last10": "3-3",
+   "rs": 29,
+   "ra": 35,
+   "team": {
+    "id": "ELC-AA",
+    "abbr": "ELCAA",
+    "city": "Wheeling",
+    "name": "Bootleggers",
+    "level": "AA"
+   }
+  },
+  {
+   "teamId": "HCL-AA",
+   "w": 1,
+   "l": 5,
+   "gb": 4,
+   "streak": "L2",
+   "last10": "1-5",
+   "rs": 18,
+   "ra": 32,
+   "team": {
+    "id": "HCL-AA",
+    "abbr": "HCLAA",
+    "city": "Lockport",
+    "name": "Canallers",
+    "level": "AA"
+   }
+  },
+  {
+   "teamId": "MRL-AA",
+   "w": 1,
+   "l": 5,
+   "gb": 4,
+   "streak": "W1",
+   "last10": "1-5",
+   "rs": 29,
+   "ra": 47,
+   "team": {
+    "id": "MRL-AA",
+    "abbr": "MRLAA",
+    "city": "Utica",
+    "name": "Smelters",
+    "level": "AA"
+   }
+  }
+ ]
+}

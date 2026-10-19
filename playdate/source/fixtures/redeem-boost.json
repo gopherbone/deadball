@@ -1,0 +1,96 @@
+{
+ "result": "Redeemed. Al Gibson gets +12 stuff and control for 7 game days (through day 10).",
+ "kind": "boost",
+ "card": {
+  "id": "k0z2h3r27213g4b",
+  "defId": "S1-041",
+  "person": {
+   "id": "p117",
+   "name": "Al Gibson",
+   "face": "face:208",
+   "teamAbbr": "STA",
+   "pos": "P"
+  },
+  "team": {
+   "id": "STA",
+   "abbr": "STA",
+   "city": "St. Albans",
+   "name": "Friars",
+   "level": "ML"
+  },
+  "season": 1,
+  "set": "Series 1",
+  "number": 41,
+  "rarity": "gilded",
+  "front": {
+   "caption": "GIBSON, ST. ALBANS",
+   "pos": "SP",
+   "redeem": "REDEEMABLE: BOOST +12 FOR 7 DAYS"
+  },
+  "back": {
+   "lines": [
+    "At 34, Gibson remembers when the bases",
+    "were flour sacks. Pulled a hamstring",
+    "signing an autograph. Pals with Ollie",
+    "Novak (card partners). Pals with Tom",
+    "Zaleski (fishing buddies).",
+    "REDEEM: +12 STF/CTL FOR 7 GAME DAYS."
+   ],
+   "stats": [
+    [
+     "STF",
+     "CTL",
+     "CMD",
+     "MOV",
+     "VEL"
+    ],
+    [
+     "49",
+     "48",
+     "48",
+     "44",
+     "96"
+    ]
+   ]
+  },
+  "value": 448,
+  "redeem": {
+   "kind": "boost",
+   "boost": 12,
+   "days": 7,
+   "label": "REDEEMABLE: BOOST +12 FOR 7 DAYS"
+  },
+  "serial": "01/50",
+  "redeemed": true
+ },
+ "story": {
+  "id": "s1-redeem-rd-k0z2h3r27213g4b",
+  "headline": "Card Redeemed: Gibson Boosted +12 for 7 Days",
+  "dek": "Gus Gumshoe redeemed a Gilded #01/50 Al Gibson card: +12 stuff and control through day 10"
+ },
+ "effect": {
+  "kind": "boost",
+  "person": {
+   "id": "p117",
+   "name": "Al Gibson",
+   "face": "face:208",
+   "teamAbbr": "STA",
+   "pos": "P"
+  },
+  "boost": 12,
+  "days": 7,
+  "fromDay": 4,
+  "untilDay": 10
+ },
+ "account": {
+  "id": "a1z6w58314l2v6v",
+  "name": "Gus Gumshoe",
+  "money": 905,
+  "heat": 0,
+  "crewSize": 1,
+  "unreadMail": 1,
+  "cards": 8,
+  "joinedDay": 0,
+  "rank": "Regular"
+ }
+}

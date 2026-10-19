@@ -1,0 +1,35 @@
+{
+ "bet": {
+  "id": "b3t1x2p1w3s1t0i",
+  "gameId": "S1D5ML0",
+  "side": "home",
+  "amount": 100,
+  "status": "open",
+  "placedAt": 1792367294422,
+  "placedIn": 0
+ },
+ "pool": {
+  "home": 339,
+  "away": 211,
+  "pays": {
+   "home": 1.59,
+   "away": 2.55
+  },
+  "house": {
+   "home": 239,
+   "away": 211
+  }
+ },
+ "account": {
+  "id": "a2y0o1k1y3n5s2g",
+  "name": "Lefty Loot",
+  "money": 489,
+  "heat": 0,
+  "crewSize": 2,
+  "unreadMail": 2,
+  "cards": 14,
+  "joinedDay": 0,
+  "rank": "Rube",
+  "syndicateId": "sy3p6h1h2u3h2i6d"
+ }
+}

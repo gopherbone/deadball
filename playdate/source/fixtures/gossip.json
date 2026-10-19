@@ -1,0 +1,2040 @@
+{
+ "day": 34,
+ "storylines": [
+  {
+   "id": "sl42",
+   "kind": "feud",
+   "headline": "Leonard, Gooch Not Speaking",
+   "blurb": "Mickey Leonard and Minnie Gooch are not speaking. It is about a prank involving a catfish.",
+   "stage": "words",
+   "visibility": "rumoured",
+   "who": {
+    "id": "p361",
+    "name": "Mickey Leonard",
+    "face": "face:557",
+    "teamAbbr": "MIL",
+    "pos": "P"
+   },
+   "team": {
+    "id": "MIL",
+    "abbr": "MIL",
+    "city": "Millbrook",
+    "name": "Ironmen",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl42:yes",
+     "storylineId": "sl42",
+     "question": "Will the Mickey Leonard–Minnie Gooch feud come to blows within 20 days?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 227,
+       "pays": 5.74,
+       "house": 227
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 1078,
+       "pays": 1.21,
+       "house": 1078
+      }
+     ],
+     "pool": 1305,
+     "house": 1305,
+     "closesAt": 1792367439388,
+     "closesIn": 76,
+     "closesDay": 35,
+     "resolveByDay": 49,
+     "resolveByAt": 1792367999388,
+     "resolveByIn": 636,
+     "status": "open"
+    },
+    {
+     "id": "sl42:when",
+     "storylineId": "sl42",
+     "question": "How long until the feud story involving Mickey Leonard is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 144,
+       "pays": 7.81,
+       "house": 144
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 293,
+       "pays": 3.84,
+       "house": 293
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 204,
+       "pays": 5.51,
+       "house": 204
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 485,
+       "pays": 2.32,
+       "house": 485
+      }
+     ],
+     "pool": 1126,
+     "house": 1126,
+     "closesAt": 1792367334453,
+     "closesIn": -29,
+     "closesDay": 32,
+     "resolveByDay": 60,
+     "resolveByAt": 1792368454453,
+     "resolveByIn": 1091,
+     "status": "closed"
+    },
+    {
+     "id": "sl42:how",
+     "storylineId": "sl42",
+     "question": "How will the feud story involving Mickey Leonard end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "brawl",
+       "label": "brawl",
+       "pool": 607,
+       "pays": 2.27,
+       "house": 607
+      },
+      {
+       "key": "reconciled",
+       "label": "reconciled",
+       "pool": 342,
+       "pays": 4.03,
+       "house": 342
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 225,
+       "pays": 6.13,
+       "house": 225
+      },
+      {
+       "key": "fizzled",
+       "label": "fizzled",
+       "pool": 164,
+       "pays": 8.41,
+       "house": 164
+      },
+      {
+       "key": "death",
+       "label": "death",
+       "pool": 42,
+       "pays": 32.85,
+       "house": 42
+      }
+     ],
+     "pool": 1380,
+     "house": 1380,
+     "closesAt": 1792367399388,
+     "closesIn": 36,
+     "closesDay": 34,
+     "resolveByDay": 110,
+     "resolveByAt": 1792370439388,
+     "resolveByIn": 3076,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl68",
+   "kind": "feud",
+   "headline": "Reyes, Vukovich Not Speaking",
+   "blurb": "Cy Reyes and Andre Vukovich are not speaking. It is about who gets the corner locker.",
+   "stage": "words",
+   "visibility": "rumoured",
+   "who": {
+    "id": "p729",
+    "name": "Cy Reyes",
+    "face": "face:240",
+    "teamAbbr": "ELC",
+    "pos": "C"
+   },
+   "team": {
+    "id": "ELC",
+    "abbr": "ELC",
+    "city": "Electric City",
+    "name": "Comets",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl68:yes",
+     "storylineId": "sl68",
+     "question": "Will the Cy Reyes–Andre Vukovich feud come to blows within 20 days?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 205,
+       "pays": 6.36,
+       "house": 205
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 1100,
+       "pays": 1.18,
+       "house": 1100
+      }
+     ],
+     "pool": 1305,
+     "house": 1305,
+     "closesAt": 1792367439388,
+     "closesIn": 76,
+     "closesDay": 35,
+     "resolveByDay": 49,
+     "resolveByAt": 1792367999388,
+     "resolveByIn": 636,
+     "status": "open"
+    },
+    {
+     "id": "sl68:when",
+     "storylineId": "sl68",
+     "question": "How long until the feud story involving Cy Reyes is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 123,
+       "pays": 9.15,
+       "house": 123
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 339,
+       "pays": 3.32,
+       "house": 339
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 219,
+       "pays": 5.14,
+       "house": 219
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 445,
+       "pays": 2.53,
+       "house": 445
+      }
+     ],
+     "pool": 1126,
+     "house": 1126,
+     "closesAt": 1792367334453,
+     "closesIn": -29,
+     "closesDay": 32,
+     "resolveByDay": 60,
+     "resolveByAt": 1792368454453,
+     "resolveByIn": 1091,
+     "status": "closed"
+    },
+    {
+     "id": "sl68:how",
+     "storylineId": "sl68",
+     "question": "How will the feud story involving Cy Reyes end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "brawl",
+       "label": "brawl",
+       "pool": 697,
+       "pays": 1.97,
+       "house": 697
+      },
+      {
+       "key": "reconciled",
+       "label": "reconciled",
+       "pool": 243,
+       "pays": 5.67,
+       "house": 243
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 209,
+       "pays": 6.6,
+       "house": 209
+      },
+      {
+       "key": "fizzled",
+       "label": "fizzled",
+       "pool": 176,
+       "pays": 7.84,
+       "house": 176
+      },
+      {
+       "key": "death",
+       "label": "death",
+       "pool": 55,
+       "pays": 25.09,
+       "house": 55
+      }
+     ],
+     "pool": 1380,
+     "house": 1380,
+     "closesAt": 1792367399388,
+     "closesIn": 36,
+     "closesDay": 34,
+     "resolveByDay": 110,
+     "resolveByAt": 1792370439388,
+     "resolveByIn": 3076,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl67",
+   "kind": "feud",
+   "headline": "McCann, Puckett Not Speaking",
+   "blurb": "Tito McCann and Hideo Puckett are not speaking. It is about words about a girlfriend.",
+   "stage": "words",
+   "visibility": "rumoured",
+   "who": {
+    "id": "p901",
+    "name": "Tito McCann",
+    "face": "face:144",
+    "teamAbbr": "TJP",
+    "pos": "P"
+   },
+   "team": {
+    "id": "TJP",
+    "abbr": "TJP",
+    "city": "Tumbleweed Junction",
+    "name": "Prospectors",
+    "level": "EL"
+   },
+   "props": [
+    {
+     "id": "sl67:yes",
+     "storylineId": "sl67",
+     "question": "Will the Tito McCann–Hideo Puckett feud come to blows within 20 days?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 225,
+       "pays": 6.26,
+       "house": 225
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 1184,
+       "pays": 1.19,
+       "house": 1184
+      }
+     ],
+     "pool": 1409,
+     "house": 1409,
+     "closesAt": 1792367399388,
+     "closesIn": 36,
+     "closesDay": 34,
+     "resolveByDay": 48,
+     "resolveByAt": 1792367959388,
+     "resolveByIn": 596,
+     "status": "open"
+    },
+    {
+     "id": "sl67:when",
+     "storylineId": "sl67",
+     "question": "How long until the feud story involving Tito McCann is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 135,
+       "pays": 8.34,
+       "house": 135
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 234,
+       "pays": 4.81,
+       "house": 234
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 294,
+       "pays": 3.82,
+       "house": 294
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 463,
+       "pays": 2.43,
+       "house": 463
+      }
+     ],
+     "pool": 1126,
+     "house": 1126,
+     "closesAt": 1792367334348,
+     "closesIn": -29,
+     "closesDay": 31,
+     "resolveByDay": 59,
+     "resolveByAt": 1792368454348,
+     "resolveByIn": 1091,
+     "status": "closed"
+    },
+    {
+     "id": "sl67:how",
+     "storylineId": "sl67",
+     "question": "How will the feud story involving Tito McCann end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "brawl",
+       "label": "brawl",
+       "pool": 557,
+       "pays": 2.57,
+       "house": 557
+      },
+      {
+       "key": "reconciled",
+       "label": "reconciled",
+       "pool": 368,
+       "pays": 3.9,
+       "house": 368
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 332,
+       "pays": 4.32,
+       "house": 332
+      },
+      {
+       "key": "fizzled",
+       "label": "fizzled",
+       "pool": 140,
+       "pays": 10.25,
+       "house": 140
+      },
+      {
+       "key": "death",
+       "label": "death",
+       "pool": 39,
+       "pays": 36.82,
+       "house": 39
+      }
+     ],
+     "pool": 1436,
+     "house": 1436,
+     "closesAt": 1792367334556,
+     "closesIn": -29,
+     "closesDay": 33,
+     "resolveByDay": 109,
+     "resolveByAt": 1792370374556,
+     "resolveByIn": 3011,
+     "status": "closed"
+    }
+   ]
+  },
+  {
+   "id": "sl69",
+   "kind": "rookie_watch",
+   "headline": "Vukovich: Rookie of the Year?",
+   "blurb": "Reason given: top prospect. At stake: Rookie of the Year.",
+   "stage": "watch",
+   "visibility": "public",
+   "who": {
+    "id": "p858",
+    "name": "Jesús Vukovich",
+    "face": "face:64",
+    "teamAbbr": "MIL",
+    "pos": "C"
+   },
+   "team": {
+    "id": "MIL",
+    "abbr": "MIL",
+    "city": "Millbrook",
+    "name": "Ironmen",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl69:yes",
+     "storylineId": "sl69",
+     "question": "Will Jesús Vukovich win Rookie of the Year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 32,
+       "pays": 16.59,
+       "house": 32
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 499,
+       "pays": 1.06,
+       "house": 499
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369879388,
+     "closesIn": 2516,
+     "closesDay": 96,
+     "resolveByDay": 230,
+     "resolveByAt": 1792375239388,
+     "resolveByIn": 7876,
+     "status": "open"
+    },
+    {
+     "id": "sl69:when",
+     "storylineId": "sl69",
+     "question": "How long until the rookie watch story involving Jesús Vukovich is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 125.4,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 27,
+       "pays": 23.22,
+       "house": 27
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 39,
+       "pays": 16.07,
+       "house": 39
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 556,
+       "pays": 1.12,
+       "house": 556
+      }
+     ],
+     "pool": 627,
+     "house": 627,
+     "closesAt": 1792367334556,
+     "closesIn": -29,
+     "closesDay": 33,
+     "resolveByDay": 61,
+     "resolveByAt": 1792368454556,
+     "resolveByIn": 1091,
+     "status": "closed"
+    },
+    {
+     "id": "sl69:how",
+     "storylineId": "sl69",
+     "question": "How will the rookie watch story involving Jesús Vukovich end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "rookie_of_year",
+       "label": "rookie of year",
+       "pool": 29,
+       "pays": 23.93,
+       "house": 29
+      },
+      {
+       "key": "solid",
+       "label": "solid",
+       "pool": 474,
+       "pays": 1.46,
+       "house": 474
+      },
+      {
+       "key": "sent_down",
+       "label": "sent down",
+       "pool": 191,
+       "pays": 3.63,
+       "house": 191
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367439388,
+     "closesIn": 76,
+     "closesDay": 35,
+     "resolveByDay": 331,
+     "resolveByAt": 1792379279388,
+     "resolveByIn": 11916,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl70",
+   "kind": "rookie_watch",
+   "headline": "Bumgardner: Rookie of the Year?",
+   "blurb": "Reason given: top prospect. At stake: Rookie of the Year.",
+   "stage": "watch",
+   "visibility": "public",
+   "who": {
+    "id": "p773",
+    "name": "Bert Bumgardner",
+    "face": "face:52",
+    "teamAbbr": "ELC",
+    "pos": "P"
+   },
+   "team": {
+    "id": "ELC",
+    "abbr": "ELC",
+    "city": "Electric City",
+    "name": "Comets",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl70:yes",
+     "storylineId": "sl70",
+     "question": "Will Bert Bumgardner win Rookie of the Year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 21,
+       "pays": 25.28,
+       "house": 21
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 510,
+       "pays": 1.04,
+       "house": 510
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369879388,
+     "closesIn": 2516,
+     "closesDay": 96,
+     "resolveByDay": 230,
+     "resolveByAt": 1792375239388,
+     "resolveByIn": 7876,
+     "status": "open"
+    },
+    {
+     "id": "sl70:when",
+     "storylineId": "sl70",
+     "question": "How long until the rookie watch story involving Bert Bumgardner is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 5,
+       "pays": 125.2,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 20,
+       "pays": 31.3,
+       "house": 20
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 55,
+       "pays": 11.38,
+       "house": 55
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 546,
+       "pays": 1.14,
+       "house": 546
+      }
+     ],
+     "pool": 626,
+     "house": 626,
+     "closesAt": 1792367334556,
+     "closesIn": -29,
+     "closesDay": 33,
+     "resolveByDay": 61,
+     "resolveByAt": 1792368454556,
+     "resolveByIn": 1091,
+     "status": "closed"
+    },
+    {
+     "id": "sl70:how",
+     "storylineId": "sl70",
+     "question": "How will the rookie watch story involving Bert Bumgardner end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "rookie_of_year",
+       "label": "rookie of year",
+       "pool": 32,
+       "pays": 21.68,
+       "house": 32
+      },
+      {
+       "key": "solid",
+       "label": "solid",
+       "pool": 498,
+       "pays": 1.39,
+       "house": 498
+      },
+      {
+       "key": "sent_down",
+       "label": "sent down",
+       "pool": 164,
+       "pays": 4.23,
+       "house": 164
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367439388,
+     "closesIn": 76,
+     "closesDay": 35,
+     "resolveByDay": 331,
+     "resolveByAt": 1792379279388,
+     "resolveByIn": 11916,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl71",
+   "kind": "rookie_watch",
+   "headline": "Navarro: Rookie of the Year?",
+   "blurb": "Reason given: top prospect. At stake: Rookie of the Year.",
+   "stage": "watch",
+   "visibility": "public",
+   "who": {
+    "id": "p252",
+    "name": "Walt Navarro",
+    "face": "face:493",
+    "teamAbbr": "PEM",
+    "pos": "P"
+   },
+   "team": {
+    "id": "PEM",
+    "abbr": "PEM",
+    "city": "Port Ellis",
+    "name": "Mariners",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl71:yes",
+     "storylineId": "sl71",
+     "question": "Will Walt Navarro win Rookie of the Year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 28,
+       "pays": 18.96,
+       "house": 28
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 503,
+       "pays": 1.05,
+       "house": 503
+      }
+     ],
+     "pool": 531,
+     "house": 531,
+     "closesAt": 1792369879388,
+     "closesIn": 2516,
+     "closesDay": 96,
+     "resolveByDay": 230,
+     "resolveByAt": 1792375239388,
+     "resolveByIn": 7876,
+     "status": "open"
+    },
+    {
+     "id": "sl71:when",
+     "storylineId": "sl71",
+     "question": "How long until the rookie watch story involving Walt Navarro is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 6,
+       "pays": 104.33,
+       "house": 6
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 54,
+       "pays": 11.59,
+       "house": 54
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 71,
+       "pays": 8.81,
+       "house": 71
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 495,
+       "pays": 1.26,
+       "house": 495
+      }
+     ],
+     "pool": 626,
+     "house": 626,
+     "closesAt": 1792367334556,
+     "closesIn": -29,
+     "closesDay": 33,
+     "resolveByDay": 61,
+     "resolveByAt": 1792368454556,
+     "resolveByIn": 1091,
+     "status": "closed"
+    },
+    {
+     "id": "sl71:how",
+     "storylineId": "sl71",
+     "question": "How will the rookie watch story involving Walt Navarro end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "rookie_of_year",
+       "label": "rookie of year",
+       "pool": 59,
+       "pays": 11.76,
+       "house": 59
+      },
+      {
+       "key": "solid",
+       "label": "solid",
+       "pool": 407,
+       "pays": 1.7,
+       "house": 407
+      },
+      {
+       "key": "sent_down",
+       "label": "sent down",
+       "pool": 228,
+       "pays": 3.04,
+       "house": 228
+      }
+     ],
+     "pool": 694,
+     "house": 694,
+     "closesAt": 1792367439388,
+     "closesIn": 76,
+     "closesDay": 35,
+     "resolveByDay": 331,
+     "resolveByAt": 1792379279388,
+     "resolveByIn": 11916,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl45",
+   "kind": "affair",
+   "headline": "Cruz Seen at Motel on Route 9",
+   "blurb": "Russ Cruz has been seen at a motel on Route 9 on off days.",
+   "stage": "ongoing",
+   "visibility": "rumoured",
+   "who": {
+    "id": "p540",
+    "name": "Russ Cruz",
+    "face": "face:338",
+    "teamAbbr": "NCG",
+    "pos": "P"
+   },
+   "team": {
+    "id": "NCG",
+    "abbr": "NCG",
+    "city": "New Corinth",
+    "name": "Grays",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl45:yes",
+     "storylineId": "sl45",
+     "question": "Will Russ Cruz's affair be discovered within 20 days?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 362,
+       "pays": 1.75,
+       "house": 362
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 272,
+       "pays": 2.33,
+       "house": 272
+      }
+     ],
+     "pool": 634,
+     "house": 634,
+     "closesAt": 1792367599388,
+     "closesIn": 236,
+     "closesDay": 39,
+     "resolveByDay": 53,
+     "resolveByAt": 1792368159388,
+     "resolveByIn": 796,
+     "status": "open"
+    },
+    {
+     "id": "sl45:when",
+     "storylineId": "sl45",
+     "question": "How long until the affair story involving Russ Cruz is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 112,
+       "pays": 4.71,
+       "house": 112
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 146,
+       "pays": 3.61,
+       "house": 146
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 150,
+       "pays": 3.52,
+       "house": 150
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 120,
+       "pays": 4.4,
+       "house": 120
+      }
+     ],
+     "pool": 528,
+     "house": 528,
+     "closesAt": 1792367479388,
+     "closesIn": 116,
+     "closesDay": 36,
+     "resolveByDay": 64,
+     "resolveByAt": 1792368599388,
+     "resolveByIn": 1236,
+     "status": "open"
+    },
+    {
+     "id": "sl45:how",
+     "storylineId": "sl45",
+     "question": "How will the affair story involving Russ Cruz end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "discovered",
+       "label": "discovered",
+       "pool": 575,
+       "pays": 1.1,
+       "house": 575
+      },
+      {
+       "key": "ended_quietly",
+       "label": "ended quietly",
+       "pool": 56,
+       "pays": 11.32,
+       "house": 56
+      },
+      {
+       "key": "death",
+       "label": "death",
+       "pool": 3,
+       "pays": 211.33,
+       "house": 3
+      }
+     ],
+     "pool": 634,
+     "house": 634,
+     "closesAt": 1792367559388,
+     "closesIn": 196,
+     "closesDay": 38,
+     "resolveByDay": 184,
+     "resolveByAt": 1792373399388,
+     "resolveByIn": 6036,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl46",
+   "kind": "feud",
+   "headline": "Morales, Ruggles Not Speaking",
+   "blurb": "Tom Morales and Tom Ruggles are not speaking. It is about who's the real star.",
+   "stage": "words",
+   "visibility": "rumoured",
+   "who": {
+    "id": "p933",
+    "name": "Tom Morales",
+    "face": "face:484",
+    "teamAbbr": "SBS",
+    "pos": "P"
+   },
+   "team": {
+    "id": "SBS",
+    "abbr": "SBS",
+    "city": "Salt Basin",
+    "name": "Saints",
+    "level": "EL"
+   },
+   "props": [
+    {
+     "id": "sl46:yes",
+     "storylineId": "sl46",
+     "question": "Will the Tom Morales–Tom Ruggles feud come to blows within 20 days?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 138,
+       "pays": 3.73,
+       "house": 138
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 377,
+       "pays": 1.36,
+       "house": 377
+      }
+     ],
+     "pool": 515,
+     "house": 515,
+     "closesAt": 1792367599388,
+     "closesIn": 236,
+     "closesDay": 39,
+     "resolveByDay": 53,
+     "resolveByAt": 1792368159388,
+     "resolveByIn": 796,
+     "status": "open"
+    },
+    {
+     "id": "sl46:when",
+     "storylineId": "sl46",
+     "question": "How long until the feud story involving Tom Morales is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 51,
+       "pays": 8.41,
+       "house": 51
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 89,
+       "pays": 4.82,
+       "house": 89
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 71,
+       "pays": 6.04,
+       "house": 71
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 218,
+       "pays": 1.96,
+       "house": 218
+      }
+     ],
+     "pool": 429,
+     "house": 429,
+     "closesAt": 1792367479388,
+     "closesIn": 116,
+     "closesDay": 36,
+     "resolveByDay": 64,
+     "resolveByAt": 1792368599388,
+     "resolveByIn": 1236,
+     "status": "open"
+    },
+    {
+     "id": "sl46:how",
+     "storylineId": "sl46",
+     "question": "How will the feud story involving Tom Morales end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "brawl",
+       "label": "brawl",
+       "pool": 275,
+       "pays": 1.87,
+       "house": 275
+      },
+      {
+       "key": "reconciled",
+       "label": "reconciled",
+       "pool": 97,
+       "pays": 5.3,
+       "house": 97
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 81,
+       "pays": 6.35,
+       "house": 81
+      },
+      {
+       "key": "fizzled",
+       "label": "fizzled",
+       "pool": 40,
+       "pays": 12.87,
+       "house": 40
+      },
+      {
+       "key": "death",
+       "label": "death",
+       "pool": 22,
+       "pays": 23.4,
+       "house": 22
+      }
+     ],
+     "pool": 515,
+     "house": 515,
+     "closesAt": 1792367559388,
+     "closesIn": 196,
+     "closesDay": 38,
+     "resolveByDay": 114,
+     "resolveByAt": 1792370599388,
+     "resolveByIn": 3236,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl75",
+   "kind": "rivalry",
+   "headline": "Cruz and Vance: Bad Blood",
+   "blurb": "Reason given: a beanball. At stake: pride.",
+   "stage": "simmering",
+   "visibility": "public",
+   "who": {
+    "id": "p632",
+    "name": "Lefty Cruz",
+    "face": "face:451",
+    "teamAbbr": "MRL",
+    "pos": "LF"
+   },
+   "team": {
+    "id": "MRL",
+    "abbr": "MRL",
+    "city": "Marlow",
+    "name": "Pilgrims",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl75:yes",
+     "storylineId": "sl75",
+     "question": "Will Lefty Cruz and Ray Vance brawl within 30 days?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 30,
+       "pays": 15.83,
+       "house": 30
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 445,
+       "pays": 1.06,
+       "house": 445
+      }
+     ],
+     "pool": 475,
+     "house": 475,
+     "closesAt": 1792367759388,
+     "closesIn": 396,
+     "closesDay": 43,
+     "resolveByDay": 63,
+     "resolveByAt": 1792368559388,
+     "resolveByIn": 1196,
+     "status": "open"
+    },
+    {
+     "id": "sl75:when",
+     "storylineId": "sl75",
+     "question": "How long until the rivalry story involving Lefty Cruz is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 24,
+       "pays": 16.5,
+       "house": 24
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 45,
+       "pays": 8.8,
+       "house": 45
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 63,
+       "pays": 6.28,
+       "house": 63
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 264,
+       "pays": 1.5,
+       "house": 264
+      }
+     ],
+     "pool": 396,
+     "house": 396,
+     "closesAt": 1792367479388,
+     "closesIn": 116,
+     "closesDay": 36,
+     "resolveByDay": 64,
+     "resolveByAt": 1792368599388,
+     "resolveByIn": 1236,
+     "status": "open"
+    },
+    {
+     "id": "sl75:how",
+     "storylineId": "sl75",
+     "question": "How will the rivalry story involving Lefty Cruz end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "brawl",
+       "label": "brawl",
+       "pool": 129,
+       "pays": 3.7,
+       "house": 129
+      },
+      {
+       "key": "buried_hatchet",
+       "label": "buried hatchet",
+       "pool": 144,
+       "pays": 3.31,
+       "house": 144
+      },
+      {
+       "key": "season_over",
+       "label": "season over",
+       "pool": 201,
+       "pays": 2.37,
+       "house": 201
+      },
+      {
+       "key": "death",
+       "label": "death",
+       "pool": 4,
+       "pays": 119.5,
+       "house": 4
+      }
+     ],
+     "pool": 478,
+     "house": 478,
+     "closesAt": 1792367559388,
+     "closesIn": 196,
+     "closesDay": 38,
+     "resolveByDay": 234,
+     "resolveByAt": 1792375399388,
+     "resolveByIn": 8036,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl76",
+   "kind": "feud",
+   "headline": "Navarro, Paredes Not Speaking",
+   "blurb": "Walt Navarro and Leon Paredes are not speaking. It is about who's the real star.",
+   "stage": "public spat",
+   "visibility": "rumoured",
+   "who": {
+    "id": "p252",
+    "name": "Walt Navarro",
+    "face": "face:493",
+    "teamAbbr": "PEM",
+    "pos": "P"
+   },
+   "team": {
+    "id": "PEM",
+    "abbr": "PEM",
+    "city": "Port Ellis",
+    "name": "Mariners",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl76:yes",
+     "storylineId": "sl76",
+     "question": "Will the Walt Navarro–Leon Paredes feud come to blows within 20 days?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 127,
+       "pays": 5.26,
+       "house": 127
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 542,
+       "pays": 1.23,
+       "house": 542
+      }
+     ],
+     "pool": 669,
+     "house": 669,
+     "closesAt": 1792367599388,
+     "closesIn": 236,
+     "closesDay": 39,
+     "resolveByDay": 53,
+     "resolveByAt": 1792368159388,
+     "resolveByIn": 796,
+     "status": "open"
+    },
+    {
+     "id": "sl76:when",
+     "storylineId": "sl76",
+     "question": "How long until the feud story involving Walt Navarro is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 77,
+       "pays": 7.24,
+       "house": 77
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 158,
+       "pays": 3.53,
+       "house": 158
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 87,
+       "pays": 6.41,
+       "house": 87
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 236,
+       "pays": 2.36,
+       "house": 236
+      }
+     ],
+     "pool": 558,
+     "house": 558,
+     "closesAt": 1792367479388,
+     "closesIn": 116,
+     "closesDay": 36,
+     "resolveByDay": 64,
+     "resolveByAt": 1792368599388,
+     "resolveByIn": 1236,
+     "status": "open"
+    },
+    {
+     "id": "sl76:how",
+     "storylineId": "sl76",
+     "question": "How will the feud story involving Walt Navarro end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "brawl",
+       "label": "brawl",
+       "pool": 364,
+       "pays": 1.83,
+       "house": 364
+      },
+      {
+       "key": "reconciled",
+       "label": "reconciled",
+       "pool": 134,
+       "pays": 4.99,
+       "house": 134
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 89,
+       "pays": 7.51,
+       "house": 89
+      },
+      {
+       "key": "fizzled",
+       "label": "fizzled",
+       "pool": 70,
+       "pays": 9.55,
+       "house": 70
+      },
+      {
+       "key": "death",
+       "label": "death",
+       "pool": 12,
+       "pays": 55.75,
+       "house": 12
+      }
+     ],
+     "pool": 669,
+     "house": 669,
+     "closesAt": 1792367559388,
+     "closesIn": 196,
+     "closesDay": 38,
+     "resolveByDay": 114,
+     "resolveByAt": 1792370599388,
+     "resolveByIn": 3236,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl77",
+   "kind": "feud",
+   "headline": "Swindell, Escobar Not Speaking",
+   "blurb": "Cal Swindell and Pete Escobar are not speaking. It is about a bat-flip.",
+   "stage": "words",
+   "visibility": "rumoured",
+   "who": {
+    "id": "p954",
+    "name": "Cal Swindell",
+    "face": "face:197",
+    "teamAbbr": "CCM",
+    "pos": "P"
+   },
+   "team": {
+    "id": "CCM",
+    "abbr": "CCM",
+    "city": "Crater City",
+    "name": "Meteors",
+    "level": "EL"
+   },
+   "props": [
+    {
+     "id": "sl77:yes",
+     "storylineId": "sl77",
+     "question": "Will the Cal Swindell–Pete Escobar feud come to blows within 20 days?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 129,
+       "pays": 3.99,
+       "house": 129
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 386,
+       "pays": 1.33,
+       "house": 386
+      }
+     ],
+     "pool": 515,
+     "house": 515,
+     "closesAt": 1792367599388,
+     "closesIn": 236,
+     "closesDay": 39,
+     "resolveByDay": 53,
+     "resolveByAt": 1792368159388,
+     "resolveByIn": 796,
+     "status": "open"
+    },
+    {
+     "id": "sl77:when",
+     "storylineId": "sl77",
+     "question": "How long until the feud story involving Cal Swindell is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 72,
+       "pays": 5.95,
+       "house": 72
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 141,
+       "pays": 3.04,
+       "house": 141
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 90,
+       "pays": 4.76,
+       "house": 90
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 126,
+       "pays": 3.4,
+       "house": 126
+      }
+     ],
+     "pool": 429,
+     "house": 429,
+     "closesAt": 1792367479388,
+     "closesIn": 116,
+     "closesDay": 36,
+     "resolveByDay": 64,
+     "resolveByAt": 1792368599388,
+     "resolveByIn": 1236,
+     "status": "open"
+    },
+    {
+     "id": "sl77:how",
+     "storylineId": "sl77",
+     "question": "How will the feud story involving Cal Swindell end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "brawl",
+       "label": "brawl",
+       "pool": 251,
+       "pays": 2.05,
+       "house": 251
+      },
+      {
+       "key": "reconciled",
+       "label": "reconciled",
+       "pool": 98,
+       "pays": 5.25,
+       "house": 98
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 93,
+       "pays": 5.53,
+       "house": 93
+      },
+      {
+       "key": "fizzled",
+       "label": "fizzled",
+       "pool": 45,
+       "pays": 11.44,
+       "house": 45
+      },
+      {
+       "key": "death",
+       "label": "death",
+       "pool": 28,
+       "pays": 18.39,
+       "house": 28
+      }
+     ],
+     "pool": 515,
+     "house": 515,
+     "closesAt": 1792367559388,
+     "closesIn": 196,
+     "closesDay": 38,
+     "resolveByDay": 114,
+     "resolveByAt": 1792370599388,
+     "resolveByIn": 3236,
+     "status": "open"
+    }
+   ]
+  },
+  {
+   "id": "sl65",
+   "kind": "gambling_debt",
+   "headline": "McCann Owes Money to a Bookmaker",
+   "blurb": "Al McCann owes money to Bets By Bobby. The figure is $1,300.",
+   "stage": "owes",
+   "visibility": "rumoured",
+   "who": {
+    "id": "p219",
+    "name": "Al McCann",
+    "face": "face:135",
+    "teamAbbr": "PEM",
+    "pos": "RF"
+   },
+   "team": {
+    "id": "PEM",
+    "abbr": "PEM",
+    "city": "Port Ellis",
+    "name": "Mariners",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl65:yes",
+     "storylineId": "sl65",
+     "question": "Will Al McCann's gambling debt end in scandal or injury within 30 days?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 440,
+       "pays": 3.52,
+       "house": 440
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 1112,
+       "pays": 1.39,
+       "house": 1112
+      }
+     ],
+     "pool": 1552,
+     "house": 1552,
+     "closesAt": 1792367479388,
+     "closesIn": 116,
+     "closesDay": 36,
+     "resolveByDay": 56,
+     "resolveByAt": 1792368279388,
+     "resolveByIn": 916,
+     "status": "open"
+    },
+    {
+     "id": "sl65:when",
+     "storylineId": "sl65",
+     "question": "How long until the gambling debt story involving Al McCann is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 157,
+       "pays": 8.28,
+       "house": 157
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 170,
+       "pays": 7.64,
+       "house": 170
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 333,
+       "pays": 3.9,
+       "house": 333
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 640,
+       "pays": 2.03,
+       "house": 640
+      }
+     ],
+     "pool": 1300,
+     "house": 1300,
+     "closesAt": 1792367334066,
+     "closesIn": -30,
+     "closesDay": 29,
+     "resolveByDay": 57,
+     "resolveByAt": 1792368454066,
+     "resolveByIn": 1090,
+     "status": "closed"
+    },
+    {
+     "id": "sl65:how",
+     "storylineId": "sl65",
+     "question": "How will the gambling debt story involving Al McCann end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "paid_off",
+       "label": "paid off",
+       "pool": 608,
+       "pays": 2.72,
+       "house": 608
+      },
+      {
+       "key": "exposed",
+       "label": "exposed",
+       "pool": 422,
+       "pays": 3.92,
+       "house": 422
+      },
+      {
+       "key": "ejected_from_league",
+       "label": "ejected from league",
+       "pool": 22,
+       "pays": 75.27,
+       "house": 22
+      },
+      {
+       "key": "leg_broken",
+       "label": "leg broken",
+       "pool": 494,
+       "pays": 3.35,
+       "house": 494
+      },
+      {
+       "key": "went_to_commissioner",
+       "label": "went to commissioner",
+       "pool": 81,
+       "pays": 20.44,
+       "house": 81
+      },
+      {
+       "key": "death",
+       "label": "death",
+       "pool": 29,
+       "pays": 57.1,
+       "house": 29
+      }
+     ],
+     "pool": 1656,
+     "house": 1656,
+     "closesAt": 1792367334348,
+     "closesIn": -29,
+     "closesDay": 31,
+     "resolveByDay": 247,
+     "resolveByAt": 1792375974348,
+     "resolveByIn": 8611,
+     "status": "closed"
+    }
+   ]
+  }
+ ],
+ "chatter": [
+  {
+   "author": "HotDogHal_NOT",
+   "text": "A dentist from Tulsa put $70 on the Rustlers.",
+   "at": 1792367362565,
+   "ago": 1
+  },
+  {
+   "author": "RaccoonTruther",
+   "text": "a man at the bus stop told me: \"Cal Swindell and Pete Escobar are not speaking. It is about a bat-flip.\" i don't know him.",
+   "at": 1792367362559,
+   "ago": 1
+  },
+  {
+   "author": "CometWatcher",
+   "text": "a man at the bus stop told me: \"Cal Swindell and Pete Escobar are not speaking. It is about a bat-flip.\" i don't know him.",
+   "at": 1792367362558,
+   "ago": 1
+  },
+  {
+   "author": "HotDogHal_NOT",
+   "text": "RE: Kowalski to Injured List, Out 9 Days -- kowalski signed my glove in 1994. he used a pencil.",
+   "at": 1792367362557,
+   "ago": 1
+  },
+  {
+   "author": "Bettor_Bob",
+   "text": "RE: Gooch Injured -- does anyone have this on tape. i need it for my son.",
+   "at": 1792367362556,
+   "ago": 1
+  },
+  {
+   "author": "PagerKid",
+   "text": "pickles bought four pairs of the same shoes at the mall. i was behind him in line.",
+   "at": 1792367362456,
+   "ago": 1
+  }
+ ],
+ "my": [
+  {
+   "id": "pb4h163q1e4f5w0w",
+   "propId": "sl13:how",
+   "storylineId": "sl13",
+   "headline": "Fuentes Playing for a Contract",
+   "question": "How will the contract year story involving Zeke Fuentes end?",
+   "option": "re-signed",
+   "optionLabel": "re-signed",
+   "amount": 30,
+   "status": "open",
+   "placedAt": 1792367294273,
+   "placedIn": -69,
+   "pays": 1.25
+  },
+  {
+   "id": "pb6c4o3v6407530b",
+   "propId": "sl13:yes",
+   "storylineId": "sl13",
+   "headline": "Fuentes Playing for a Contract",
+   "question": "Will Zeke Fuentes stay with Millbrook after his contract year?",
+   "option": "yes",
+   "optionLabel": "Yes",
+   "amount": 30,
+   "status": "open",
+   "placedAt": 1792367294259,
+   "placedIn": -69,
+   "pays": 1.11
+  },
+  {
+   "id": "pb011s6d4y2y5m2w",
+   "propId": "sl12:how",
+   "storylineId": "sl12",
+   "headline": "Gooch Playing for a Contract",
+   "question": "How will the contract year story involving Minnie Gooch end?",
+   "option": "re-signed",
+   "optionLabel": "re-signed",
+   "amount": 25,
+   "status": "open",
+   "placedAt": 1792367294252,
+   "placedIn": -69,
+   "pays": 1.29
+  },
+  {
+   "id": "pb4t5q2b716e6k01",
+   "propId": "sl12:yes",
+   "storylineId": "sl12",
+   "headline": "Gooch Playing for a Contract",
+   "question": "Will Minnie Gooch stay with Millbrook after his contract year?",
+   "option": "yes",
+   "optionLabel": "Yes",
+   "amount": 25,
+   "status": "open",
+   "placedAt": 1792367294239,
+   "placedIn": -70,
+   "pays": 1.13
+  },
+  {
+   "id": "pb254k3a2552620d",
+   "propId": "sl11:how",
+   "storylineId": "sl11",
+   "headline": "Navarro Playing for a Contract",
+   "question": "How will the contract year story involving Ray Navarro end?",
+   "option": "re-signed",
+   "optionLabel": "re-signed",
+   "amount": 20,
+   "status": "open",
+   "placedAt": 1792367294232,
+   "placedIn": -70,
+   "pays": 1.26
+  },
+  {
+   "id": "pb5u6t600c730h6x",
+   "propId": "sl11:yes",
+   "storylineId": "sl11",
+   "headline": "Navarro Playing for a Contract",
+   "question": "Will Ray Navarro stay with Millbrook after his contract year?",
+   "option": "yes",
+   "optionLabel": "Yes",
+   "amount": 20,
+   "status": "open",
+   "placedAt": 1792367294218,
+   "placedIn": -70,
+   "pays": 1.27
+  },
+  {
+   "id": "pb1v6o434w3g1v45",
+   "propId": "sl10:how",
+   "storylineId": "sl10",
+   "headline": "Pappas Playing for a Contract",
+   "question": "How will the contract year story involving Ulysses Pappas end?",
+   "option": "re-signed",
+   "optionLabel": "re-signed",
+   "amount": 15,
+   "status": "open",
+   "placedAt": 1792367294212,
+   "placedIn": -70,
+   "pays": 1.31
+  },
+  {
+   "id": "pb3l693o2z5n213w",
+   "propId": "sl10:yes",
+   "storylineId": "sl10",
+   "headline": "Pappas Playing for a Contract",
+   "question": "Will Ulysses Pappas stay with Millbrook after his contract year?",
+   "option": "yes",
+   "optionLabel": "Yes",
+   "amount": 15,
+   "status": "open",
+   "placedAt": 1792367294196,
+   "placedIn": -70,
+   "pays": 1.12
+  },
+  {
+   "id": "pb3p5m1l6c4u0p4s",
+   "propId": "sl1:how",
+   "storylineId": "sl1",
+   "headline": "Gallagher Playing for a Contract",
+   "question": "How will the contract year story involving Satchel Gallagher end?",
+   "option": "re-signed",
+   "optionLabel": "re-signed",
+   "amount": 10,
+   "status": "open",
+   "placedAt": 1792367294189,
+   "placedIn": -70,
+   "pays": 1.32
+  },
+  {
+   "id": "pb1s2e6m6m2i4e4c",
+   "propId": "sl1:yes",
+   "storylineId": "sl1",
+   "headline": "Gallagher Playing for a Contract",
+   "question": "Will Satchel Gallagher stay with Harbor City after his contract year?",
+   "option": "yes",
+   "optionLabel": "Yes",
+   "amount": 10,
+   "status": "open",
+   "placedAt": 1792367294172,
+   "placedIn": -70,
+   "pays": 1.12
+  }
+ ],
+ "recent": [
+  {
+   "id": "pb586b2l635d3h0l",
+   "propId": "sl12:when",
+   "storylineId": "sl12",
+   "headline": "Gooch Playing for a Contract",
+   "question": "How long until the contract year story involving Minnie Gooch is over?",
+   "option": "d15",
+   "optionLabel": "6–15 days",
+   "amount": 25,
+   "status": "settled",
+   "placedAt": 1792367294246,
+   "placedIn": -69,
+   "payout": 0,
+   "won": false,
+   "outcome": "later",
+   "outcomeLabel": "30+ days / not this season"
+  },
+  {
+   "id": "pb2w4p5l1j1a0t6w",
+   "propId": "sl13:when",
+   "storylineId": "sl13",
+   "headline": "Fuentes Playing for a Contract",
+   "question": "How long until the contract year story involving Zeke Fuentes is over?",
+   "option": "later",
+   "optionLabel": "30+ days / not this season",
+   "amount": 30,
+   "status": "settled",
+   "placedAt": 1792367294266,
+   "placedIn": -69,
+   "payout": 31,
+   "won": true,
+   "outcome": "later",
+   "outcomeLabel": "30+ days / not this season"
+  },
+  {
+   "id": "pb0s5r1g233f4h2b",
+   "propId": "sl1:when",
+   "storylineId": "sl1",
+   "headline": "Gallagher Playing for a Contract",
+   "question": "How long until the contract year story involving Satchel Gallagher is over?",
+   "option": "later",
+   "optionLabel": "30+ days / not this season",
+   "amount": 10,
+   "status": "settled",
+   "placedAt": 1792367294182,
+   "placedIn": -70,
+   "payout": 10,
+   "won": true,
+   "outcome": "later",
+   "outcomeLabel": "30+ days / not this season"
+  },
+  {
+   "id": "pb0g1m2v4o3e2k4n",
+   "propId": "sl10:when",
+   "storylineId": "sl10",
+   "headline": "Pappas Playing for a Contract",
+   "question": "How long until the contract year story involving Ulysses Pappas is over?",
+   "option": "d15",
+   "optionLabel": "6–15 days",
+   "amount": 15,
+   "status": "settled",
+   "placedAt": 1792367294203,
+   "placedIn": -70,
+   "payout": 0,
+   "won": false,
+   "outcome": "later",
+   "outcomeLabel": "30+ days / not this season"
+  },
+  {
+   "id": "pb092e6i610x5m4x",
+   "propId": "sl11:when",
+   "storylineId": "sl11",
+   "headline": "Navarro Playing for a Contract",
+   "question": "How long until the contract year story involving Ray Navarro is over?",
+   "option": "later",
+   "optionLabel": "30+ days / not this season",
+   "amount": 20,
+   "status": "settled",
+   "placedAt": 1792367294225,
+   "placedIn": -70,
+   "payout": 21,
+   "won": true,
+   "outcome": "later",
+   "outcomeLabel": "30+ days / not this season"
+  }
+ ]
+}

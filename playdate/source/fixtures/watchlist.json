@@ -1,0 +1,162 @@
+{
+ "listings": [
+  {
+   "id": "l3s6j3h213q396o",
+   "card": {
+    "id": "k4n1m383y4u5e2z",
+    "defId": "S1-145",
+    "person": {
+     "id": "p540",
+     "name": "Russ Cruz",
+     "face": "face:338",
+     "teamAbbr": "NCG",
+     "pos": "P"
+    },
+    "team": {
+     "id": "NCG",
+     "abbr": "NCG",
+     "city": "New Corinth",
+     "name": "Grays",
+     "level": "ML"
+    },
+    "season": 1,
+    "set": "Series 1",
+    "number": 145,
+    "rarity": "common",
+    "front": {
+     "caption": "CRUZ, NEW CORINTH",
+     "pos": "RP"
+    },
+    "back": {
+     "lines": [
+      "Cruz plays pitcher for the Grays and",
+      "does fine, thanks. Pals with Archie",
+      "Lindqvist (roommates on the road). Pals",
+      "with Kip Shaughnessy (Cruz took him",
+      "under his wing). 3 kids, all of whom",
+      "think Cruz is just okay."
+     ],
+     "stats": [
+      [
+       "STF",
+       "CTL",
+       "CMD",
+       "MOV",
+       "VEL"
+      ],
+      [
+       "67",
+       "59",
+       "41",
+       "47",
+       "92"
+      ]
+     ]
+    },
+    "value": 2
+   },
+   "price": 10,
+   "seller": "Dotty Dial",
+   "at": 1792367294143,
+   "ago": 0,
+   "kind": "auction",
+   "status": "active",
+   "watchers": 1,
+   "watching": true,
+   "auction": {
+    "startBid": 10,
+    "currentBid": 10,
+    "bids": 0,
+    "endsAt": 1792388894143,
+    "endsIn": 21600,
+    "minBid": 10,
+    "hasReserve": false
+   }
+  },
+  {
+   "id": "l3w5h5z354k2b6x",
+   "card": {
+    "id": "k4p6t1p3m0d3g0a",
+    "defId": "S1-001",
+    "person": {
+     "id": "p1",
+     "name": "Marty Pruitt",
+     "face": "face:19",
+     "teamAbbr": "HCL",
+     "pos": "C"
+    },
+    "team": {
+     "id": "HCL",
+     "abbr": "HCL",
+     "city": "Harbor City",
+     "name": "Lamplighters",
+     "level": "ML"
+    },
+    "season": 1,
+    "set": "Series 1",
+    "number": 1,
+    "rarity": "gilded",
+    "front": {
+     "caption": "PRUITT, HARBOR CITY",
+     "pos": "C",
+     "redeem": "REDEEMABLE: BOOST +12 FOR 7 DAYS"
+    },
+    "back": {
+     "lines": [
+      "Pruitt is a catcher, technically. Pals",
+      "with Luis Ortega (roommates on the",
+      "road). Teammates no longer talk near",
+      "Pruitt. Smart. Pals with Kenji Swindell",
+      "(card partners).",
+      "REDEEM: +12 CON/POW/EYE FOR 7 GAME DAYS."
+     ],
+     "stats": [
+      [
+       "CON",
+       "POW",
+       "EYE",
+       "SPD",
+       "GLV"
+      ],
+      [
+       "29",
+       "52",
+       "39",
+       "33",
+       "54"
+      ]
+     ]
+    },
+    "value": 272,
+    "redeem": {
+     "kind": "boost",
+     "boost": 12,
+     "days": 7,
+     "label": "REDEEMABLE: BOOST +12 FOR 7 DAYS"
+    },
+    "serial": "01/50"
+   },
+   "price": 135,
+   "seller": "Lefty Loot",
+   "at": 1792367294138,
+   "ago": 0,
+   "kind": "auction",
+   "status": "active",
+   "watchers": 2,
+   "watching": true,
+   "auction": {
+    "startBid": 60,
+    "currentBid": 135,
+    "bids": 3,
+    "endsAt": 1792453694138,
+    "endsIn": 86400,
+    "minBid": 160,
+    "hasReserve": true,
+    "reserveMet": false,
+    "leader": "G***e",
+    "leading": true,
+    "yourMax": 150
+   }
+  }
+ ]
+}

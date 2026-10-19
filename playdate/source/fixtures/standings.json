@@ -1,0 +1,141 @@
+{
+ "level": "ML",
+ "rows": [
+  {
+   "teamId": "MIL",
+   "w": 6,
+   "l": 0,
+   "gb": 0,
+   "streak": "W6",
+   "last10": "6-0",
+   "rs": 25,
+   "ra": 8,
+   "team": {
+    "id": "MIL",
+    "abbr": "MIL",
+    "city": "Millbrook",
+    "name": "Ironmen",
+    "level": "ML"
+   }
+  },
+  {
+   "teamId": "ELC",
+   "w": 5,
+   "l": 1,
+   "gb": 1,
+   "streak": "L1",
+   "last10": "5-1",
+   "rs": 35,
+   "ra": 14,
+   "team": {
+    "id": "ELC",
+    "abbr": "ELC",
+    "city": "Electric City",
+    "name": "Comets",
+    "level": "ML"
+   }
+  },
+  {
+   "teamId": "CSR",
+   "w": 3,
+   "l": 3,
+   "gb": 3,
+   "streak": "W1",
+   "last10": "3-3",
+   "rs": 25,
+   "ra": 25,
+   "team": {
+    "id": "CSR",
+    "abbr": "CSR",
+    "city": "Cold Spring",
+    "name": "Rustlers",
+    "level": "ML"
+   }
+  },
+  {
+   "teamId": "MRL",
+   "w": 3,
+   "l": 3,
+   "gb": 3,
+   "streak": "W1",
+   "last10": "3-3",
+   "rs": 24,
+   "ra": 26,
+   "team": {
+    "id": "MRL",
+    "abbr": "MRL",
+    "city": "Marlow",
+    "name": "Pilgrims",
+    "level": "ML"
+   }
+  },
+  {
+   "teamId": "HCL",
+   "w": 3,
+   "l": 3,
+   "gb": 3,
+   "streak": "W1",
+   "last10": "3-3",
+   "rs": 33,
+   "ra": 37,
+   "team": {
+    "id": "HCL",
+    "abbr": "HCL",
+    "city": "Harbor City",
+    "name": "Lamplighters",
+    "level": "ML"
+   }
+  },
+  {
+   "teamId": "PEM",
+   "w": 3,
+   "l": 3,
+   "gb": 3,
+   "streak": "L1",
+   "last10": "3-3",
+   "rs": 29,
+   "ra": 33,
+   "team": {
+    "id": "PEM",
+    "abbr": "PEM",
+    "city": "Port Ellis",
+    "name": "Mariners",
+    "level": "ML"
+   }
+  },
+  {
+   "teamId": "STA",
+   "w": 1,
+   "l": 5,
+   "gb": 5,
+   "streak": "L1",
+   "last10": "1-5",
+   "rs": 17,
+   "ra": 26,
+   "team": {
+    "id": "STA",
+    "abbr": "STA",
+    "city": "St. Albans",
+    "name": "Friars",
+    "level": "ML"
+   }
+  },
+  {
+   "teamId": "NCG",
+   "w": 0,
+   "l": 6,
+   "gb": 6,
+   "streak": "L6",
+   "last10": "0-6",
+   "rs": 6,
+   "ra": 25,
+   "team": {
+    "id": "NCG",
+    "abbr": "NCG",
+    "city": "New Corinth",
+    "name": "Grays",
+    "level": "ML"
+   }
+  }
+ ]
+}

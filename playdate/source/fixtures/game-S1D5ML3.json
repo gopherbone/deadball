@@ -1,0 +1,623 @@
+{
+ "id": "S1D5ML3",
+ "day": 5,
+ "firstPitchAt": 1792367330111,
+ "firstPitchIn": -30,
+ "finalAt": 1792367358111,
+ "finalIn": -2,
+ "status": "final",
+ "home": {
+  "id": "NCG",
+  "abbr": "NCG",
+  "city": "New Corinth",
+  "name": "Grays",
+  "level": "ML",
+  "record": "0-6"
+ },
+ "away": {
+  "id": "MIL",
+  "abbr": "MIL",
+  "city": "Millbrook",
+  "name": "Ironmen",
+  "level": "ML",
+  "record": "6-0"
+ },
+ "probables": {
+  "home": {
+   "id": "p537",
+   "name": "Vic Orr",
+   "face": "face:493",
+   "teamAbbr": "NCG",
+   "pos": "P",
+   "line": "0-0, 0.00"
+  },
+  "away": {
+   "id": "p328",
+   "name": "Cal Pappas",
+   "face": "face:514",
+   "teamAbbr": "MIL",
+   "pos": "P",
+   "line": "1-0, 1.00"
+  }
+ },
+ "pool": {
+  "home": 486,
+  "away": 817,
+  "pays": {
+   "home": 2.68,
+   "away": 1.59
+  },
+  "house": {
+   "home": 486,
+   "away": 817
+  }
+ },
+ "umpire": {
+  "id": "n6",
+  "name": "Jesús Pappas",
+  "face": "face:201",
+  "pos": "UMP"
+ },
+ "weather": "59F, wind 8 mph out to RF, showers",
+ "park": "Corinth Commons",
+ "circuit": "continental",
+ "score": {
+  "home": 1,
+  "away": 2,
+  "inning": "FINAL"
+ },
+ "incidents": [
+  {
+   "inning": 4,
+   "text": "Rain delay"
+  }
+ ],
+ "box": {
+  "home": {
+   "bat": [
+    {
+     "p": {
+      "id": "p522",
+      "name": "Frank Ueda",
+      "face": "face:278",
+      "teamAbbr": "NCG",
+      "pos": "1B"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 1,
+     "rbi": 1,
+     "bb": 0,
+     "k": 1,
+     "avg": ".158"
+    },
+    {
+     "p": {
+      "id": "p523",
+      "name": "Herb Kessler",
+      "face": "face:52",
+      "teamAbbr": "NCG",
+      "pos": "1B"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 0,
+     "k": 1,
+     "avg": ".211"
+    },
+    {
+     "p": {
+      "id": "p520",
+      "name": "Kip Bumgardner",
+      "face": "face:550",
+      "teamAbbr": "NCG",
+      "pos": "C"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 0,
+     "k": 2,
+     "avg": ".167"
+    },
+    {
+     "p": {
+      "id": "p525",
+      "name": "Leon Dandridge",
+      "face": "face:514",
+      "teamAbbr": "NCG",
+      "pos": "SS"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 0,
+     "k": 0,
+     "avg": ".105"
+    },
+    {
+     "p": {
+      "id": "p531",
+      "name": "Vern Ames",
+      "face": "face:557",
+      "teamAbbr": "NCG",
+      "pos": "RF"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 1,
+     "rbi": 0,
+     "bb": 0,
+     "k": 2,
+     "avg": ".111"
+    },
+    {
+     "p": {
+      "id": "p529",
+      "name": "Duke Crabtree",
+      "face": "face:501",
+      "teamAbbr": "NCG",
+      "pos": "CF"
+     },
+     "ab": 3,
+     "r": 0,
+     "h": 1,
+     "rbi": 0,
+     "bb": 1,
+     "k": 2,
+     "avg": ".222"
+    },
+    {
+     "p": {
+      "id": "p521",
+      "name": "Pete Stottlemyre",
+      "face": "face:583",
+      "teamAbbr": "NCG",
+      "pos": "C"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 0,
+     "k": 2,
+     "avg": ".059"
+    },
+    {
+     "p": {
+      "id": "p524",
+      "name": "Kip Shaughnessy",
+      "face": "face:223",
+      "teamAbbr": "NCG",
+      "pos": "2B"
+     },
+     "ab": 2,
+     "r": 1,
+     "h": 1,
+     "rbi": 0,
+     "bb": 0,
+     "k": 1,
+     "avg": ".133"
+    },
+    {
+     "p": {
+      "id": "p532",
+      "name": "Al Delgado",
+      "face": "face:165",
+      "teamAbbr": "NCG",
+      "pos": "3B"
+     },
+     "ab": 3,
+     "r": 0,
+     "h": 1,
+     "rbi": 0,
+     "bb": 0,
+     "k": 0,
+     "avg": ".250"
+    }
+   ],
+   "pitch": [
+    {
+     "p": {
+      "id": "p537",
+      "name": "Vic Orr",
+      "face": "face:493",
+      "teamAbbr": "NCG",
+      "pos": "P"
+     },
+     "ip": "3.0",
+     "h": 2,
+     "r": 0,
+     "er": 0,
+     "bb": 3,
+     "k": 2,
+     "pc": 56
+    },
+    {
+     "p": {
+      "id": "p538",
+      "name": "Walt Morales",
+      "face": "face:278",
+      "teamAbbr": "NCG",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 2,
+     "r": 0,
+     "er": 0,
+     "bb": 0,
+     "k": 2,
+     "pc": 15
+    },
+    {
+     "p": {
+      "id": "p543",
+      "name": "Yogi Ueda",
+      "face": "face:514",
+      "teamAbbr": "NCG",
+      "pos": "P"
+     },
+     "ip": "2.0",
+     "h": 1,
+     "r": 1,
+     "er": 1,
+     "bb": 1,
+     "k": 2,
+     "pc": 26
+    },
+    {
+     "p": {
+      "id": "p541",
+      "name": "Archie Lindqvist",
+      "face": "face:71",
+      "teamAbbr": "NCG",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 2,
+     "r": 1,
+     "er": 1,
+     "bb": 0,
+     "k": 2,
+     "pc": 18
+    },
+    {
+     "p": {
+      "id": "p542",
+      "name": "Vic Yamamoto",
+      "face": "face:29",
+      "teamAbbr": "NCG",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 0,
+     "r": 0,
+     "er": 0,
+     "bb": 1,
+     "k": 1,
+     "pc": 18
+    },
+    {
+     "p": {
+      "id": "p535",
+      "name": "Darnell Lindqvist",
+      "face": "face:453",
+      "teamAbbr": "NCG",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 1,
+     "r": 0,
+     "er": 0,
+     "bb": 0,
+     "k": 1,
+     "pc": 10
+    }
+   ],
+   "r": 1,
+   "h": 5,
+   "e": 1
+  },
+  "away": {
+   "bat": [
+    {
+     "p": {
+      "id": "p319",
+      "name": "Marty Pettibone",
+      "face": "face:583",
+      "teamAbbr": "MIL",
+      "pos": "3B"
+     },
+     "ab": 5,
+     "r": 1,
+     "h": 3,
+     "rbi": 0,
+     "bb": 0,
+     "k": 0,
+     "avg": ".273"
+    },
+    {
+     "p": {
+      "id": "p316",
+      "name": "Hank Delahanty",
+      "face": "face:363",
+      "teamAbbr": "MIL",
+      "pos": "2B"
+     },
+     "ab": 5,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 0,
+     "k": 1,
+     "avg": ".100"
+    },
+    {
+     "p": {
+      "id": "p320",
+      "name": "Archie Jefferson",
+      "face": "face:269",
+      "teamAbbr": "MIL",
+      "pos": "LF"
+     },
+     "ab": 4,
+     "r": 1,
+     "h": 0,
+     "rbi": 0,
+     "bb": 1,
+     "k": 1,
+     "avg": ".167"
+    },
+    {
+     "p": {
+      "id": "p324",
+      "name": "Jesús Ortega",
+      "face": "face:132",
+      "teamAbbr": "MIL",
+      "pos": "3B"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 2,
+     "rbi": 2,
+     "bb": 1,
+     "k": 1,
+     "avg": ".350"
+    },
+    {
+     "p": {
+      "id": "p317",
+      "name": "Marty Paige",
+      "face": "face:64",
+      "teamAbbr": "MIL",
+      "pos": "SS"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 0,
+     "k": 2,
+     "avg": ".158"
+    },
+    {
+     "p": {
+      "id": "p321",
+      "name": "Ulysses Pappas",
+      "face": "face:0",
+      "teamAbbr": "MIL",
+      "pos": "CF"
+     },
+     "ab": 2,
+     "r": 0,
+     "h": 1,
+     "rbi": 0,
+     "bb": 2,
+     "k": 0,
+     "avg": ".375"
+    },
+    {
+     "p": {
+      "id": "p322",
+      "name": "Hideo Yamamoto",
+      "face": "face:120",
+      "teamAbbr": "MIL",
+      "pos": "CF"
+     },
+     "ab": 3,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 1,
+     "k": 2,
+     "avg": ".188"
+    },
+    {
+     "p": {
+      "id": "p318",
+      "name": "Mel Hennessy",
+      "face": "face:4",
+      "teamAbbr": "MIL",
+      "pos": "SS"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 1,
+     "rbi": 0,
+     "bb": 0,
+     "k": 0,
+     "avg": ".500"
+    },
+    {
+     "p": {
+      "id": "p313",
+      "name": "Minnie Tierney",
+      "face": "face:52",
+      "teamAbbr": "MIL",
+      "pos": "C"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 1,
+     "rbi": 0,
+     "bb": 0,
+     "k": 3,
+     "avg": ".167"
+    }
+   ],
+   "pitch": [
+    {
+     "p": {
+      "id": "p328",
+      "name": "Cal Pappas",
+      "face": "face:514",
+      "teamAbbr": "MIL",
+      "pos": "P"
+     },
+     "ip": "3.0",
+     "h": 4,
+     "r": 1,
+     "er": 1,
+     "bb": 0,
+     "k": 4,
+     "pc": 42
+    },
+    {
+     "p": {
+      "id": "p337",
+      "name": "Duke Gallagher",
+      "face": "face:121",
+      "teamAbbr": "MIL",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 0,
+     "r": 0,
+     "er": 0,
+     "bb": 0,
+     "k": 2,
+     "pc": 10
+    },
+    {
+     "p": {
+      "id": "p334",
+      "name": "Minnie Gooch",
+      "face": "face:35",
+      "teamAbbr": "MIL",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 0,
+     "r": 0,
+     "er": 0,
+     "bb": 0,
+     "k": 0,
+     "pc": 9
+    },
+    {
+     "p": {
+      "id": "p333",
+      "name": "Wes Delahanty",
+      "face": "face:83",
+      "teamAbbr": "MIL",
+      "pos": "P"
+     },
+     "ip": "2.0",
+     "h": 1,
+     "r": 0,
+     "er": 0,
+     "bb": 0,
+     "k": 3,
+     "pc": 21
+    },
+    {
+     "p": {
+      "id": "p331",
+      "name": "Frank Ortega",
+      "face": "face:95",
+      "teamAbbr": "MIL",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 0,
+     "r": 0,
+     "er": 0,
+     "bb": 0,
+     "k": 1,
+     "pc": 8
+    },
+    {
+     "p": {
+      "id": "p335",
+      "name": "Zeke Fuentes",
+      "face": "face:310",
+      "teamAbbr": "MIL",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 0,
+     "r": 0,
+     "er": 0,
+     "bb": 1,
+     "k": 1,
+     "pc": 18
+    }
+   ],
+   "r": 2,
+   "h": 8,
+   "e": 0
+  }
+ },
+ "line": {
+  "home": [
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "away": [
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   0
+  ]
+ },
+ "decisions": {
+  "w": {
+   "id": "p333",
+   "name": "Wes Delahanty",
+   "face": "face:83",
+   "teamAbbr": "MIL",
+   "pos": "P"
+  },
+  "l": {
+   "id": "p543",
+   "name": "Yogi Ueda",
+   "face": "face:514",
+   "teamAbbr": "NCG",
+   "pos": "P"
+  },
+  "s": {
+   "id": "p335",
+   "name": "Zeke Fuentes",
+   "face": "face:310",
+   "teamAbbr": "MIL",
+   "pos": "P"
+  }
+ },
+ "storyId": "s1-story:S1D5ML3:recap"
+}

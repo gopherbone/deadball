@@ -1,0 +1,103 @@
+{
+ "op": {
+  "id": "op3e64406r1f5s5p",
+  "kind": "rabbit_balls",
+  "name": "Rabbit balls",
+  "game": {
+   "id": "S1D5ML1",
+   "day": 5,
+   "firstPitchAt": 1792367312968,
+   "firstPitchIn": 18,
+   "finalAt": 1792367340968,
+   "finalIn": 46,
+   "status": "scheduled",
+   "home": {
+    "id": "HCL",
+    "abbr": "HCL",
+    "city": "Harbor City",
+    "name": "Lamplighters",
+    "level": "ML",
+    "record": "2-2"
+   },
+   "away": {
+    "id": "ELC",
+    "abbr": "ELC",
+    "city": "Electric City",
+    "name": "Comets",
+    "level": "ML",
+    "record": "4-0"
+   },
+   "probables": {
+    "home": {
+     "id": "p13",
+     "name": "Rollie Esposito",
+     "face": "face:450",
+     "teamAbbr": "HCL",
+     "pos": "P",
+     "line": "0-0, 0.00"
+    },
+    "away": {
+     "id": "p748",
+     "name": "Vern Cruz",
+     "face": "face:475",
+     "teamAbbr": "ELC",
+     "pos": "P",
+     "line": "0-0, 0.00"
+    }
+   },
+   "pool": {
+    "home": 40,
+    "away": 60,
+    "pays": {
+     "home": 2.25,
+     "away": 1.5
+    },
+    "house": {
+     "home": 0,
+     "away": 0
+    }
+   },
+   "umpire": {
+    "id": "n7",
+    "name": "Rico Novak",
+    "face": "face:124",
+    "pos": "UMP"
+   },
+   "weather": "48F, wind 8 mph out to RF, rain likely",
+   "park": "Bellwood Park",
+   "circuit": "continental",
+   "myBet": {
+    "side": "away",
+    "amount": 60
+   }
+  },
+  "target": {
+   "id": "HCL",
+   "abbr": "HCL",
+   "city": "Harbor City",
+   "name": "Lamplighters",
+   "level": "ML"
+  },
+  "crew": [
+   {
+    "id": "cit-a2y0o1k1y3n5s2g-1-4-1",
+    "name": "Hector Reyes",
+    "face": "face:210"
+   }
+  ],
+  "status": "cancelled",
+  "result": "Called off. Everyone was refunded."
+ },
+ "account": {
+  "id": "a2y0o1k1y3n5s2g",
+  "name": "Lefty Loot",
+  "money": 379,
+  "heat": 0,
+  "crewSize": 2,
+  "unreadMail": 3,
+  "cards": 14,
+  "joinedDay": 0,
+  "rank": "Rube",
+  "syndicateId": "sy3p6h1h2u3h2i6d"
+ }
+}

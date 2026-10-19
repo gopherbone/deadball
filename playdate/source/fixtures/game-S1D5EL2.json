@@ -1,0 +1,615 @@
+{
+ "id": "S1D5EL2",
+ "day": 5,
+ "firstPitchAt": 1792367325826,
+ "firstPitchIn": -34,
+ "finalAt": 1792367353826,
+ "finalIn": -6,
+ "status": "final",
+ "home": {
+  "id": "TJP",
+  "abbr": "TJP",
+  "city": "Tumbleweed Junction",
+  "name": "Prospectors",
+  "level": "EL",
+  "record": "5-1"
+ },
+ "away": {
+  "id": "CCM",
+  "abbr": "CCM",
+  "city": "Crater City",
+  "name": "Meteors",
+  "level": "EL",
+  "record": "2-4"
+ },
+ "probables": {
+  "home": {
+   "id": "p899",
+   "name": "Herb Ortega",
+   "face": "face:420",
+   "teamAbbr": "TJP",
+   "pos": "P",
+   "line": "0-0, 22.50"
+  },
+  "away": {
+   "id": "p952",
+   "name": "Lefty Yamamoto",
+   "face": "face:167",
+   "teamAbbr": "CCM",
+   "pos": "P",
+   "line": "0-1, 20.25"
+  }
+ },
+ "pool": {
+  "home": 1264,
+  "away": 433,
+  "pays": {
+   "home": 1.34,
+   "away": 3.91
+  },
+  "house": {
+   "home": 1264,
+   "away": 433
+  }
+ },
+ "umpire": {
+  "id": "n1414",
+  "name": "Ray Stottlemyre",
+  "face": "face:75",
+  "pos": "UMP"
+ },
+ "weather": "35F, wind 7 mph out to RF, rain likely",
+ "park": "Tesla Coil Park",
+ "circuit": "enhanced",
+ "score": {
+  "home": 14,
+  "away": 8,
+  "inning": "FINAL"
+ },
+ "incidents": [],
+ "box": {
+  "home": {
+   "bat": [
+    {
+     "p": {
+      "id": "p894",
+      "name": "Manny O'Rourke",
+      "face": "face:123",
+      "teamAbbr": "TJP",
+      "pos": "CF"
+     },
+     "ab": 5,
+     "r": 3,
+     "h": 3,
+     "rbi": 2,
+     "bb": 0,
+     "k": 1,
+     "avg": ".375"
+    },
+    {
+     "p": {
+      "id": "p895",
+      "name": "Luis Zaleski",
+      "face": "face:497",
+      "teamAbbr": "TJP",
+      "pos": "CF"
+     },
+     "ab": 3,
+     "r": 2,
+     "h": 1,
+     "rbi": 2,
+     "bb": 1,
+     "k": 2,
+     "avg": ".167"
+    },
+    {
+     "p": {
+      "id": "p989",
+      "name": "Leif Erikson",
+      "face": "face:322",
+      "teamAbbr": "TJP",
+      "pos": "CF"
+     },
+     "ab": 3,
+     "r": 2,
+     "h": 2,
+     "rbi": 1,
+     "bb": 2,
+     "k": 0,
+     "avg": ".350"
+    },
+    {
+     "p": {
+      "id": "p887",
+      "name": "Tony Puckett",
+      "face": "face:238",
+      "teamAbbr": "TJP",
+      "pos": "SS"
+     },
+     "ab": 5,
+     "r": 1,
+     "h": 1,
+     "rbi": 0,
+     "bb": 0,
+     "k": 3,
+     "avg": ".350"
+    },
+    {
+     "p": {
+      "id": "p892",
+      "name": "Pedro Kowalski",
+      "face": "face:125",
+      "teamAbbr": "TJP",
+      "pos": "1B"
+     },
+     "ab": 5,
+     "r": 2,
+     "h": 2,
+     "rbi": 3,
+     "bb": 0,
+     "k": 1,
+     "avg": ".286"
+    },
+    {
+     "p": {
+      "id": "p890",
+      "name": "Sal Fitzgerald",
+      "face": "face:54",
+      "teamAbbr": "TJP",
+      "pos": "1B"
+     },
+     "ab": 4,
+     "r": 1,
+     "h": 2,
+     "rbi": 3,
+     "bb": 1,
+     "k": 1,
+     "avg": ".375"
+    },
+    {
+     "p": {
+      "id": "p888",
+      "name": "Rollie Paredes",
+      "face": "face:215",
+      "teamAbbr": "TJP",
+      "pos": "SS"
+     },
+     "ab": 5,
+     "r": 1,
+     "h": 1,
+     "rbi": 0,
+     "bb": 0,
+     "k": 3,
+     "avg": ".450"
+    },
+    {
+     "p": {
+      "id": "p889",
+      "name": "Wally Wojcik",
+      "face": "face:597",
+      "teamAbbr": "TJP",
+      "pos": "3B"
+     },
+     "ab": 5,
+     "r": 1,
+     "h": 1,
+     "rbi": 1,
+     "bb": 0,
+     "k": 1,
+     "avg": ".364"
+    },
+    {
+     "p": {
+      "id": "p884",
+      "name": "Sid McCann",
+      "face": "face:135",
+      "teamAbbr": "TJP",
+      "pos": "C"
+     },
+     "ab": 4,
+     "r": 1,
+     "h": 2,
+     "rbi": 2,
+     "bb": 0,
+     "k": 0,
+     "avg": ".529"
+    }
+   ],
+   "pitch": [
+    {
+     "p": {
+      "id": "p899",
+      "name": "Herb Ortega",
+      "face": "face:420",
+      "teamAbbr": "TJP",
+      "pos": "P"
+     },
+     "ip": "2.0",
+     "h": 6,
+     "r": 5,
+     "er": 5,
+     "bb": 2,
+     "k": 0,
+     "pc": 36
+    },
+    {
+     "p": {
+      "id": "p908",
+      "name": "Emil Tierney",
+      "face": "face:493",
+      "teamAbbr": "TJP",
+      "pos": "P"
+     },
+     "ip": "2.0",
+     "h": 0,
+     "r": 0,
+     "er": 0,
+     "bb": 0,
+     "k": 1,
+     "pc": 20
+    },
+    {
+     "p": {
+      "id": "p904",
+      "name": "Chico Batista",
+      "face": "face:247",
+      "teamAbbr": "TJP",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 1,
+     "r": 0,
+     "er": 0,
+     "bb": 0,
+     "k": 1,
+     "pc": 14
+    },
+    {
+     "p": {
+      "id": "p905",
+      "name": "Walt Barrow",
+      "face": "face:141",
+      "teamAbbr": "TJP",
+      "pos": "P"
+     },
+     "ip": "2.0",
+     "h": 0,
+     "r": 0,
+     "er": 0,
+     "bb": 1,
+     "k": 2,
+     "pc": 29
+    },
+    {
+     "p": {
+      "id": "p901",
+      "name": "Tito McCann",
+      "face": "face:144",
+      "teamAbbr": "TJP",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 3,
+     "r": 3,
+     "er": 3,
+     "bb": 0,
+     "k": 0,
+     "pc": 18
+    },
+    {
+     "p": {
+      "id": "p897",
+      "name": "Tito Fitzgerald",
+      "face": "face:79",
+      "teamAbbr": "TJP",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 1,
+     "r": 0,
+     "er": 0,
+     "bb": 2,
+     "k": 1,
+     "pc": 32
+    }
+   ],
+   "r": 14,
+   "h": 15,
+   "e": 0
+  },
+  "away": {
+   "bat": [
+    {
+     "p": {
+      "id": "p945",
+      "name": "Hank Ueda",
+      "face": "face:9",
+      "teamAbbr": "CCM",
+      "pos": "CF"
+     },
+     "ab": 4,
+     "r": 2,
+     "h": 3,
+     "rbi": 2,
+     "bb": 1,
+     "k": 0,
+     "avg": ".238"
+    },
+    {
+     "p": {
+      "id": "p939",
+      "name": "Andre Wiggins",
+      "face": "face:424",
+      "teamAbbr": "CCM",
+      "pos": "3B"
+     },
+     "ab": 5,
+     "r": 1,
+     "h": 1,
+     "rbi": 0,
+     "bb": 0,
+     "k": 1,
+     "avg": ".158"
+    },
+    {
+     "p": {
+      "id": "p948",
+      "name": "Ned Feeney",
+      "face": "face:501",
+      "teamAbbr": "CCM",
+      "pos": "RF"
+     },
+     "ab": 3,
+     "r": 1,
+     "h": 1,
+     "rbi": 1,
+     "bb": 1,
+     "k": 0,
+     "avg": ".222"
+    },
+    {
+     "p": {
+      "id": "p946",
+      "name": "Satchel Guerrero",
+      "face": "face:139",
+      "teamAbbr": "CCM",
+      "pos": "CF"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 1,
+     "rbi": 1,
+     "bb": 1,
+     "k": 0,
+     "avg": ".100"
+    },
+    {
+     "p": {
+      "id": "p937",
+      "name": "Marty Yablonski",
+      "face": "face:2",
+      "teamAbbr": "CCM",
+      "pos": "C"
+     },
+     "ab": 4,
+     "r": 1,
+     "h": 2,
+     "rbi": 1,
+     "bb": 1,
+     "k": 0,
+     "avg": ".316"
+    },
+    {
+     "p": {
+      "id": "p940",
+      "name": "Jesús Huckaby",
+      "face": "face:444",
+      "teamAbbr": "CCM",
+      "pos": "SS"
+     },
+     "ab": 5,
+     "r": 0,
+     "h": 1,
+     "rbi": 0,
+     "bb": 0,
+     "k": 1,
+     "avg": ".353"
+    },
+    {
+     "p": {
+      "id": "p938",
+      "name": "Dutch Fuentes",
+      "face": "face:199",
+      "teamAbbr": "CCM",
+      "pos": "2B"
+     },
+     "ab": 4,
+     "r": 1,
+     "h": 1,
+     "rbi": 0,
+     "bb": 0,
+     "k": 1,
+     "avg": ".263"
+    },
+    {
+     "p": {
+      "id": "p942",
+      "name": "Mickey Orr",
+      "face": "face:95",
+      "teamAbbr": "CCM",
+      "pos": "3B"
+     },
+     "ab": 4,
+     "r": 1,
+     "h": 1,
+     "rbi": 3,
+     "bb": 0,
+     "k": 0,
+     "avg": ".294"
+    },
+    {
+     "p": {
+      "id": "p944",
+      "name": "Pete Orr",
+      "face": "face:19",
+      "teamAbbr": "CCM",
+      "pos": "3B"
+     },
+     "ab": 3,
+     "r": 1,
+     "h": 0,
+     "rbi": 0,
+     "bb": 1,
+     "k": 2,
+     "avg": ".188"
+    }
+   ],
+   "pitch": [
+    {
+     "p": {
+      "id": "p952",
+      "name": "Lefty Yamamoto",
+      "face": "face:167",
+      "teamAbbr": "CCM",
+      "pos": "P"
+     },
+     "ip": "2.2",
+     "h": 6,
+     "r": 6,
+     "er": 6,
+     "bb": 2,
+     "k": 5,
+     "pc": 63
+    },
+    {
+     "p": {
+      "id": "p958",
+      "name": "Minnie Jimenez",
+      "face": "face:165",
+      "teamAbbr": "CCM",
+      "pos": "P"
+     },
+     "ip": "1.1",
+     "h": 2,
+     "r": 2,
+     "er": 2,
+     "bb": 0,
+     "k": 3,
+     "pc": 18
+    },
+    {
+     "p": {
+      "id": "p959",
+      "name": "Jack Puckett",
+      "face": "face:172",
+      "teamAbbr": "CCM",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 2,
+     "r": 1,
+     "er": 1,
+     "bb": 0,
+     "k": 1,
+     "pc": 24
+    },
+    {
+     "p": {
+      "id": "p957",
+      "name": "Moose Fitzgerald",
+      "face": "face:419",
+      "teamAbbr": "CCM",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 2,
+     "r": 3,
+     "er": 3,
+     "bb": 1,
+     "k": 1,
+     "pc": 26
+    },
+    {
+     "p": {
+      "id": "p953",
+      "name": "Lou Novak",
+      "face": "face:344",
+      "teamAbbr": "CCM",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 3,
+     "r": 2,
+     "er": 2,
+     "bb": 0,
+     "k": 1,
+     "pc": 22
+    },
+    {
+     "p": {
+      "id": "p954",
+      "name": "Cal Swindell",
+      "face": "face:197",
+      "teamAbbr": "CCM",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 0,
+     "r": 0,
+     "er": 0,
+     "bb": 1,
+     "k": 1,
+     "pc": 17
+    }
+   ],
+   "r": 8,
+   "h": 11,
+   "e": 0
+  }
+ },
+ "line": {
+  "home": [
+   4,
+   0,
+   4,
+   0,
+   1,
+   3,
+   2,
+   0,
+   null
+  ],
+  "away": [
+   2,
+   2,
+   1,
+   0,
+   0,
+   0,
+   0,
+   3,
+   0
+  ]
+ },
+ "decisions": {
+  "w": {
+   "id": "p908",
+   "name": "Emil Tierney",
+   "face": "face:493",
+   "teamAbbr": "TJP",
+   "pos": "P"
+  },
+  "l": {
+   "id": "p952",
+   "name": "Lefty Yamamoto",
+   "face": "face:167",
+   "teamAbbr": "CCM",
+   "pos": "P"
+  }
+ },
+ "notes": [
+  "POWERS—CCM: Orr (hyper hit 2), Swindell (fireball 5).",
+  "POWERS—TJP: McCann (hyper hit 2), McCann (warp pitch 5), Wojcik (hyper hit)."
+ ],
+ "storyId": "s1-story:S1D5EL2:recap"
+}

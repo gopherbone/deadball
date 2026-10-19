@@ -1,0 +1,41 @@
+{
+ "result": "You're in. Welcome to Night Owls.",
+ "syndicate": {
+  "id": "sy3p6h1h2u3h2i6d",
+  "name": "Night Owls",
+  "founder": "Lefty Loot",
+  "treasury": 0,
+  "board": "bbs:syn:sy3p6h1h2u3h2i6d",
+  "max": 4,
+  "members": [
+   {
+    "name": "Lefty Loot",
+    "rank": "Rube",
+    "money": 775,
+    "heat": 0,
+    "crewSize": 2,
+    "founder": true
+   },
+   {
+    "name": "Dotty Dial",
+    "rank": "Regular",
+    "money": 925,
+    "heat": 0,
+    "crewSize": 1,
+    "founder": false
+   }
+  ]
+ },
+ "account": {
+  "id": "a122v3u0q0b0q0h",
+  "name": "Dotty Dial",
+  "money": 925,
+  "heat": 0,
+  "crewSize": 1,
+  "unreadMail": 1,
+  "cards": 8,
+  "joinedDay": 0,
+  "rank": "Regular",
+  "syndicateId": "sy3p6h1h2u3h2i6d"
+ }
+}

@@ -1,0 +1,567 @@
+{
+ "id": "S1D5EL0",
+ "day": 5,
+ "firstPitchAt": 1792367308683,
+ "firstPitchIn": -51,
+ "finalAt": 1792367336683,
+ "finalIn": -23,
+ "status": "final",
+ "home": {
+  "id": "SBS",
+  "abbr": "SBS",
+  "city": "Salt Basin",
+  "name": "Saints",
+  "level": "EL",
+  "record": "2-4"
+ },
+ "away": {
+  "id": "BVG",
+  "abbr": "BVG",
+  "city": "Bone Valley",
+  "name": "Ghosts",
+  "level": "EL",
+  "record": "2-4"
+ },
+ "probables": {
+  "home": {
+   "id": "p926",
+   "name": "Rube Quigley",
+   "face": "face:492",
+   "teamAbbr": "SBS",
+   "pos": "P",
+   "line": "0-0, 12.46"
+  },
+  "away": {
+   "id": "p978",
+   "name": "Earl Pettibone",
+   "face": "face:367",
+   "teamAbbr": "BVG",
+   "pos": "P",
+   "line": "0-1, 7.11"
+  }
+ },
+ "pool": {
+  "home": 1081,
+  "away": 499,
+  "pays": {
+   "home": 1.45,
+   "away": 3.15
+  },
+  "house": {
+   "home": 1036,
+   "away": 469
+  }
+ },
+ "umpire": {
+  "id": "n1413",
+  "name": "Cy Pickles",
+  "face": "face:594",
+  "pos": "UMP"
+ },
+ "weather": "47F, wind 6 mph out to CF, rain likely",
+ "park": "The Salt Flat",
+ "circuit": "enhanced",
+ "score": {
+  "home": 8,
+  "away": 6,
+  "inning": "FINAL"
+ },
+ "myBet": {
+  "side": "away",
+  "amount": 30
+ },
+ "incidents": [
+  {
+   "inning": 7,
+   "text": "Rain delay"
+  }
+ ],
+ "box": {
+  "home": {
+   "bat": [
+    {
+     "p": {
+      "id": "p988",
+      "name": "Edward Teach",
+      "face": "face:420",
+      "teamAbbr": "SBS",
+      "pos": "RF"
+     },
+     "ab": 5,
+     "r": 2,
+     "h": 2,
+     "rbi": 5,
+     "bb": 0,
+     "k": 0,
+     "avg": ".211"
+    },
+    {
+     "p": {
+      "id": "p914",
+      "name": "Al Carrigan",
+      "face": "face:429",
+      "teamAbbr": "SBS",
+      "pos": "1B"
+     },
+     "ab": 5,
+     "r": 1,
+     "h": 2,
+     "rbi": 2,
+     "bb": 0,
+     "k": 1,
+     "avg": ".286"
+    },
+    {
+     "p": {
+      "id": "p916",
+      "name": "Reggie Tubbs",
+      "face": "face:447",
+      "teamAbbr": "SBS",
+      "pos": "3B"
+     },
+     "ab": 3,
+     "r": 0,
+     "h": 1,
+     "rbi": 0,
+     "bb": 0,
+     "k": 1,
+     "avg": ".333"
+    },
+    {
+     "p": {
+      "id": "p921",
+      "name": "Pedro Kavanagh",
+      "face": "face:71",
+      "teamAbbr": "SBS",
+      "pos": "RF"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 0,
+     "k": 1,
+     "avg": ".238"
+    },
+    {
+     "p": {
+      "id": "p922",
+      "name": "Tom Ruggles",
+      "face": "face:486",
+      "teamAbbr": "SBS",
+      "pos": "CF"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 0,
+     "k": 3,
+     "avg": ".158"
+    },
+    {
+     "p": {
+      "id": "p918",
+      "name": "Chico Novak",
+      "face": "face:386",
+      "teamAbbr": "SBS",
+      "pos": "2B"
+     },
+     "ab": 3,
+     "r": 2,
+     "h": 1,
+     "rbi": 1,
+     "bb": 1,
+     "k": 1,
+     "avg": ".056"
+    },
+    {
+     "p": {
+      "id": "p912",
+      "name": "Benny Okafor",
+      "face": "face:269",
+      "teamAbbr": "SBS",
+      "pos": "1B"
+     },
+     "ab": 3,
+     "r": 1,
+     "h": 2,
+     "rbi": 0,
+     "bb": 1,
+     "k": 1,
+     "avg": ".444"
+    },
+    {
+     "p": {
+      "id": "p911",
+      "name": "Tito Paredes",
+      "face": "face:83",
+      "teamAbbr": "SBS",
+      "pos": "C"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 0,
+     "k": 1,
+     "avg": ".294"
+    },
+    {
+     "p": {
+      "id": "p917",
+      "name": "Irv O'Rourke",
+      "face": "face:103",
+      "teamAbbr": "SBS",
+      "pos": "SS"
+     },
+     "ab": 3,
+     "r": 2,
+     "h": 1,
+     "rbi": 0,
+     "bb": 1,
+     "k": 1,
+     "avg": ".200"
+    }
+   ],
+   "pitch": [
+    {
+     "p": {
+      "id": "p926",
+      "name": "Rube Quigley",
+      "face": "face:492",
+      "teamAbbr": "SBS",
+      "pos": "P"
+     },
+     "ip": "4.1",
+     "h": 6,
+     "r": 6,
+     "er": 6,
+     "bb": 2,
+     "k": 4,
+     "pc": 72
+    },
+    {
+     "p": {
+      "id": "p932",
+      "name": "Frank Vance",
+      "face": "face:232",
+      "teamAbbr": "SBS",
+      "pos": "P"
+     },
+     "ip": "1.2",
+     "h": 1,
+     "r": 0,
+     "er": 0,
+     "bb": 1,
+     "k": 2,
+     "pc": 27
+    },
+    {
+     "p": {
+      "id": "p925",
+      "name": "Fritz Crabtree",
+      "face": "face:325",
+      "teamAbbr": "SBS",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 1,
+     "r": 0,
+     "er": 0,
+     "bb": 0,
+     "k": 2,
+     "pc": 23
+    },
+    {
+     "p": {
+      "id": "p933",
+      "name": "Tom Morales",
+      "face": "face:484",
+      "teamAbbr": "SBS",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 1,
+     "r": 0,
+     "er": 0,
+     "bb": 0,
+     "k": 0,
+     "pc": 6
+    },
+    {
+     "p": {
+      "id": "p935",
+      "name": "Pedro Alvarez",
+      "face": "face:330",
+      "teamAbbr": "SBS",
+      "pos": "P"
+     },
+     "ip": "1.0",
+     "h": 0,
+     "r": 0,
+     "er": 0,
+     "bb": 0,
+     "k": 3,
+     "pc": 19
+    }
+   ],
+   "r": 8,
+   "h": 9,
+   "e": 0
+  },
+  "away": {
+   "bat": [
+    {
+     "p": {
+      "id": "p969",
+      "name": "Lonnie Delahanty",
+      "face": "face:276",
+      "teamAbbr": "BVG",
+      "pos": "2B"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 1,
+     "k": 3,
+     "avg": ".053"
+    },
+    {
+     "p": {
+      "id": "p965",
+      "name": "Lefty Gibson",
+      "face": "face:287",
+      "teamAbbr": "BVG",
+      "pos": "1B"
+     },
+     "ab": 5,
+     "r": 1,
+     "h": 1,
+     "rbi": 1,
+     "bb": 0,
+     "k": 2,
+     "avg": ".182"
+    },
+    {
+     "p": {
+      "id": "p964",
+      "name": "Irv Quintana",
+      "face": "face:415",
+      "teamAbbr": "BVG",
+      "pos": "3B"
+     },
+     "ab": 4,
+     "r": 1,
+     "h": 2,
+     "rbi": 3,
+     "bb": 0,
+     "k": 1,
+     "avg": ".278"
+    },
+    {
+     "p": {
+      "id": "p972",
+      "name": "Eddie Dandridge",
+      "face": "face:3",
+      "teamAbbr": "BVG",
+      "pos": "RF"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 1,
+     "rbi": 0,
+     "bb": 0,
+     "k": 1,
+     "avg": ".316"
+    },
+    {
+     "p": {
+      "id": "p973",
+      "name": "Harry Haldane",
+      "face": "face:341",
+      "teamAbbr": "BVG",
+      "pos": "LF"
+     },
+     "ab": 4,
+     "r": 0,
+     "h": 0,
+     "rbi": 0,
+     "bb": 0,
+     "k": 2,
+     "avg": ".105"
+    },
+    {
+     "p": {
+      "id": "p962",
+      "name": "Clem Morales",
+      "face": "face:154",
+      "teamAbbr": "BVG",
+      "pos": "C"
+     },
+     "ab": 4,
+     "r": 1,
+     "h": 2,
+     "rbi": 0,
+     "bb": 0,
+     "k": 0,
+     "avg": ".333"
+    },
+    {
+     "p": {
+      "id": "p963",
+      "name": "Manny Navarro",
+      "face": "face:97",
+      "teamAbbr": "BVG",
+      "pos": "C"
+     },
+     "ab": 4,
+     "r": 1,
+     "h": 1,
+     "rbi": 0,
+     "bb": 0,
+     "k": 0,
+     "avg": ".167"
+    },
+    {
+     "p": {
+      "id": "p968",
+      "name": "Gus Feeney",
+      "face": "face:104",
+      "teamAbbr": "BVG",
+      "pos": "SS"
+     },
+     "ab": 3,
+     "r": 1,
+     "h": 1,
+     "rbi": 1,
+     "bb": 1,
+     "k": 1,
+     "avg": ".125"
+    },
+    {
+     "p": {
+      "id": "p971",
+      "name": "Dale Lindqvist",
+      "face": "face:536",
+      "teamAbbr": "BVG",
+      "pos": "LF"
+     },
+     "ab": 3,
+     "r": 1,
+     "h": 1,
+     "rbi": 1,
+     "bb": 1,
+     "k": 1,
+     "avg": ".118"
+    }
+   ],
+   "pitch": [
+    {
+     "p": {
+      "id": "p978",
+      "name": "Earl Pettibone",
+      "face": "face:367",
+      "teamAbbr": "BVG",
+      "pos": "P"
+     },
+     "ip": "5.1",
+     "h": 5,
+     "r": 6,
+     "er": 5,
+     "bb": 2,
+     "k": 8,
+     "pc": 96
+    },
+    {
+     "p": {
+      "id": "p985",
+      "name": "Leon Paredes",
+      "face": "face:258",
+      "teamAbbr": "BVG",
+      "pos": "P"
+     },
+     "ip": "0.2",
+     "h": 3,
+     "r": 2,
+     "er": 2,
+     "bb": 1,
+     "k": 0,
+     "pc": 19
+    },
+    {
+     "p": {
+      "id": "p984",
+      "name": "Wes Yablonski",
+      "face": "face:19",
+      "teamAbbr": "BVG",
+      "pos": "P"
+     },
+     "ip": "2.0",
+     "h": 1,
+     "r": 0,
+     "er": 0,
+     "bb": 0,
+     "k": 2,
+     "pc": 27
+    }
+   ],
+   "r": 6,
+   "h": 9,
+   "e": 1
+  }
+ },
+ "line": {
+  "home": [
+   1,
+   1,
+   2,
+   0,
+   0,
+   4,
+   0,
+   0,
+   null
+  ],
+  "away": [
+   0,
+   1,
+   0,
+   0,
+   5,
+   0,
+   0,
+   0,
+   0
+  ]
+ },
+ "decisions": {
+  "w": {
+   "id": "p932",
+   "name": "Frank Vance",
+   "face": "face:232",
+   "teamAbbr": "SBS",
+   "pos": "P"
+  },
+  "l": {
+   "id": "p978",
+   "name": "Earl Pettibone",
+   "face": "face:367",
+   "teamAbbr": "BVG",
+   "pos": "P"
+  },
+  "s": {
+   "id": "p935",
+   "name": "Pedro Alvarez",
+   "face": "face:330",
+   "teamAbbr": "SBS",
+   "pos": "P"
+  }
+ },
+ "notes": [
+  "POWERS—BVG: Yablonski (warp pitch 5).",
+  "POWERS—SBS: Morales (stopper 4), Alvarez (fireball 5)."
+ ],
+ "storyId": "s1-story:S1D5EL0:recap"
+}

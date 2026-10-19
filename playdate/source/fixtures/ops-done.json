@@ -1,0 +1,209 @@
+{
+ "ops": [
+  {
+   "id": "op3e64406r1f5s5p",
+   "kind": "rabbit_balls",
+   "name": "Rabbit balls",
+   "game": {
+    "id": "S1D5ML1",
+    "day": 5,
+    "firstPitchAt": 1792367312968,
+    "firstPitchIn": -47,
+    "finalAt": 1792367340968,
+    "finalIn": -19,
+    "status": "final",
+    "home": {
+     "id": "HCL",
+     "abbr": "HCL",
+     "city": "Harbor City",
+     "name": "Lamplighters",
+     "level": "ML",
+     "record": "2-3"
+    },
+    "away": {
+     "id": "ELC",
+     "abbr": "ELC",
+     "city": "Electric City",
+     "name": "Comets",
+     "level": "ML",
+     "record": "5-0"
+    },
+    "probables": {
+     "home": {
+      "id": "p13",
+      "name": "Rollie Esposito",
+      "face": "face:450",
+      "teamAbbr": "HCL",
+      "pos": "P",
+      "line": "0-1, 6.75"
+     },
+     "away": {
+      "id": "p748",
+      "name": "Vern Cruz",
+      "face": "face:475",
+      "teamAbbr": "ELC",
+      "pos": "P",
+      "line": "0-0, 0.00"
+     }
+    },
+    "pool": {
+     "home": 623,
+     "away": 782,
+     "pays": {
+      "home": 2.23,
+      "away": 1.78
+     },
+     "house": {
+      "home": 583,
+      "away": 722
+     }
+    },
+    "umpire": {
+     "id": "n7",
+     "name": "Rico Novak",
+     "face": "face:124",
+     "pos": "UMP"
+    },
+    "weather": "48F, wind 8 mph out to RF, rain likely",
+    "park": "Bellwood Park",
+    "circuit": "continental",
+    "score": {
+     "home": 1,
+     "away": 11,
+     "inning": "FINAL"
+    },
+    "myBet": {
+     "side": "away",
+     "amount": 60
+    }
+   },
+   "target": {
+    "id": "HCL",
+    "abbr": "HCL",
+    "city": "Harbor City",
+    "name": "Lamplighters",
+    "level": "ML"
+   },
+   "crew": [
+    {
+     "id": "cit-a2y0o1k1y3n5s2g-1-4-1",
+     "name": "Hector Reyes",
+     "face": "face:210"
+    }
+   ],
+   "status": "cancelled",
+   "result": "Called off. Everyone was refunded."
+  },
+  {
+   "id": "op3r4v6b0r1e0c19",
+   "kind": "grease_mound",
+   "name": "Grease the mound",
+   "game": {
+    "id": "S1D5ML0",
+    "day": 5,
+    "firstPitchAt": 1792367304397,
+    "firstPitchIn": -56,
+    "finalAt": 1792367332397,
+    "finalIn": -28,
+    "status": "final",
+    "home": {
+     "id": "STA",
+     "abbr": "STA",
+     "city": "St. Albans",
+     "name": "Friars",
+     "level": "ML",
+     "record": "1-4"
+    },
+    "away": {
+     "id": "CSR",
+     "abbr": "CSR",
+     "city": "Cold Spring",
+     "name": "Rustlers",
+     "level": "ML",
+     "record": "2-3"
+    },
+    "probables": {
+     "home": {
+      "id": "p120",
+      "name": "Jesús Vance",
+      "face": "face:228",
+      "teamAbbr": "STA",
+      "pos": "P",
+      "line": "1-0, 3.60"
+     },
+     "away": {
+      "id": "p440",
+      "name": "Emil Okafor",
+      "face": "face:122",
+      "teamAbbr": "CSR",
+      "pos": "P",
+      "line": "0-0, 1.50"
+     }
+    },
+    "pool": {
+     "home": 677,
+     "away": 698,
+     "pays": {
+      "home": 1.99,
+      "away": 1.93
+     },
+     "house": {
+      "home": 577,
+      "away": 548
+     }
+    },
+    "umpire": {
+     "id": "n9",
+     "name": "Ulysses Delahanty",
+     "face": "face:237",
+     "pos": "UMP"
+    },
+    "weather": "38F, wind 6 mph out to RF, showers",
+    "park": "Sanctuary Field",
+    "circuit": "continental",
+    "score": {
+     "home": 9,
+     "away": 2,
+     "inning": "FINAL"
+    },
+    "myBet": {
+     "side": "home",
+     "amount": 100
+    }
+   },
+   "target": {
+    "id": "CSR",
+    "abbr": "CSR",
+    "city": "Cold Spring",
+    "name": "Rustlers",
+    "level": "ML"
+   },
+   "crew": [
+    {
+     "id": "cit-a2y0o1k1y3n5s2g-1-4-2",
+     "name": "Irma Kowalski",
+     "face": "face:462"
+    },
+    {
+     "id": "cit-a122v3u0q0b0q0h-1-4-2",
+     "name": "Quincy Watanabe",
+     "face": "face:226"
+    }
+   ],
+   "status": "blown",
+   "result": "Grease the mound: failed.",
+   "chipIn": {
+    "total": 40,
+    "yours": 20,
+    "shares": [
+     {
+      "name": "Dotty Dial",
+      "amount": 20,
+      "status": "paid"
+     }
+    ],
+    "line": "Chip-in: Dotty Dial paid $20. You: $20."
+   }
+  }
+ ]
+}

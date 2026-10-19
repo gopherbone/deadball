@@ -1,0 +1,35 @@
+{
+ "result": "You chipped in $20 on \"Grease the mound\".",
+ "chipIn": {
+  "opId": "op3r4v6b0r1e0c19",
+  "from": "Lefty Loot",
+  "job": "Grease the mound",
+  "kind": "grease_mound",
+  "target": {
+   "id": "CSR",
+   "abbr": "CSR",
+   "city": "Cold Spring",
+   "name": "Rustlers",
+   "level": "ML"
+  },
+  "game": "CSR @ STA, Day 5",
+  "share": 20,
+  "total": 40,
+  "status": "paid",
+  "locksAt": 1792367304397,
+  "locksIn": 10,
+  "eventId": "ev-chip-op3r4v6b0r1e0c19-a122v3u0q0b0q0h"
+ },
+ "account": {
+  "id": "a122v3u0q0b0q0h",
+  "name": "Dotty Dial",
+  "money": 400,
+  "heat": 0,
+  "crewSize": 1,
+  "unreadMail": 2,
+  "cards": 8,
+  "joinedDay": 0,
+  "rank": "Rube",
+  "syndicateId": "sy3p6h1h2u3h2i6d"
+ }
+}

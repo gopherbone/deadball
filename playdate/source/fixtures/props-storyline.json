@@ -1,0 +1,162 @@
+{
+ "day": 4,
+ "storylines": [
+  {
+   "id": "sl1",
+   "kind": "contract_year",
+   "headline": "Gallagher Playing for a Contract",
+   "blurb": "Reason given: final year of his contract. At stake: $409k a year.",
+   "stage": "playing for a deal",
+   "visibility": "public",
+   "who": {
+    "id": "p12",
+    "name": "Satchel Gallagher",
+    "face": "face:594",
+    "teamAbbr": "HCL",
+    "pos": "3B"
+   },
+   "team": {
+    "id": "HCL",
+    "abbr": "HCL",
+    "city": "Harbor City",
+    "name": "Lamplighters",
+    "level": "ML"
+   },
+   "props": [
+    {
+     "id": "sl1:yes",
+     "storylineId": "sl1",
+     "question": "Will Satchel Gallagher stay with Harbor City after his contract year?",
+     "type": "yesno",
+     "options": [
+      {
+       "key": "yes",
+       "label": "Yes",
+       "pool": 489,
+       "pays": 1.16,
+       "house": 479
+      },
+      {
+       "key": "no",
+       "label": "No",
+       "pool": 87,
+       "pays": 6.56,
+       "house": 52
+      }
+     ],
+     "pool": 576,
+     "house": 531,
+     "closesAt": 1792369847386,
+     "closesIn": 2553,
+     "closesDay": 67,
+     "resolveByDay": 201,
+     "resolveByAt": 1792375207386,
+     "resolveByIn": 7913,
+     "status": "open",
+     "myBet": {
+      "option": "yes",
+      "amount": 10
+     }
+    },
+    {
+     "id": "sl1:when",
+     "storylineId": "sl1",
+     "question": "How long until the contract year story involving Satchel Gallagher is over?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "d5",
+       "label": "≤5 days",
+       "pool": 40,
+       "pays": 18.22,
+       "house": 5
+      },
+      {
+       "key": "d15",
+       "label": "6–15 days",
+       "pool": 5,
+       "pays": 145.8,
+       "house": 5
+      },
+      {
+       "key": "d30",
+       "label": "16–30 days",
+       "pool": 5,
+       "pays": 145.8,
+       "house": 5
+      },
+      {
+       "key": "later",
+       "label": "30+ days / not this season",
+       "pool": 684,
+       "pays": 1.06,
+       "house": 674
+      }
+     ],
+     "pool": 734,
+     "house": 689,
+     "closesAt": 1792367327386,
+     "closesIn": 33,
+     "closesDay": 4,
+     "resolveByDay": 32,
+     "resolveByAt": 1792368447386,
+     "resolveByIn": 1153,
+     "status": "open",
+     "myBet": {
+      "option": "later",
+      "amount": 10
+     }
+    },
+    {
+     "id": "sl1:how",
+     "storylineId": "sl1",
+     "question": "How will the contract year story involving Satchel Gallagher end?",
+     "type": "buckets",
+     "options": [
+      {
+       "key": "re-signed",
+       "label": "re-signed",
+       "pool": 548,
+       "pays": 1.33,
+       "house": 538
+      },
+      {
+       "key": "big_payday",
+       "label": "big payday",
+       "pool": 107,
+       "pays": 6.85,
+       "house": 72
+      },
+      {
+       "key": "walked",
+       "label": "walked",
+       "pool": 60,
+       "pays": 12.23,
+       "house": 60
+      },
+      {
+       "key": "traded",
+       "label": "traded",
+       "pool": 24,
+       "pays": 30.58,
+       "house": 24
+      }
+     ],
+     "pool": 739,
+     "house": 694,
+     "closesAt": 1792367407386,
+     "closesIn": 113,
+     "closesDay": 6,
+     "resolveByDay": 402,
+     "resolveByAt": 1792383247386,
+     "resolveByIn": 15953,
+     "status": "open",
+     "myBet": {
+      "option": "re-signed",
+      "amount": 10
+     }
+    }
+   ]
+  }
+ ]
+}

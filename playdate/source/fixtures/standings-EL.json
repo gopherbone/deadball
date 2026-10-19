@@ -1,0 +1,107 @@
+{
+ "level": "EL",
+ "rows": [
+  {
+   "teamId": "TJP",
+   "w": 5,
+   "l": 1,
+   "gb": 0,
+   "streak": "L1",
+   "last10": "5-1",
+   "rs": 55,
+   "ra": 22,
+   "team": {
+    "id": "TJP",
+    "abbr": "TJP",
+    "city": "Tumbleweed Junction",
+    "name": "Prospectors",
+    "level": "EL"
+   }
+  },
+  {
+   "teamId": "AN9",
+   "w": 4,
+   "l": 2,
+   "gb": 1,
+   "streak": "L1",
+   "last10": "4-2",
+   "rs": 27,
+   "ra": 33,
+   "team": {
+    "id": "AN9",
+    "abbr": "AN9",
+    "city": "Area Nine",
+    "name": "Visitors",
+    "level": "EL"
+   }
+  },
+  {
+   "teamId": "MFP",
+   "w": 3,
+   "l": 3,
+   "gb": 2,
+   "streak": "W1",
+   "last10": "3-3",
+   "rs": 38,
+   "ra": 26,
+   "team": {
+    "id": "MFP",
+    "abbr": "MFP",
+    "city": "Mirage Flats",
+    "name": "Phantoms",
+    "level": "EL"
+   }
+  },
+  {
+   "teamId": "CCM",
+   "w": 2,
+   "l": 4,
+   "gb": 3,
+   "streak": "W1",
+   "last10": "2-4",
+   "rs": 25,
+   "ra": 37,
+   "team": {
+    "id": "CCM",
+    "abbr": "CCM",
+    "city": "Crater City",
+    "name": "Meteors",
+    "level": "EL"
+   }
+  },
+  {
+   "teamId": "SBS",
+   "w": 2,
+   "l": 4,
+   "gb": 3,
+   "streak": "L1",
+   "last10": "2-4",
+   "rs": 21,
+   "ra": 33,
+   "team": {
+    "id": "SBS",
+    "abbr": "SBS",
+    "city": "Salt Basin",
+    "name": "Saints",
+    "level": "EL"
+   }
+  },
+  {
+   "teamId": "BVG",
+   "w": 2,
+   "l": 4,
+   "gb": 3,
+   "streak": "W1",
+   "last10": "2-4",
+   "rs": 25,
+   "ra": 40,
+   "team": {
+    "id": "BVG",
+    "abbr": "BVG",
+    "city": "Bone Valley",
+    "name": "Ghosts",
+    "level": "EL"
+   }
+  }
+ ]
+}

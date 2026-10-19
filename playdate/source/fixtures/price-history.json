@@ -1,0 +1,31 @@
+{
+ "def": "S1-067",
+ "card": {
+  "person": {
+   "id": "p227",
+   "name": "Harry Crabtree",
+   "face": "face:540",
+   "teamAbbr": "PEM",
+   "pos": "P"
+  },
+  "set": "Series 1",
+  "number": 67
+ },
+ "sales": [
+  {
+   "price": 120,
+   "rarity": "common",
+   "kind": "fixed",
+   "at": 1792367294128,
+   "ago": 0
+  }
+ ],
+ "stats": {
+  "count": 1,
+  "low": 120,
+  "high": 120,
+  "median": 120,
+  "avg": 120,
+  "last": 120
+ }
+}

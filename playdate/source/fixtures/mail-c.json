@@ -1,0 +1,76 @@
+{
+ "mail": [
+  {
+   "id": "mb:b1o252f2m6d1e4x",
+   "from": "Bets By Bobby",
+   "subject": "Tough luck",
+   "body": [
+    "Final: PEM 5, MRL 2.",
+    "You had $25 on the home side.",
+    "Better luck tomorrow."
+   ],
+   "at": 1792367348688,
+   "ago": 11,
+   "read": false,
+   "kind": "bank"
+  },
+  {
+   "id": "mb:b1v433e0y09666q",
+   "from": "Bets By Bobby",
+   "subject": "Tough luck",
+   "body": [
+    "Final: ELC 11, HCL 1.",
+    "You had $40 on the home side.",
+    "Better luck tomorrow."
+   ],
+   "at": 1792367340971,
+   "ago": 19,
+   "read": false,
+   "kind": "bank"
+  },
+  {
+   "id": "op140n2k142v5j3a:after:0",
+   "from": "The Clubhouse BBS",
+   "subject": "Report: Sweep the clubhouse",
+   "body": [
+    "The sweep held. No one reached the coolers.",
+    "Final: CSR 2, STA 9. The Rustlers lost."
+   ],
+   "at": 1792367332397,
+   "ago": 28,
+   "photo": "guard-01",
+   "photoCaption": "Muscle for hire, 1688",
+   "read": false,
+   "kind": "op"
+  },
+  {
+   "id": "op140n2k142v5j3a:m0",
+   "from": "The Clubhouse BBS",
+   "subject": "Sweep: Rustlers clubhouse is clean",
+   "body": [
+    "Our people walked the tunnels and checked the coolers. Two men with burlap sacks were turned away at the bullpen gate.",
+    "Jobs against the Rustlers today will be harder."
+   ],
+   "at": 1792367304397,
+   "ago": 56,
+   "photo": "guard-02",
+   "photoCaption": "Muscle for hire, 1642",
+   "read": false,
+   "kind": "op"
+  },
+  {
+   "id": "welcome:a1z6w58314l2v6v",
+   "from": "The Commissioner's Office",
+   "subject": "Welcome to the league",
+   "body": [
+    "Here's $1,000 and a free starter pack. Spend it wisely, or don't.",
+    "Games air every half hour. Bets close at first pitch.",
+    "Remember: nothing in this league is fixed. Officially."
+   ],
+   "at": 1792367291253,
+   "ago": 69,
+   "read": false,
+   "kind": "league"
+  }
+ ]
+}

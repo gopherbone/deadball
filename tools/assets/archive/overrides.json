@@ -1,0 +1,1127 @@
+{
+ "0055a40f1e38": {
+  "drop": true
+ },
+ "021b73500ffe": {
+  "crop": [
+   0.02,
+   0.08,
+   0.49,
+   0.92
+  ]
+ },
+ "0e7413f85947": {
+  "crop": [
+   0.02,
+   0.08,
+   0.49,
+   0.92
+  ]
+ },
+ "13b5e3b51c4b": {
+  "drop": true
+ },
+ "173f1fb77ce9": {
+  "drop": true
+ },
+ "30b5e65cfa4c": {
+  "crop": [
+   0.02,
+   0.08,
+   0.49,
+   0.92
+  ]
+ },
+ "4c1c171e0481": {
+  "crop": [
+   0.02,
+   0.08,
+   0.49,
+   0.92
+  ]
+ },
+ "5f9f92966c6d": {
+  "drop": true
+ },
+ "8556df4d47ce": {
+  "drop": true
+ },
+ "98d8129cdffc": {
+  "crop": [
+   0.02,
+   0.08,
+   0.49,
+   0.92
+  ]
+ },
+ "_keep": {
+  "argue": [
+   "bb8a355d2407",
+   "331d94709522",
+   "ced8fd1d67fb",
+   "eb5bc92fb89d",
+   "b0b14c231a45",
+   "ba4f753629e6",
+   "b93f6fe87af8",
+   "6843b9337953",
+   "138f7754f13d",
+   "fe1367f63198",
+   "933da76f1ce3",
+   "ebe389c71104"
+  ],
+  "baby": [
+   "9e225d4229d1",
+   "e0bbbf56d91d",
+   "81b88f663da9",
+   "1c942bd9d8c5",
+   "8855ce26332d",
+   "4beecb987c88",
+   "7ee882154ca6",
+   "f4fb8e649026",
+   "05c50184d6e7",
+   "749e28f58c89",
+   "9fdf880a899c"
+  ],
+  "ball": [
+   "869d49a8da96",
+   "50a207193e23",
+   "b3f06dc39880",
+   "73d41c68a1eb",
+   "1ce72d786bad",
+   "ab963f88a7d0",
+   "80af3e218d7d"
+  ],
+  "bb-bat": [
+   "968dee5f74e7",
+   "a63898580c55",
+   "cb1f798db90f",
+   "56443f49a2ea",
+   "b0e5a082c47e",
+   "0c66ae76aaa0",
+   "a5b4e409dd3d",
+   "e89df3f4a8b7",
+   "c85dbf1e9080"
+  ],
+  "bb-cartoon": [
+   "60c84e55874e",
+   "11aee90092f0",
+   "ca28a90fcb5a",
+   "5b5c3b08dfe0",
+   "9eb935e28547",
+   "21d107bcde22",
+   "915d09eb97e3",
+   "f95e28567217",
+   "0be8c7a7dd53",
+   "41676b07b968",
+   "97fb38208b31",
+   "7b0a5ca9883a"
+  ],
+  "bb-crowd": [
+   "52be8a002032",
+   "160ad3317573",
+   "13b5e3b51c4b",
+   "0ff168cf7b76",
+   "692f1538f847",
+   "2b0968212b34",
+   "828d3e74f1c3",
+   "b85ded18ca85",
+   "2c6856dfe23f",
+   "bcf882136607"
+  ],
+  "bb-dugout": [
+   "69f74bbf26b9",
+   "aca0bb34c065",
+   "47f5ac4a759e",
+   "3a11470dc81c",
+   "3f858591dea3",
+   "92cf8e516dd6",
+   "372d04373a82"
+  ],
+  "bb-field": [
+   "8bbc19353238",
+   "16f5feb43794",
+   "3523c4ee3fdc",
+   "a0c2cee63a57",
+   "d545fef40b09",
+   "da3ae4df6a3c",
+   "4ff19c738174",
+   "a9b14f457bc8"
+  ],
+  "bb-manager": [
+   "4b595571393f",
+   "6fab1bc07eb4",
+   "2a947af69343",
+   "399ce26bd276",
+   "c8ff2e92acc7"
+  ],
+  "bb-park": [
+   "cdaf0e016120",
+   "d76f0f31a509",
+   "b21088a4086a",
+   "ae3a55037d5c",
+   "5111323a9453",
+   "3f3060a4fdf1",
+   "6176cb630f46",
+   "33a3712adb86",
+   "076306e53efe",
+   "3eaa63eae707",
+   "127fa68673ea",
+   "1c47b91bab07"
+  ],
+  "bb-pitch": [
+   "7d71849ebe70",
+   "ee046be6a564",
+   "5e6d0dd2dc8e",
+   "53e2ec0ae063",
+   "f5883b9396cf",
+   "9e361e620995",
+   "ee1f5ecb96a3",
+   "e14ae93e36be",
+   "7cde8aa9891a",
+   "12bea3fa6e0c"
+  ],
+  "bb-plate": [
+   "af549be6baab",
+   "4b481d9c81e8",
+   "60477e19d78d",
+   "bf03f440188a",
+   "4aea8f9001ff",
+   "f7ca5d31904b",
+   "6b2200a9c562",
+   "7235db756666",
+   "6e9f4eddd003",
+   "e2fbe431e39c",
+   "6164222d1b56",
+   "8639f2f6ef30",
+   "f7cd264fec0a"
+  ],
+  "bb-scoreboard": [
+   "421b02da191a",
+   "c392bb822c2c",
+   "04b5b8a9c5d7",
+   "0bda041a3b06",
+   "3cfb0832e2b1",
+   "63a7afae9bea",
+   "01030c38dac4"
+  ],
+  "bb-slide": [
+   "401f2226b404",
+   "cf5cc91a1fb7",
+   "a3ba2b558a76",
+   "70530265dcfc",
+   "76bba928293e",
+   "3df2845ae2bb",
+   "fd2189c40eb1",
+   "076f83c835ae",
+   "9ac51692d1de",
+   "6f365e79caa3",
+   "2b2900b39034",
+   "0bfe746eeb32",
+   "496a356d3125",
+   "5e263fe291b5"
+  ],
+  "bb-team": [
+   "4a35dcd8dabf",
+   "8b32f25eb19a",
+   "831faba0735d",
+   "71b9ebdcdcd8",
+   "75f820f7cc73",
+   "5e7b81d17f49",
+   "be764d29788a",
+   "dc68d3b1dc1b",
+   "ece0ed382efa"
+  ],
+  "bb-tickets": [
+   "da9e44c80acf",
+   "830bddec94d2",
+   "061c823880b5",
+   "2ba26e0f41a7",
+   "85862585a565"
+  ],
+  "bb-umpire": [
+   "7069a9b9ce8c",
+   "e8b407040be5",
+   "96b643461694",
+   "d91d2092e5f4",
+   "b9fafc86a6a9",
+   "726e627f2853"
+  ],
+  "bb-warmup": [
+   "05385850515b",
+   "a8231ece8928",
+   "d66d117b9aa1",
+   "c97fd6d52787",
+   "fd74fb41b99c",
+   "ac02d49ae4dc",
+   "17376ca22b16",
+   "ef1dd2b3ca69"
+  ],
+  "bb-women": [
+   "11cd8a6f0e52",
+   "8ff851cf06bb",
+   "2a19092a84a5",
+   "ccbf4322a6e3",
+   "85a1ce4510d1",
+   "c432e63a72b1"
+  ],
+  "binoculars": [
+   "5d5cb07dad79",
+   "2577a0849c84",
+   "ff6a42083440",
+   "e2fe04acf759",
+   "5440c89bf57f",
+   "5b95164ce51f",
+   "5c39f938404b",
+   "5a780ddecd13",
+   "7a6f61e2fac9"
+  ],
+  "blizzard": [
+   "290ae413023d",
+   "035662c54b12",
+   "6ed41b7fbc38",
+   "0e1f7a8183db",
+   "16069c5f884c",
+   "d4f712c86f1d",
+   "6ca10f07d9b0",
+   "4393fe733127",
+   "c83426f04f5f",
+   "8847defb58fe"
+  ],
+  "brawl": [
+   "25246f7f8c3d",
+   "821f8f9cca27",
+   "d94499b3406a",
+   "d48c831ba943",
+   "fcb1850cad49",
+   "7126962ee75b",
+   "7ad2da4b8782",
+   "c744ed647f7e"
+  ],
+  "bribe-cartoon": [
+   "56e73d78149a",
+   "5b3450bc5283",
+   "92799ac294f9",
+   "7ca750e5490f",
+   "a46f95056060"
+  ],
+  "bus": [
+   "84594aeb0ada",
+   "d0c184c534ca",
+   "932bbc5db7a3"
+  ],
+  "camera": [
+   "bb0374673ab8",
+   "203adf04a4b4",
+   "4e754ddcdea8",
+   "18762102c38a",
+   "757461d5b007",
+   "57616b50bcc0",
+   "def3ece581c6",
+   "37e70b66d150",
+   "b6384a411e86"
+  ],
+  "candle": [
+   "c562c1d638b0",
+   "8db832f9fa68",
+   "88ea30f5974d",
+   "af467eef225d",
+   "f0f2cbe01470",
+   "c9d7279186e7",
+   "3b79fcc364c8"
+  ],
+  "canned": [
+   "855e82e74385",
+   "72c9f44cde9e",
+   "5950d6ee4ba2",
+   "cc530d828fe5",
+   "20ad8d7126e6"
+  ],
+  "cattle": [
+   "57d40a18b57d",
+   "7f461121d5b6",
+   "0e7413f85947",
+   "f24c37c617a4",
+   "5376cb1d56be",
+   "30b5e65cfa4c",
+   "b92acd680659",
+   "e46aed1a42f8",
+   "bdc8d6bf2337",
+   "bacc9b93cf86"
+  ],
+  "children": [
+   "91f3192af3d5",
+   "0a5c7710a508",
+   "a0c89315adb0",
+   "b5a1f65aca2d",
+   "d6735e369fd1",
+   "28ae867f839e",
+   "9ca5348f111d",
+   "047bd7a5e735",
+   "7735ca45235f",
+   "8dee2079179f"
+  ],
+  "church": [
+   "ebd9155e9350",
+   "90d629628211",
+   "4e4139a5f5bb",
+   "a416238d6393",
+   "868547b15e41",
+   "7291c3500644",
+   "d8d790aa5f59",
+   "69697537b3ec",
+   "cde04237d537",
+   "abe83288a74b"
+  ],
+  "cityhall": [
+   "4c31ce22c19d",
+   "9dbcef52446f",
+   "6bc8284c4b27",
+   "530fb63889ff",
+   "db16d9ac8aae",
+   "f896797775f2"
+  ],
+  "clock": [
+   "a68dab65de06",
+   "298f1039c22e",
+   "3cc23da6a69e",
+   "cd290f2ef882",
+   "34329eec5928"
+  ],
+  "comet": [
+   "dcee48e22ba2",
+   "57a7dd210d7c",
+   "4c4f830f508e",
+   "c42873ec8a24",
+   "6cfe6c9cd5c2",
+   "a1dec127e779",
+   "903de25e36f0",
+   "6325d5608785"
+  ],
+  "computer": [
+   "3baf5bfb05df",
+   "5a3e8f625508",
+   "1984e9d4efd4",
+   "31fac6e74218"
+  ],
+  "cooler": [
+   "efe105fc73a0",
+   "39a94796183c"
+  ],
+  "court": [
+   "80574df5c088",
+   "fdf3b2b73aeb",
+   "25f18836a56c",
+   "e5211cffbdfc",
+   "b9709382fd0c",
+   "19c46f8efd39",
+   "b2d186ab65a2",
+   "222017d84d11",
+   "309eadbd10b6",
+   "b5b80d34dda5",
+   "7916a1ce58fa"
+  ],
+  "crowd": [
+   "546cca9826c5",
+   "10c16fbf29a2",
+   "581300429043",
+   "1867b9da55f0",
+   "6182469ad6f1",
+   "c78f05b22dd6",
+   "740e569b1614",
+   "f76f5fda89c3",
+   "20be42d90cea",
+   "0f07d857d461"
+  ],
+  "detective": [
+   "d9fb050ad2aa",
+   "21dc39fe4518",
+   "4f1238738175",
+   "792b8d447cce"
+  ],
+  "divorce": [
+   "9d1200b409c8",
+   "174043dfea39",
+   "746d0ef566f7",
+   "7900aa0d1c64",
+   "a272c287cb7b",
+   "ce6a9fad987f"
+  ],
+  "docks": [
+   "6d11e801fe29",
+   "08c947e97016",
+   "73fd049cca63",
+   "50c336fd2e4d",
+   "241e3a0d2f3e",
+   "0bd02f391278",
+   "ecddc0afb882",
+   "7ea717ec950e",
+   "d996c0a51e51",
+   "e1362070cf21",
+   "b8b4c17238c4",
+   "96d8b990c1e0"
+  ],
+  "doctor": [
+   "b4c648cb08d3",
+   "5191e8f9583d",
+   "1bc60ce8b052"
+  ],
+  "eel": [
+   "a74e4397986f",
+   "48a4dac3e75a",
+   "6b099bc3f537",
+   "c00ef03bbbba",
+   "1e4ee941f187",
+   "b23167c2e1d5",
+   "bd34cbe1c945",
+   "fbc0c41eb70e",
+   "9d2e48072c25"
+  ],
+  "election": [
+   "2ada78946054",
+   "81fb64a773de",
+   "f036c7fe73da",
+   "b51c2691ff16",
+   "b2e53215303c",
+   "24b57bb16d3b",
+   "a8d923ff594f",
+   "a99de858deeb",
+   "58c9320cd1f9",
+   "feb37ade760d"
+  ],
+  "envelope": [
+   "250028a8bfad",
+   "ad5f0189a08c"
+  ],
+  "eye": [
+   "fc07b4d5c160",
+   "ae3ec9b80002",
+   "f2ac8f7797a2",
+   "ad105434d42a",
+   "dc818c91f86f",
+   "0a67e8dbf375",
+   "ef2a2b16f9a8"
+  ],
+  "factory": [
+   "352599dffbaf",
+   "451c9b66b434",
+   "608c59a2fb0f",
+   "3d79fca93e87",
+   "01ca15d81fdb",
+   "e16ebf753935",
+   "06ce0bfa8efa",
+   "00b5b946ec75"
+  ],
+  "fad": [
+   "70cf6c4a1dcf",
+   "b26b0991260a",
+   "df0e84aada30",
+   "a7af80fdeeb9",
+   "fa15d956654b",
+   "8407b7189e48",
+   "27d86cc54848",
+   "6894fc514e9b",
+   "c9985b1e1bcf",
+   "74e97bd6d2b6"
+  ],
+  "fair": [
+   "b391b6903dc4",
+   "48eeb42d2ccb",
+   "a812dfd264ac",
+   "4b10342ff83a",
+   "59a4d887b398",
+   "30242d3c8335",
+   "087d15a5ff01",
+   "4ea46b7414a9",
+   "10ed7e2feb09",
+   "787174a0d064",
+   "aee29823cbc7"
+  ],
+  "fan-on-field": [
+   "3e4efe39d1bc",
+   "fe8e3e4a7114",
+   "75ff4ae4e24f",
+   "db54e5d3dcef",
+   "ee3f37dcd6e0",
+   "89a675ae591e"
+  ],
+  "fish-market": [
+   "4840be726f2c",
+   "ec73fdc12fc9",
+   "0b5ff91e2b9a",
+   "d29b67210917"
+  ],
+  "flood": [
+   "eb6c5b24b808",
+   "383d6248adef",
+   "545254b8c11a",
+   "4aad531591fc",
+   "f796cdec11e5",
+   "3164f86d4152",
+   "53cb8d54297c",
+   "5e82bdefde27",
+   "e22652691970",
+   "bb2495acc9ad"
+  ],
+  "funeral": [
+   "73c61bd1bc16",
+   "41054d15c17d",
+   "b0ec30c817b4",
+   "9842667d0d53",
+   "9d17534e1fc8",
+   "ed5743a77dda",
+   "efc975af958d"
+  ],
+  "gambling": [
+   "f00f12fffea6",
+   "ece1b86342d4",
+   "5ffdc9d77cc8",
+   "7f2db914d0c3",
+   "71c378b43312",
+   "68fc6873bdad",
+   "b2064a51c87d",
+   "1c34d9a27ac8",
+   "1347b75f970d"
+  ],
+  "glove": [
+   "9cc38518ff3a",
+   "9a2d4b53e66e",
+   "7f1900b5a896",
+   "6056ba3ff5de",
+   "228579109269"
+  ],
+  "grease": [
+   "694bc2d40d49",
+   "fee3a5d9c56e",
+   "1ce98730d883",
+   "e8a4ae4b2b9d",
+   "7fe6a7fa7b5a",
+   "60b465aa9042"
+  ],
+  "guard": [
+   "68408eae3c52",
+   "f8fadc19d185"
+  ],
+  "handshake": [
+   "9873d0f5ae8c",
+   "7ed08c1e389e"
+  ],
+  "heat": [
+   "ba0a1cb80cca",
+   "80dbcba32d49",
+   "37ad18d0635e",
+   "0f150795669a",
+   "304212fb6566",
+   "744d24ce8f90",
+   "b38ba92f9360",
+   "04e1803a538b",
+   "31750d889c6f",
+   "348c6998793f",
+   "c1f8db038dac",
+   "9abd66ab8d9e"
+  ],
+  "hospital": [
+   "bb260596d679",
+   "1631c497b6a2",
+   "60ad85aaa249",
+   "34f2131f9c9e",
+   "ce3fb325d765",
+   "75fdfbbdbb0a",
+   "1576f5ca28d6",
+   "ab367b7f990b",
+   "418ea89a267e",
+   "b6fb74eda8d8",
+   "32c13cc7bcdd"
+  ],
+  "hotdog": [
+   "e25060967dff",
+   "fd9742942f7e",
+   "368a87ef6406",
+   "f7f0d5cf0388",
+   "f35e8d4a6819",
+   "27e0608fa000",
+   "ec9e005c9493",
+   "ec8df87c4a43",
+   "2ddad5308ea1",
+   "9a608265eb79"
+  ],
+  "infomercial": [
+   "0c06e2512212",
+   "1cf1e217103a"
+  ],
+  "jail": [
+   "2359187e9290",
+   "864b98e4fee9",
+   "07258bc99620",
+   "a18470f02ddc",
+   "8a60d3b94390",
+   "40d25b1d398b",
+   "eb7dc4cf0dd4",
+   "e60ea00932a0",
+   "2f8c1304f1ad"
+  ],
+  "kidnap": [
+   "ad803848c792"
+  ],
+  "letter": [
+   "6a348a67aa03",
+   "0df77e0f0d20",
+   "1a29a01e66bd"
+  ],
+  "lightning": [
+   "eea8003c9ec5"
+  ],
+  "mail": [
+   "3bbca5665242",
+   "44bb7b67f20f",
+   "8521943196b2",
+   "57b688903f7a",
+   "ec568edccdec"
+  ],
+  "mansion": [
+   "870f03ab3c86",
+   "d47fc03113c8",
+   "79580402430a",
+   "49c1b45c1a64",
+   "23d0b705b792",
+   "a0c7b5e99c16",
+   "999aedbdd2f8",
+   "408466783d87"
+  ],
+  "mascot": [
+   "738ed38ae2e8",
+   "0411edf3b870",
+   "c71cf89ba457",
+   "b02f6670d3b3",
+   "ace010f436ae"
+  ],
+  "megaphone": [
+   "0fe48fc69941",
+   "b7f9b932e002",
+   "2b6487815210",
+   "94b7e7635270",
+   "f7ef0bd9ffe4",
+   "60365834693d",
+   "7d13ad175386"
+  ],
+  "money": [
+   "66b53bc058c8",
+   "8af82c0ff949",
+   "db065aa7a5f3"
+  ],
+  "newspaper": [
+   "d19368cbb93d",
+   "71c19dff08f9",
+   "d0411dc46938",
+   "9ece3f6dfa0f"
+  ],
+  "newsroom": [
+   "3be8c398be13",
+   "9b57ec9d803d",
+   "64ad199d5e95",
+   "b57f67756c63",
+   "092f4d714495",
+   "ab4d954c6fee",
+   "c2fc89b99093",
+   "ca12cedb37d8",
+   "26379216e0e8"
+  ],
+  "office": [
+   "122cc5281a1a",
+   "8556df4d47ce",
+   "d468d9282309",
+   "4b243e355d90"
+  ],
+  "oldman": [
+   "dff0c3bbc26e",
+   "5f9f92966c6d",
+   "45cbece5ad82",
+   "da40a31a2610",
+   "4511d5faf481",
+   "48822e89dae3"
+  ],
+  "opossum": [
+   "abca2c9ce08c",
+   "2293c27aa7c4",
+   "4b8f2e705e2d"
+  ],
+  "parade": [
+   "2a49993509de",
+   "8d84a87c5e2a",
+   "0055a40f1e38",
+   "173f1fb77ce9",
+   "d7e38c6a9100",
+   "48168f459d5e",
+   "80076c7528d2",
+   "e93792d07be6",
+   "4bb273c864d8",
+   "f64ba39f6710"
+  ],
+  "party": [
+   "60e9d2aaf41e",
+   "48567ca935b5",
+   "bc276e890fe8",
+   "165384acadeb",
+   "a926ef256039",
+   "82269f80039c"
+  ],
+  "pawn": [
+   "70463c44a446",
+   "00472815642d",
+   "3ac470e80815",
+   "b2c26e7f468e",
+   "c9eeb35f78f5"
+  ],
+  "poison": [
+   "343bd66518b8",
+   "40410e70fc2e",
+   "7e9182c06f8a",
+   "eeff52360829",
+   "39f01c9da224",
+   "1b9fd0a28dcc",
+   "8b5d16bbb360"
+  ],
+  "police": [
+   "decad6333e80",
+   "e30f3109bf33",
+   "86f9c454292f",
+   "be8b2e4a1239",
+   "f622a91c23e4",
+   "608a3aab0655",
+   "eb61891afdda",
+   "30581d66e5e3",
+   "2ededdfbb65c"
+  ],
+  "politics-cartoon": [
+   "d982d186f820",
+   "3428210cf214",
+   "954a1fb89176",
+   "069803c35459",
+   "c3b96a288501",
+   "ab56ba9654f8",
+   "b5a315ac03ed",
+   "682f6c6a4e88"
+  ],
+  "power": [
+   "68004124c249",
+   "1c96610320f1",
+   "00b7de15b511",
+   "23705d95d94a",
+   "66130dbd2467",
+   "7cc3b38ec3d7",
+   "09ef94b8cc4b",
+   "9411a57fa4c8",
+   "1b0896c3e7f9",
+   "4c1c171e0481"
+  ],
+  "rabbit": [
+   "16f1ee627bbf",
+   "73b10d1eef1b",
+   "506c4fec32aa"
+  ],
+  "raccoon": [
+   "2bd0d194b822",
+   "01a215f23a4d",
+   "33cb3b035e12",
+   "e5e88126d304",
+   "9f7196d9df8f",
+   "8b658f36ed00",
+   "393af873afb0",
+   "0f6f8a73e52f",
+   "b5b20bea5dec",
+   "7eef00d7b9f6",
+   "5abf7c4fd2bf",
+   "c45402592ac9",
+   "120d59c6a7fe",
+   "1441ca6e22c4",
+   "89e07ce09028",
+   "4fbdea495d4c"
+  ],
+  "raccoon-photo": [
+   "aa839b2bb950",
+   "5beb839cfc4f",
+   "cd0ca28e38b3"
+  ],
+  "radio": [
+   "b82563c0d4d7",
+   "a6c1954697c7",
+   "e3441ba913f8",
+   "51662e7f431d",
+   "512404f8b677",
+   "a686ce44727e",
+   "82c5a14ccf63",
+   "e24de075fefa"
+  ],
+  "rain": [
+   "1cdc3ef9125b",
+   "481253f69f84",
+   "3046a23680a7",
+   "88c35e30f7d9",
+   "7ade382abd4a",
+   "f2ce47b843a9",
+   "3c79cd8bc7af",
+   "77387a24d536",
+   "68c2d44d913a",
+   "0fa3a6e387f7"
+  ],
+  "rain-tarp": [
+   "d4c67e9ef194",
+   "f11c65493351",
+   "a4793cb724b1"
+  ],
+  "sick": [
+   "3f7f7aaf80a9",
+   "becdf0a655f6",
+   "c840d0d48244",
+   "c1e944de4a11",
+   "e95187e3a35b",
+   "3bbda1237a25",
+   "b13694507a21",
+   "66eee27fea3c"
+  ],
+  "society-wedding": [
+   "4365c768d781",
+   "707ff205ac3a",
+   "5ced183fda01",
+   "094dfc36f297"
+  ],
+  "sprinkler": [
+   "3e7e7ad4edb6",
+   "21ea858533d9",
+   "ce05290f7ade",
+   "e71dd5f63fa2",
+   "9e1fcb6c5313",
+   "c97a51ae219c"
+  ],
+  "spy": [
+   "fc9b2cab8dec",
+   "3ca2301d2677",
+   "61d4b4093a23",
+   "4971c568814e",
+   "19650870a4ca"
+  ],
+  "statue": [
+   "cb801508b4b7",
+   "d94b9c346eda",
+   "dad7365a56fc"
+  ],
+  "steel": [
+   "b49b051fb016",
+   "f7357d49f024",
+   "e27fb4def12b",
+   "a3ef30151833",
+   "1ea976bbe2e0",
+   "4093c0fb9911",
+   "52cef9228015",
+   "1688e755cbe0",
+   "021b73500ffe",
+   "98d8129cdffc"
+  ],
+  "stock": [
+   "294b3fdb7bda",
+   "c99e5f11f0c7",
+   "670ac09fcf8d",
+   "b29acfafd394",
+   "0cf84dfd25a7",
+   "11af5f53508f",
+   "1adf50b3f051",
+   "6630c6fb7f90",
+   "e6b25070eccc",
+   "4bca3745f1b5",
+   "9017d62c2314",
+   "1a6a6c3650e1"
+  ],
+  "streetlight": [
+   "6fb17196727b",
+   "66c655656082",
+   "68456566c2f0",
+   "7e882a5e232b",
+   "2ccb1e28e041",
+   "43720d92705c",
+   "a78c1a94b350",
+   "f689492db428",
+   "7b9c013fb83d",
+   "6c5e17a1500c"
+  ],
+  "strike": [
+   "d1712a14ae2e",
+   "9c4a0f7f8f94",
+   "f937eccd2221",
+   "cb13b1b683bd",
+   "ec00414fd416",
+   "75a83ee4694d",
+   "208b67a66795",
+   "93d2e0641aad",
+   "a54a74838400",
+   "e4fd47a3f9ca",
+   "09df31e774bf",
+   "225e1ea0f88e"
+  ],
+  "suitcase": [
+   "23f3301a62d9",
+   "27ce653a5c7a",
+   "3fee3a812793"
+  ],
+  "telegraph": [
+   "b98b99fd54e6",
+   "74ab7540ae28",
+   "b7e618694f04",
+   "aa2a81f4eed1",
+   "f94edaf0f259",
+   "d0c974cc95ce",
+   "d8704222dbdc",
+   "d04c1c74ba0c"
+  ],
+  "telephone": [
+   "b7d43863acb1",
+   "1e0925d66812",
+   "7605b8041d56",
+   "1d9df2d0ca9c",
+   "c75a0127841b",
+   "53f3f9655ced",
+   "d751b819d058",
+   "f7aeb8e64842",
+   "bdecc7bac139",
+   "1cce506172eb"
+  ],
+  "toy": [
+   "1b8d8d1d14fa",
+   "5c654af88365",
+   "bb69a9a2abc5",
+   "406f6304916d",
+   "c818350239cb",
+   "91c1ae5859f5"
+  ],
+  "train": [
+   "df0ee8ffcac8",
+   "7d6d638e7f58",
+   "fb761de6bb42",
+   "6ab780128d79",
+   "d68d8cca403a",
+   "dca80bf1e588",
+   "4933b850ea98",
+   "8481e9420afc",
+   "099754713def",
+   "1c849364ecb7",
+   "ccf7fad357e1",
+   "d99541ad2812",
+   "3538512cf743",
+   "870a406ef952"
+  ],
+  "transformer": [
+   "25c4996bf6b8",
+   "a58e5b93e14f",
+   "45af3396355d",
+   "b2803319fe4f",
+   "496d6c282452",
+   "2e5f023fcf9c",
+   "e68739c5e99e",
+   "7740bcccb29e"
+  ],
+  "troops": [
+   "9a8f0661ddd8",
+   "1966b96d1413",
+   "a114b0e432fd",
+   "3b82390cd08e",
+   "016f65725a2f",
+   "c6289fbf9a69"
+  ],
+  "trophy": [
+   "fdcfafafd56e",
+   "2e8ff0c9757c",
+   "205ba8611fb3",
+   "ea51b72a332b",
+   "baad102e9bfc",
+   "2ad6c49c563f",
+   "a16f1e0f4914"
+  ],
+  "tv": [
+   "f54e225fef4c",
+   "07c0d3f8dc16"
+  ],
+  "typewriter": [
+   "ae512f9ca338",
+   "f52c859b258b",
+   "203229841065",
+   "3ac4cc8ef0c3",
+   "9e121ca55f76",
+   "ff65586a5ce1"
+  ],
+  "valentine": [
+   "45fafbdccbac",
+   "a98fb2420e4b",
+   "2edfcbf94651",
+   "ee12143be0ad",
+   "710b710aa34b",
+   "e8878b94f72b",
+   "be80c75971e0"
+  ],
+  "vendor": [
+   "edb003626faf",
+   "8171c4813f60",
+   "bff4871b385a",
+   "ecf3a4818ffa",
+   "e696fb11ba2b",
+   "14cb0012d794"
+  ],
+  "wedding": [
+   "521885f51936",
+   "745e8e74656c",
+   "c7d016f61fc9",
+   "0253ceb752a6",
+   "655d5381d56d",
+   "e0d032c6ae2a",
+   "2d8293758e43",
+   "fe08c8bc340d",
+   "226da56edffa",
+   "f566af6a8a31"
+  ]
+ },
+ "a8d923ff594f": {
+  "drop": true
+ },
+ "ab56ba9654f8": {
+  "drop": true
+ },
+ "b92acd680659": {
+  "crop": [
+   0.02,
+   0.08,
+   0.49,
+   0.92
+  ]
+ },
+ "bdc8d6bf2337": {
+  "crop": [
+   0.02,
+   0.08,
+   0.49,
+   0.92
+  ]
+ },
+ "c97a51ae219c": {
+  "drop": true
+ },
+ "d19368cbb93d": {
+  "drop": true
+ },
+ "d7e38c6a9100": {
+  "drop": true
+ },
+ "e46aed1a42f8": {
+  "crop": [
+   0.02,
+   0.08,
+   0.49,
+   0.92
+  ]
+ },
+ "ece1b86342d4": {
+  "drop": true
+ },
+ "ef1dd2b3ca69": {
+  "drop": true
+ },
+ "f00f12fffea6": {
+  "drop": true
+ }
+}

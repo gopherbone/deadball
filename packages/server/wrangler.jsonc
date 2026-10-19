@@ -1,0 +1,27 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "deadball",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "durable_objects": {
+    "bindings": [{ "name": "LEAGUE", "class_name": "League" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["League"] }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "deadball",
+      // replace with the real id from `wrangler d1 create deadball` (see docs/DEPLOY.md)
+      "database_id": "290638e9-9dd5-49be-b14c-a982b79da17d",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [{ "binding": "LOGS", "bucket_name": "deadball-logs" }],
+  "vars": {
+    "GAME_DAY_MS": "1800000",
+    "WORLD_SEED": "deadball-1"
+  },
+  // safety net: makes sure the League DO is awake and its alarm is armed
+  "triggers": { "crons": ["*/10 * * * *"] },
+  "limits": { "cpu_ms": 300000 }
+}

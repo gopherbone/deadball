@@ -1,0 +1,191 @@
+{
+ "candidates": [
+  {
+   "id": "cit-a2y0o1k1y3n5s2g-1-4-0",
+   "person": {
+    "id": "cit-a2y0o1k1y3n5s2g-1-4-0",
+    "name": "Vic Wojcik",
+    "face": "face:92"
+   },
+   "role": "hot dog vendor",
+   "skills": [
+    {
+     "k": "sneak",
+     "v": 0
+    },
+    {
+     "k": "charm",
+     "v": 3
+    },
+    {
+     "k": "muscle",
+     "v": 2
+    },
+    {
+     "k": "access",
+     "v": 4
+    },
+    {
+     "k": "nerve",
+     "v": 1
+    },
+    {
+     "k": "knowhow",
+     "v": 0
+    }
+   ],
+   "ask": 130,
+   "pitch": "Works aisles 100 through 140. Nobody looks at the hot dog man."
+  },
+  {
+   "id": "cit-a2y0o1k1y3n5s2g-1-4-1",
+   "person": {
+    "id": "cit-a2y0o1k1y3n5s2g-1-4-1",
+    "name": "Hector Reyes",
+    "face": "face:210"
+   },
+   "role": "groundskeeper",
+   "skills": [
+    {
+     "k": "sneak",
+     "v": 0
+    },
+    {
+     "k": "charm",
+     "v": 1
+    },
+    {
+     "k": "muscle",
+     "v": 1
+    },
+    {
+     "k": "access",
+     "v": 4
+    },
+    {
+     "k": "nerve",
+     "v": 0
+    },
+    {
+     "k": "knowhow",
+     "v": 1
+    }
+   ],
+   "ask": 90,
+   "pitch": "Has a key to the equipment shed and the umpires' room."
+  },
+  {
+   "id": "cit-a2y0o1k1y3n5s2g-1-4-2",
+   "person": {
+    "id": "cit-a2y0o1k1y3n5s2g-1-4-2",
+    "name": "Irma Kowalski",
+    "face": "face:462"
+   },
+   "role": "typist",
+   "skills": [
+    {
+     "k": "sneak",
+     "v": 1
+    },
+    {
+     "k": "charm",
+     "v": 2
+    },
+    {
+     "k": "muscle",
+     "v": 0
+    },
+    {
+     "k": "access",
+     "v": 0
+    },
+    {
+     "k": "nerve",
+     "v": 1
+    },
+    {
+     "k": "knowhow",
+     "v": 2
+    }
+   ],
+   "ask": 85,
+   "pitch": "Types 110 words a minute. Can sign anybody's name."
+  },
+  {
+   "id": "cit-a2y0o1k1y3n5s2g-1-4-3",
+   "person": {
+    "id": "cit-a2y0o1k1y3n5s2g-1-4-3",
+    "name": "Moose Orr",
+    "face": "face:266"
+   },
+   "role": "carnival strongman",
+   "skills": [
+    {
+     "k": "sneak",
+     "v": 0
+    },
+    {
+     "k": "charm",
+     "v": 0
+    },
+    {
+     "k": "muscle",
+     "v": 5
+    },
+    {
+     "k": "access",
+     "v": 0
+    },
+    {
+     "k": "nerve",
+     "v": 1
+    },
+    {
+     "k": "knowhow",
+     "v": 1
+    }
+   ],
+   "ask": 135,
+   "pitch": "Bends horseshoes for county fairs."
+  },
+  {
+   "id": "cit-a2y0o1k1y3n5s2g-1-4-4",
+   "person": {
+    "id": "cit-a2y0o1k1y3n5s2g-1-4-4",
+    "name": "Gus Quigley",
+    "face": "face:325"
+   },
+   "role": "bat boy (now 41)",
+   "skills": [
+    {
+     "k": "sneak",
+     "v": 3
+    },
+    {
+     "k": "charm",
+     "v": 0
+    },
+    {
+     "k": "muscle",
+     "v": 0
+    },
+    {
+     "k": "access",
+     "v": 3
+    },
+    {
+     "k": "nerve",
+     "v": 0
+    },
+    {
+     "k": "knowhow",
+     "v": 1
+    }
+   ],
+   "ask": 95,
+   "pitch": "Still answers to Kid. Reachable by pager. Do not call the house."
+  }
+ ],
+ "refreshesAt": 1792367331672,
+ "refreshesIn": 40
+}

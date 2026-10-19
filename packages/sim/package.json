@@ -1,0 +1,12 @@
+{
+  "name": "@deadball/sim",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node --test test/",
+    "calibrate": "node tools/calibrate.ts"
+  }
+}

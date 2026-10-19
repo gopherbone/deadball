@@ -1,0 +1,30 @@
+{
+ "events": [
+  {
+   "id": "S1D6ML3:heat:a2y0o1k1y3n5s2g",
+   "title": "An investigator is asking about you",
+   "body": "A man from the Commissioner's Office has been showing your photograph to hot dog vendors. He wears a raincoat. He has been at it for three days. (Heat: 5.)",
+   "photo": "detective-04",
+   "photoCaption": "A detective on the case, 1900",
+   "choices": [
+    {
+     "key": "laylow",
+     "label": "Lay low for a while",
+     "note": "heat down a little"
+    },
+    {
+     "key": "payoff",
+     "label": "Pay him off",
+     "cost": 300
+    },
+    {
+     "key": "deny",
+     "label": "Deny everything",
+     "note": "coin flip"
+    }
+   ],
+   "expiresAt": 1792367439184,
+   "expiresIn": 79
+  }
+ ]
+}

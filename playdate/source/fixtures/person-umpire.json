@@ -1,0 +1,36 @@
+{
+ "person": {
+  "id": "n9",
+  "name": "Ulysses Delahanty",
+  "face": "face:237",
+  "pos": "UMP",
+  "age": 30,
+  "traits": [
+   "Snitch",
+   "Greedy",
+   "Hothead"
+  ],
+  "mood": "fine",
+  "status": "active"
+ },
+ "family": {
+  "parents": [],
+  "spouse": {
+   "id": "n1182",
+   "name": "Opal Delahanty",
+   "face": "face:219"
+  },
+  "children": [],
+  "house": "Delahanty",
+  "houseNote": "House Delahanty: 0 ballplayers, 0 titles. A name nobody's heard of."
+ },
+ "ties": [],
+ "drama": [],
+ "stats": [],
+ "notes": "Ulysses Delahanty, umpire.",
+ "faces": [
+  "face:237"
+ ],
+ "visitors": 1,
+ "guestbook": []
+}

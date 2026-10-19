@@ -1,0 +1,30 @@
+{
+ "syndicate": {
+  "id": "sy3p6h1h2u3h2i6d",
+  "name": "Night Owls",
+  "founder": "Lefty Loot",
+  "treasury": 100,
+  "board": "bbs:syn:sy3p6h1h2u3h2i6d",
+  "max": 4,
+  "members": [
+   {
+    "name": "Lefty Loot",
+    "rank": "Rube",
+    "money": 285,
+    "heat": 12,
+    "crewSize": 2,
+    "founder": true
+   },
+   {
+    "name": "Dotty Dial",
+    "rank": "Rube",
+    "money": 465,
+    "heat": 0,
+    "crewSize": 1,
+    "founder": false
+   }
+  ]
+ },
+ "invites": [],
+ "chipIns": []
+}

@@ -1,0 +1,100 @@
+{
+ "person": {
+  "id": "p120",
+  "name": "Jesús Vance",
+  "face": "face:228",
+  "teamAbbr": "STA",
+  "pos": "P",
+  "age": 30,
+  "bats": "R",
+  "throws": "R",
+  "traits": [
+   "Iron Man"
+  ],
+  "mood": "fine",
+  "status": "active"
+ },
+ "team": {
+  "id": "STA",
+  "abbr": "STA",
+  "city": "St. Albans",
+  "name": "Friars",
+  "level": "ML"
+ },
+ "family": {
+  "parents": [],
+  "children": [],
+  "house": "Vance",
+  "houseNote": "House Vance: 1 ballplayer, 0 titles. A name nobody's heard of."
+ },
+ "ties": [
+  {
+   "who": {
+    "id": "p116",
+    "name": "Tito Shaughnessy",
+    "face": "face:491",
+    "teamAbbr": "STA",
+    "pos": "3B"
+   },
+   "value": 4,
+   "reason": "roommates on the road"
+  },
+  {
+   "who": {
+    "id": "p129",
+    "name": "Tom Zaleski",
+    "face": "face:408",
+    "teamAbbr": "STA",
+    "pos": "P"
+   },
+   "value": 3,
+   "reason": "same hometown"
+  }
+ ],
+ "drama": [],
+ "stats": [
+  {
+   "season": 1,
+   "team": "STA",
+   "line": "1-0, 3.60 ERA, 5.0 IP, 2 K"
+  }
+ ],
+ "scouting": [
+  {
+   "label": "Stuff",
+   "value": 2
+  },
+  {
+   "label": "Control",
+   "value": 4
+  },
+  {
+   "label": "Stamina",
+   "value": 4
+  },
+  {
+   "label": "Heat",
+   "value": 3
+  }
+ ],
+ "notes": "1-0, 3.60, 2 K this season. Lately: feeling good.",
+ "faces": [
+  "face:228"
+ ],
+ "visitors": 1,
+ "guestbook": [
+  {
+   "id": "c0b5a3w320b282h",
+   "author": "Gus Gumshoe",
+   "authorRank": "Rube",
+   "text": "Respect to Keiko Gibson. Truly phat.",
+   "at": 1792367294494,
+   "ago": 66,
+   "reactions": {
+    "agree": 0,
+    "lol": 0,
+    "rat": 0
+   }
+  }
+ ]
+}

@@ -1,0 +1,191 @@
+{
+ "version": 1,
+ "backdrops": [
+  {
+   "name": "bd-1",
+   "file": "images/crowd/bd-1",
+   "kind": "cheering",
+   "pk": "2014690753",
+   "url": "https://www.loc.gov/pictures/item/2014690753/",
+   "caption": "Crowd - Union Sq.",
+   "banner": null
+  },
+  {
+   "name": "bd-2",
+   "file": "images/crowd/bd-2",
+   "kind": "grandstand",
+   "pk": "2014682261",
+   "url": "https://www.loc.gov/pictures/item/2014682261/",
+   "caption": "Crowd in Polo Grounds grandstand; Cubs at Giants - final game (baseball",
+   "banner": [
+    0,
+    0,
+    400,
+    50
+   ]
+  },
+  {
+   "name": "bd-3",
+   "file": "images/crowd/bd-3",
+   "kind": "packed",
+   "pk": "2014682277",
+   "url": "https://www.loc.gov/pictures/item/2014682277/",
+   "caption": "Crowd leaving Polo Grounds; Cubs at Giants - final game (baseball)",
+   "banner": null
+  },
+  {
+   "name": "bd-4",
+   "file": "images/crowd/bd-4",
+   "kind": "bleachers",
+   "pk": "2014694421",
+   "url": "https://www.loc.gov/pictures/item/2014694421/",
+   "caption": "Bleachers, World Series, Polo Grounds (baseball)",
+   "banner": [
+    0,
+    0,
+    400,
+    44
+   ]
+  },
+  {
+   "name": "bd-5",
+   "file": "images/crowd/bd-5",
+   "kind": "rooftop",
+   "pk": "2001704367",
+   "url": "https://www.loc.gov/pictures/item/2001704367/",
+   "caption": "Crowd of people on roofs of rowhouses watching world series game between Boston Braves and Phila. Athletics at Shibe Park, Phila. Oct. 9, 1914",
+   "banner": [
+    0,
+    0,
+    400,
+    40
+   ]
+  },
+  {
+   "name": "bd-6",
+   "file": "images/crowd/bd-6",
+   "kind": "street",
+   "pk": "92513260",
+   "url": "https://www.loc.gov/pictures/item/92513260/",
+   "caption": "Huge crowd of baseball fans watching baseball scoreboard during World Series game in New York City",
+   "banner": null
+  },
+  {
+   "name": "bd-7",
+   "file": "images/crowd/bd-7",
+   "kind": "scoreboard",
+   "pk": "93511657",
+   "url": "https://www.loc.gov/pictures/item/93511657/",
+   "caption": "Baseball fans - crowd in front of the City Hall, Detroit, Oct. 6, 1908, watching the Free Press scoreboard containing the Detroit-Chicago score when the Tigers cinched the American League",
+   "banner": [
+    0,
+    0,
+    400,
+    48
+   ]
+  },
+  {
+   "name": "bd-8",
+   "file": "images/crowd/bd-8",
+   "kind": "bleachers",
+   "pk": "2014700022",
+   "url": "https://www.loc.gov/pictures/item/2014700022/",
+   "caption": "Bleachers, Baker Bowl, Philadelphia (baseball)",
+   "banner": [
+    0,
+    196,
+    400,
+    240
+   ]
+  },
+  {
+   "name": "bd-9",
+   "file": "images/crowd/bd-9",
+   "kind": "fans",
+   "pk": "2001704381",
+   "url": "https://www.loc.gov/pictures/item/2001704381/",
+   "caption": "Baseball fans - at Polo Grounds, N.Y. April 12, 1911",
+   "banner": null
+  },
+  {
+   "name": "bd-10",
+   "file": "images/crowd/bd-10",
+   "kind": "packed",
+   "pk": "89714123",
+   "url": "https://www.loc.gov/pictures/item/89714123/",
+   "caption": "World Series crowd for first game, Polo Grounds, N.Y.",
+   "banner": null
+  },
+  {
+   "name": "bd-11",
+   "file": "images/crowd/bd-11",
+   "kind": "fans",
+   "pk": "2014682317",
+   "url": "https://www.loc.gov/pictures/item/2014682317/",
+   "caption": "Crowd in Polo Grounds grandstand; Cubs at Giants - final game (baseball)",
+   "banner": null
+  },
+  {
+   "name": "bd-12",
+   "file": "images/crowd/bd-12",
+   "kind": "cheering",
+   "pk": "2014682453",
+   "url": "https://www.loc.gov/pictures/item/2014682453/",
+   "caption": "Bryan audience (New York)",
+   "banner": null
+  }
+ ],
+ "textures": [
+  {
+   "style": "mixed",
+   "pk": "2014682277",
+   "url": "https://www.loc.gov/pictures/item/2014682277/",
+   "caption": "Crowd leaving Polo Grounds; Cubs at Giants - final game (baseball)",
+   "files": {
+    "64x32": "images/crowd/tex-mixed-64x32",
+    "128x64": "images/crowd/tex-mixed-128x64"
+   }
+  },
+  {
+   "style": "dark",
+   "pk": "2014688675",
+   "url": "https://www.loc.gov/pictures/item/2014688675/",
+   "caption": "A huge crowd",
+   "files": {
+    "64x32": "images/crowd/tex-dark-64x32",
+    "128x64": "images/crowd/tex-dark-128x64"
+   }
+  },
+  {
+   "style": "light",
+   "pk": "2014692002",
+   "url": "https://www.loc.gov/pictures/item/2014692002/",
+   "caption": "Crowd at Roosevelt's arrival - Chicago",
+   "files": {
+    "64x32": "images/crowd/tex-light-64x32",
+    "128x64": "images/crowd/tex-light-128x64"
+   }
+  },
+  {
+   "style": "sparse",
+   "pk": "2014700022",
+   "url": "https://www.loc.gov/pictures/item/2014700022/",
+   "caption": "Bleachers, Baker Bowl, Philadelphia (baseball)",
+   "files": {
+    "64x32": "images/crowd/tex-sparse-64x32",
+    "128x64": "images/crowd/tex-sparse-128x64"
+   }
+  },
+  {
+   "style": "packed",
+   "pk": "89714123",
+   "url": "https://www.loc.gov/pictures/item/89714123/",
+   "caption": "World Series crowd for first game, Polo Grounds, N.Y.",
+   "files": {
+    "64x32": "images/crowd/tex-packed-64x32",
+    "128x64": "images/crowd/tex-packed-128x64"
+   }
+  }
+ ],
+ "credit": "Library of Congress, Bain News Service collection (no known restrictions on publication)"
+}

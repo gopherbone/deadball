@@ -1,0 +1,32 @@
+{
+ "packs": [
+  {
+   "kind": "wax",
+   "name": "Wax Pack",
+   "price": 50,
+   "count": 5,
+   "blurb": "Five cards and a stick of gum older than you."
+  },
+  {
+   "kind": "cigar",
+   "name": "Cigar Box",
+   "price": 250,
+   "count": 10,
+   "blurb": "Ten cards in a real cigar box. Do not smoke the cards."
+  },
+  {
+   "kind": "starter",
+   "name": "Starter",
+   "price": 0,
+   "count": 8,
+   "blurb": "Free for new members. Eight commons, zero dignity."
+  },
+  {
+   "kind": "scandal",
+   "name": "Scandal Pack",
+   "price": 120,
+   "count": 6,
+   "blurb": "Six cards, mostly Moments. Ripped from the headlines."
+  }
+ ]
+}
