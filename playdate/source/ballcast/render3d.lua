@@ -425,6 +425,8 @@ local function decKey(kind, bs, side) return kind .. "/" .. bs .. "/" .. (kind =
 function R3.decisionPrepare(park, kind, bs, side)
   local pid = park and park.id or "park-farm"
   decClear[pid] = decClear[pid] or {}
+  local b = Cam.baked(park, "dec", decKey(kind, bs, side))
+  if b ~= nil then decClear[pid][decKey(kind, bs, side)] = b return b end
   local e = decisionEye(kind, bs, side)
   local x, y = Cam.pullIn(park, e[1], e[2], 0, 30, 12)
   local pick = false

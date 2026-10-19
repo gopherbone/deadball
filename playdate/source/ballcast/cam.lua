@@ -11,6 +11,7 @@
 
 import "ballcast/kit"
 import "ballcast/geo"
+import "ballcast/camcache"
 
 local gfx <const> = playdate.graphics
 local sqrt <const>, tan <const>, rad <const>, sin <const>, cos <const> = math.sqrt, math.tan, math.rad, math.sin, math.cos
@@ -643,6 +644,18 @@ function Cam.isClear(park, cam, pts)
   local j = Cam.junkInMiddle(park, cam)
   if j >= 0.05 then return false, "junk" end
   return true
+end
+
+--- The loader's clear-eye picks for the fixed cameras (changeover, bunt, decision), baked per
+--- park into ballcast/camcache.lua by playdate/tools/cambake.sh: each Cam.isClear check costs
+--- ~0.5 s on the device, ~8 s of a Pennant game's load. → the baked pick (false: vetted, not
+--- clear in this park), or nil (not baked, or Cam.bakeOff: compute it).
+function Cam.baked(park, kind, key)
+  if Cam.bakeOff then return nil end
+  local p = BallCast.CamCache and BallCast.CamCache[park and park.id or "park-farm"]
+  local k = p and p[kind]
+  if k == nil then return nil end
+  return k[key]
 end
 
 --- drop a park's occluder list (after the loader's checks; Cam.occluders rebuilds on demand)

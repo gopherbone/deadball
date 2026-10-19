@@ -461,6 +461,7 @@ static int tacDriver(PdGame* g, void* ud)
 			else if ( on1 && !on2 && g->outs < 2 && u < 0.6f ) pd_decide(g, "hitrun", NULL, NULL);
 			else if ( on1 && !on2 && u < 0.75f ) pd_decide(g, "steal", "1", NULL);
 			else if ( on2 && !on3 && u < 0.8f ) pd_decide(g, "steal", "2", NULL);
+			else if ( !on1 && !on2 && !on3 && g->strikes == 0 && u < 0.08f ) pd_decide(g, "bunt", NULL, NULL);   // for a hit
 		}
 	}
 	return 1;

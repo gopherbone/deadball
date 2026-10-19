@@ -1,7 +1,7 @@
 export * from "./types.ts";
 export { Rng } from "./rng.ts";
 export { generateWorld } from "./worldgen.ts";
-export { simulateGame, type GameSpec, type GameResult, type LogEv, type TeamBox, type BatLine, type PitchLine } from "./game.ts";
+export { simulateGame, type GameSpec, type GameResult, type LogEv, type BuntKind, type TeamBox, type BatLine, type PitchLine } from "./game.ts";
 export { ModSet, type Modifier, type Effect } from "./modifiers.ts";
 export { INCIDENTS, type IncidentKind } from "./incidents.ts";
 export { fly, fenceAt } from "./physics.ts";

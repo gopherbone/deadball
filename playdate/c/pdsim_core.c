@@ -1373,6 +1373,17 @@ static void strikeOut(PdGame* g, PdBatLine* bl, PdPitLine* pl)
 // a taken pitch: wild pitch chance, the umpire's call
 // log flags for the next take: 2 = the batter showed bunt and pulled the bat back (BallCast draws it)
 static int takeFlags = 0;
+
+// The kind of bunt on, for the log (BallCast's "bk"; log only, no effect on the play): 1 sac (the
+// manager's bunt with men on), 2 squeeze, 3 bunt for a hit (bases empty), 4 drag bunt (the same by a
+// left-handed batter). Pitch events carry it in flags bits 4-6 (with bit 1 = bunt); the bip in Bip.bunt.
+static const char* BK_NAME[5] = { "", "sac", "sq", "hit", "drag" };
+static int buntKindOf(const PdGame* g, const PdPlayer* B, int squeeze)
+{
+	if ( squeeze ) return 2;
+	if ( !g->bases[1].on && !g->bases[2].on && !g->bases[3].on ) return B->bats == 'L' ? 4 : 3;
+	return 1;
+}
 static void takePitch(PdGame* g, PdBatLine* bl, PdPitLine* pl, int batter, int pitcher, float control)
 {
 	PdSide* def = DEFS(g);
@@ -1443,9 +1454,11 @@ static void resolvePitch(PdGame* g)
 
 	// --- bunt
 	if ( bunting ) {
+		int bk = buntKindOf(g, B, squeeze);
+		int bflags = 2 | (bk << 4);
 		int attempt = squeeze || zone <= 1 || (zone == 2 && chance(R, 0.5f));
 		if ( !attempt ) {
-			takeFlags = 2;      // squared around, pulled it back (log only: no effect on the play)
+			takeFlags = bflags; // squared around, pulled it back (log only: no effect on the play)
 			takePitch(g, bl, pl, batter, def->pitcher, control);
 			takeFlags = 0;
 		} else {
@@ -1453,7 +1466,7 @@ static void resolvePitch(PdGame* g)
 			cP = clampf(cP, 0.1f, 0.97f);
 			if ( !chance(R, cP) ) {
 				g->strikes++;
-				logPitch(g, 'S', 2);
+				logPitch(g, 'S', bflags);
 				if ( squeeze && g->bases[3].on ) {
 					// hung out to dry
 					PdRunner r = g->bases[3];
@@ -1467,12 +1480,13 @@ static void resolvePitch(PdGame* g)
 				if ( g->strikes >= 3 && g->outs < 3 ) strikeOut(g, bl, pl);
 				else if ( g->outs >= 3 ) { g->paOver = 0; g->phase = PH_PA_END; }
 			} else if ( chance(R, 0.32f) ) {
-				if ( g->strikes < 2 ) { g->strikes++; logPitch(g, 'F', 2); }
-				else { g->strikes++; logPitch(g, 'S', 2); strikeOut(g, bl, pl); }   // foul bunt with two strikes
+				if ( g->strikes < 2 ) { g->strikes++; logPitch(g, 'F', bflags); }
+				else { g->strikes++; logPitch(g, 'S', bflags); strikeOut(g, bl, pl); }   // foul bunt with two strikes
 			} else {
-				logPitch(g, 'X', 2);
+				logPitch(g, 'X', bflags);
 				Ctx c; fillCtx(g, &c, batter);
 				Bip res; buntBall(&c, &res);
+				res.bunt = (uint8_t)bk;     // (the log's bunt kind; any nonzero = a bunt)
 				logBip(g, &res, 0, 0, 0);
 				applyBip(g, &res, batter, def->pitcher, bl, pl, g->outs);
 				endPA(g);
@@ -2457,13 +2471,14 @@ static void writeEvent(PdGame* g, const PdEvent* e, SB* s, int compact)
 		ewNum(&w, "px", (float)e->i1 / 100.f); ewNum(&w, "pz", (float)e->i2 / 100.f);
 		if ( e->i3 & 1 ) ewBool(&w, "ibb", 1);
 		if ( e->i3 & 2 ) ewBool(&w, "bunt", 1);
+		if ( (e->i3 >> 4) & 7 ) ewStr(&w, "bk", BK_NAME[((e->i3 >> 4) & 7) % 5]);
 		break;
 	}
 	case EV_BIP:
 		ewInt(&w, "ev", e->i0); ewInt(&w, "la", e->i1); ewInt(&w, "sp", e->i2); ewStr(&w, "res", BIP_NAME[e->a]);
 		if ( e->b < POS_N ) ewStr(&w, "f", pd_pos_name(e->b));
 		if ( e->c ) ewStr(&w, "out", OT_NAME[e->c]);
-		if ( e->d ) ewBool(&w, "bunt", 1);
+		if ( e->d ) { ewBool(&w, "bunt", 1); ewStr(&w, "bk", BK_NAME[e->d % 5]); }
 		if ( e->pathN ) {
 			const int16_t* p = &g->path[e->pathOff * 3];
 			ewKey(&w, "path");

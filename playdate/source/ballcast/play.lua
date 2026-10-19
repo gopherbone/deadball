@@ -339,11 +339,17 @@ Play.reachFor = reachFor
 ---------------------------------------------------------------------------
 -- bunts (Pennant: pdsim logs "bunt" on the pitch and the bip; a take while showing bunt is the
 -- fake / pull-back). Sac bunt: squares around early, the corners crash, the second baseman
--- covers first. Squeeze (a man on third): shows late, at the release, and the runner breaks with
--- the pitch. Drag (nobody on): from the stance at the last instant, gone up the line.
+-- covers first. Squeeze: shows late, at the release, and the runner breaks with the pitch. Drag /
+-- bunt for a hit: from the stance at the last instant, gone up the line. The kind is the engine's
+-- (bk on the pitch and the bip); logs without it fall back to the bases (third: squeeze, empty: drag).
 local CRASH <const> = { ["1B"] = { 34, 40 }, ["3B"] = { -34, 40 } }
 local COVER1 <const> = { 59, 61 }
+-- the engine's own word (pdsim logs bk = "sac" | "sq" | "hit" | "drag" on the bunt pitch and the
+-- bip); old logs: guessed from the bases
+local BK <const> = { sac = "sac", sq = "squeeze", hit = "drag", drag = "drag" }
 local function buntKind(b)
+  local k = b.e and BK[b.e.bk or ""]
+  if k then return k end
   local pre = b.pre
   if pre.b3 then return "squeeze" end
   if not (pre.b1 or pre.b2) then return "drag" end
@@ -2663,6 +2669,9 @@ function Play.changeoverPrepare(park, top, k)
   local Cam = BallCast.Cam
   local pid = park and park.id or "park-farm"
   coClear[pid] = coClear[pid] or {}
+  local key = (top and 1 or 0) .. "/" .. k
+  local b = Cam.baked(park, "co", key)
+  if b then coClear[pid][key] = b return b end
   local e, t, fov = coBase(top, k)
   local cands = coCandidates(park, e, t)
   local pick = cands[#cands]
@@ -2670,7 +2679,7 @@ function Play.changeoverPrepare(park, top, k)
     local cam = Cam.safeEye(park, { c[1], c[2], c[3], t[1], t[2], t[3], fov })
     if Cam.isClear(park, cam, Play.changeoverPts()) then pick = c break end
   end
-  coClear[pid][(top and 1 or 0) .. "/" .. k] = pick
+  coClear[pid][key] = pick
   return pick
 end
 
@@ -2693,9 +2702,9 @@ end
 -- angle is fixed per side, so it's vetted once per park at load (Play.playCamPrepare, Cam.isClear).
 local buntCams = {}     -- park id -> { [1] = {eye, target}, [-1] = ... }
 local function buntBase(sd, k)
-  if k == 1 then return { sd * 40, 22, 8 }, { -sd * 2, 9, 2 } end
-  if k == 2 then return { sd * 34, 8, 9 }, { -sd * 2, 11, 2 } end
-  return { sd * 40, 22, 16 }, { -sd * 2, 9, 2 }
+  if k == 1 then return { sd * 40, 22, 8 }, { -sd * 1, 5, 2 } end
+  if k == 2 then return { sd * 34, 8, 9 }, { -sd * 1, 7, 2 } end
+  return { sd * 40, 22, 16 }, { -sd * 1, 5, 2 }
 end
 local BUNT_FOV <const> = 46
 function Play.buntPts()
@@ -2706,6 +2715,8 @@ function Play.playCamPrepare(park, sd)
   local Cam = BallCast.Cam
   local pid = park and park.id or "park-farm"
   buntCams[pid] = buntCams[pid] or {}
+  local b = Cam.baked(park, "bunt", sd)
+  if b then buntCams[pid][sd] = b return b end
   local pick
   for k = 1, 3 do
     local e, t = buntBase(sd, k)

@@ -22,11 +22,17 @@ export interface GameSpec {
 export type Zone = 0 | 1 | 2 | 3; // heart, edge-in, edge-out, waste
 export type PitchResult = "B" | "C" | "S" | "F" | "X" | "H"; // ball, called K, swinging K, foul, in play, hit by pitch
 
+/** A bunt's kind, logged on the bunt pitch (incl. a take while showing bunt: the fake) and on the bip:
+ * the manager's sacrifice, a squeeze, or the batter bunting for a hit (a left-handed batter's drag
+ * bunt). Only the Pennant engine (playdate/c/pdsim_core.c) bunts today; this simulator never does,
+ * so its logs never carry it. BallCast reads it (ballcast/play.lua buntKind). */
+export type BuntKind = "sac" | "sq" | "hit" | "drag";
+
 export type LogEv =
   | { k: "half"; inn: number; top: boolean }
   | { k: "pa"; bat: string; pit: string }
-  | { k: "p"; t: PitchKind; v: number; z: Zone; r: PitchResult; b: number; s: number }
-  | { k: "bip"; ev: number; la: number; sp: number; res: BipKind; f?: Pos; out?: string; path?: number[] }
+  | { k: "p"; t: PitchKind; v: number; z: Zone; r: PitchResult; b: number; s: number; bunt?: boolean; bk?: BuntKind }
+  | { k: "bip"; ev: number; la: number; sp: number; res: BipKind; f?: Pos; out?: string; path?: number[]; bunt?: boolean; bk?: BuntKind }
   | { k: "mv"; id: string; from: number; to: number }
   | { k: "sb"; id: string; base: number; ok: boolean }
   | { k: "wp"; pb: boolean }
