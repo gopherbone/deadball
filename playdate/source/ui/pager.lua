@@ -118,7 +118,8 @@ function Pager.tick()
     lastPoll = now
     Api.get("/today", function() end, { fresh = true, bg = true })
   end
-  if not cur and #queue > 0 and not inBallCast() then
+  local top = App.top()
+  if not cur and #queue > 0 and not inBallCast() and not (top and top.holdToasts) then
     local g = table.remove(queue, 1)
     cur = g.note and g or render(g, nil)
     if cur.note then

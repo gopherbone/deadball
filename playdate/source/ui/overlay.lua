@@ -16,6 +16,9 @@ end
 function Toast.draw()
   if #toasts == 0 then return end
   local tst = toasts[1]
+  -- a moment that wants the screen (the loyalty card) holds the queue; errors still show
+  local top = App.top()
+  if top and top.holdToasts and tst.kind ~= "bad" then return end
   tst.t += 1
   local f = UI.fonts.bold
   local lines = Text.wrap(tst.text, f, 300)

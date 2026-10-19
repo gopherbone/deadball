@@ -989,6 +989,7 @@ Emerald Eel's Human Size Reference Model, credited here with thanks. Posed partl
   into an uncommitted cache at build time and are not shipped.
 
 ## Launcher art
+- `images/ui/bonus/*.png` (Bobby's Loyalty Club: the star-die holes and target rings, the hole-punch pliers keyframes, chad, the CHNK! burst, the inked rubber stamps): original, drawn by `tools/assets/bonus_art.py`; the stamp and burst lettering is set in the Playdate SDK's Oklahoma Bold.
 - `images/launcher/{launchImage,card}.png`: original drawing by the developer (source: `tools/assets/launcher/catalog_source.png`). `icon.png` is a bat-and-ball pixel icon drawn in the pipeline.
 
 ## Landmarks

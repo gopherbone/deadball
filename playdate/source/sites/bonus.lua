@@ -177,65 +177,100 @@ function Bonus.claim(j, cb)
 end
 
 -- Drawing the card ---------------------------------------------------------------------------
+-- All of it prerendered by tools/assets/bonus_art.py (images/ui/bonus/): the star die's rim, the
+-- target rings, the pliers keyframes (anchors in sites/bonus_art.lua), the chad, CHNK!, and the
+-- inked stamps in slam steps. Nothing rotates or dithers at runtime.
 
---- A punched hole: the card is gone there, so the table (dithered) shows through.
-local function hole(x, y, r, state, label)
-  if state == "punched" then
-    gfx.setPattern(UI.pat.dark)
-    gfx.fillCircleAtPoint(x, y, r)
-    gfx.setColor(gfx.kColorBlack)
-    gfx.drawCircleAtPoint(x, y, r)
-    gfx.drawCircleAtPoint(x, y, r + 1)
-  elseif state == "next" then
-    -- the one Bobby's about to punch: a dashed ring
-    gfx.setColor(gfx.kColorBlack)
-    local n = 16
-    for i = 0, n - 1, 2 do
-      local a0, a1 = i / n * 360, (i + 1) / n * 360
-      gfx.drawArc(x, y, r, a0, a1)
-    end
-  else
-    gfx.setColor(gfx.kColorBlack)
-    gfx.drawCircleAtPoint(x, y, r)
+
+local ART <const> = "images/ui/bonus/"
+local function art(name) return UI.image(ART .. name) end
+Bonus.art = art
+
+--- The star die's outline, centered on (0, 0) in an image of size 2(R+3)+1 (matches bonus_art.py).
+local starCache = {}
+local function starPoly(R)
+  local p = starCache[R]
+  if p then return p end
+  local c = R + 3
+  local pts = {}
+  for i = 0, 9 do
+    local r = (i % 2 == 0) and R or R * 0.42
+    local a = math.rad(-90 + i * 36)
+    pts[#pts + 1] = c + r * math.cos(a)
+    pts[#pts + 1] = c + r * math.sin(a)
   end
-  if label and state ~= "punched" then
-    Text.draw(label, x, y - 6, UI.fonts.bold, nil, "center")
-  end
+  p = playdate.geometry.polygon.new(table.unpack(pts))
+  p:close()
+  starCache[R] = p
+  return p
 end
-Bonus.hole = hole
 
---- The seven holes of a card view (server CardView) across [x, x + w). r: hole radius.
---- punching: the hole number being punched right now (drawn by the scene, not here).
-function Bonus.drawHoles(card, x, y, w, r, opts)
+--- A punched star at (x, y). mode "card": the cut is transparent (the backdrop shows through the
+--- card image); otherwise (a page canvas) the hole shows a dark table. Then the rim: a 1 px edge
+--- and the cut wall's shadow along the top and left.
+local function punchedHole(x, y, R, mode)
+  local c = R + 3
+  local poly = starPoly(R):copy()
+  poly:translate(x - c, y - c)
+  if mode == "card" then
+    gfx.setColor(gfx.kColorClear)
+  else
+    gfx.setPattern(UI.pat.dark)
+  end
+  gfx.fillPolygon(poly)
+  gfx.setColor(gfx.kColorBlack)
+  local rim = art("hole-rim-" .. R)
+  if rim then rim:draw(x - c, y - c) end
+end
+Bonus.punchedHole = punchedHole
+
+--- The seven holes of a card view (server CardView) across [x, x + w). R: 11 (the card) or 7.
+--- opts: labels, punching (hole n drawn unpunched: the press is about to happen), mode ("card").
+function Bonus.drawHoles(card, x, y, w, R, opts)
   opts = opts or {}
   local holes = list(card, "holes")
   local n = math.max(1, #holes)
   local step = w // n
   local nextN = (card.punchedToday or card.lapsed) and -1 or ((card.hole or 0) + 1)
   if card.lapsed then nextN = 1 end
+  if opts.punching then nextN = opts.punching end
+  local c = R + 3
   for i, h in ipairs(holes) do
     local cx = x + step * (i - 1) + step // 2
-    local state = (h.stamped and not card.lapsed and i ~= opts.punching) and "punched" or (i == nextN and "next" or "empty")
-    hole(cx, y, r, state, (h.packs or 0) > 0 and state ~= "punched" and "\u{2605}" or nil)
+    if h.stamped and not card.lapsed and i ~= opts.punching then
+      punchedHole(cx, y, R, opts.mode)
+    else
+      local ring = art(((i == nextN) and "ring-next-" or ((h.packs or 0) > 0 and "ring-pack-" or "ring-")) .. R)
+      if ring then ring:draw(cx - c, y - c) end
+    end
     if opts.labels then
       local f = opts.labelFont or UI.fonts.body
       local lab = (h.packs or 0) > 0 and "PACK" or ("$" .. (h.cash or 0))
-      Text.draw(lab, cx, y + r + 3, f, nil, "center")
+      Text.draw(lab, cx, y + R + 4, f, nil, "center")
     end
   end
   return step
 end
 
+--- The inked stamp `name` at slam step k (1 = 1.6x ... 4 = 1x), centered on (cx, cy).
+local function drawStamp(name, k, cx, cy)
+  local img = art(name .. "-" .. math.max(1, math.min(4, k)))
+  if not img then return end
+  local w, h = img:getSize()
+  img:draw(cx - w // 2, cy - h // 2)
+end
+Bonus.drawStamp = drawStamp
+
 -- The punch-card moment ------------------------------------------------------------------------
 
-local Punch = {}
+local Punch = { holdToasts = true }   -- toasts and pages wait until the card is put away
 Punch.__index = Punch
 Sites.PunchCard = Punch
 
 local CW <const>, CH <const> = 330, 150
 local CX <const>, CY <const> = 35, 34
 local HOLES_X <const>, HOLES_Y <const>, HOLES_W <const> = 72, 86, 250
-local HOLE_R <const> = 12
+local HOLE_R <const> = 11
 
 local function askedToday(card)
   return Game.settings.punchAsked == card.utcDay
@@ -287,7 +322,23 @@ function Punch:enter(args)
   Sfx.chime()
 end
 
---- The card's static face (repainted only when its state changes).
+local stubCache = {}
+--- The stub's sideways lettering (rotated once per card number, not per frame).
+local function stubImage(total)
+  local key = total or 0
+  local img = stubCache[key]
+  if img then return img end
+  local s = gfx.image.new(CH - 16, 40, gfx.kColorClear)
+  gfx.pushContext(s)
+  Text.draw("REGULAR", (CH - 16) // 2, 2, UI.fonts.bold, nil, "center")
+  Text.draw("No. " .. string.format("%04d", key), (CH - 16) // 2, 18, UI.fonts.body, nil, "center")
+  gfx.popContext()
+  img = s:rotatedImage(-90)
+  stubCache[key] = img
+  return img
+end
+
+--- The card's static face (repainted only when its state changes: shown, and at the slam).
 function Punch:paint()
   local card = self.card or {}
   local img = gfx.image.new(CW + 4, CH + 4, gfx.kColorClear)
@@ -305,12 +356,7 @@ function Punch:paint()
   for yy = 6, CH - 8, 4 do gfx.fillRect(sx, yy, 1, 2) end
   gfx.fillCircleAtPoint(sx, 0, 4)
   gfx.fillCircleAtPoint(sx, CH, 4)
-  local stub = gfx.image.new(CH - 16, 40, gfx.kColorClear)
-  gfx.pushContext(stub)
-  Text.draw("REGULAR", (CH - 16) // 2, 2, UI.fonts.bold, nil, "center")
-  Text.draw("No. " .. string.format("%04d", card.total or 0), (CH - 16) // 2, 18, UI.fonts.body, nil, "center")
-  gfx.popContext()
-  stub:rotatedImage(-90):draw(8, 8)
+  stubImage(card.total):draw(8, 8)
   -- masthead
   local title = Draw.wordartImage("BOBBY'S LOYALTY CLUB", UI.fonts.slab)
   local tw = title:getSize()
@@ -320,8 +366,8 @@ function Punch:paint()
   Text.draw("EST. 1996", CW - 10, 32, UI.fonts.body, nil, "right")
   gfx.drawLine(sx + 8, 47, CW - 10, 47)
   Text.draw("Show card. Get stuff. Don't ask.", sx + 10, 50, UI.fonts.body)
-  -- the holes (the one being punched is drawn by the scene on top)
-  Bonus.drawHoles(card, HOLES_X, HOLES_Y, HOLES_W, HOLE_R, { labels = true, punching = self.punching })
+  -- the holes: punched ones are cut out of the card (the dimmed desktop shows through)
+  Bonus.drawHoles(card, HOLES_X, HOLES_Y, HOLES_W, HOLE_R, { labels = true, punching = self.punching, mode = "card" })
   -- footer: the streak and the fine print
   gfx.drawLine(sx + 8, CH - 30, CW - 10, CH - 30)
   local streak = card.streak or 0
@@ -353,6 +399,7 @@ function Punch:AButtonDown()
     self.state = "wait"
     self.t0 = self.t
     self.target = (self.card and self.card.lapsed) and 1 or ((self.card and self.card.hole or 0) % 7 + 1)
+    self.punching = self.target
     Sfx.select()
     Api.post("/bonus/punch", {}, function(err, d) self:punched(err, d) end)
   elseif self.state == "done" then
@@ -371,6 +418,7 @@ function Punch:punched(err, d)
   if err or type(d) ~= "table" then
     Toast.show(Api.errorText(err), "bad")
     self.state = "show"
+    self.punching = nil
     return
   end
   self.res = d
@@ -383,20 +431,19 @@ function Punch:punched(err, d)
     Game.setAccount(d.account)
   end
   Bonus.absorb(d)
+  self.card = d.card or self.card
   if d.punched == false then
     Game.moneyHold = false
-    self.card = d.card or self.card
+    self.punching = nil
     self:paint()
     self.state = "done"
     return
   end
-  -- repaint the card as it is now, minus the hole being punched (the press reveals it)
-  self.card = d.card or self.card
+  -- the card as it is now, with the target hole still whole: the slam cuts it
   self.punching = self.target
   self:paint()
   self.state = "punch"
-  self.t0 = self.t
-  self.chad = {}
+  self.pt = -1
 end
 
 local function rewardChip(text)
@@ -415,22 +462,23 @@ local function rewardChip(text)
   return img
 end
 
-local packStamp = nil
-local function bigStamp(lines)
-  local f = UI.fonts.big
-  local w = 0
-  for _, l in ipairs(lines) do w = math.max(w, f:getTextWidth(l)) end
-  local img = gfx.image.new(w + 20, #lines * 22 + 12, gfx.kColorClear)
-  gfx.pushContext(img)
-  gfx.setColor(gfx.kColorWhite)
-  gfx.fillRect(2, 2, w + 16, #lines * 22 + 8)
-  gfx.setColor(gfx.kColorBlack)
-  gfx.setLineWidth(3)
-  gfx.drawRect(2, 2, w + 16, #lines * 22 + 8)
-  gfx.setLineWidth(1)
-  for i, l in ipairs(lines) do Text.draw(l, (w + 20) // 2, 5 + (i - 1) * 22, f, nil, "center") end
-  gfx.popContext()
-  return img:rotatedImage(-12)
+-- The pliers' keyframes, untweened: { frame, dx, dy } relative to the target hole. The approach
+-- plays while the server answers (then holds on the hover), the rest after the slam.
+local APPROACH <const> = { { 1, 46, -34 }, { 1, 46, -34 }, { 2, 18, -12 }, { 2, 18, -12 }, { 3, 0, -2 } }
+local AFTER <const> = {   -- index = frames since the slam
+  { 4, 0, 0 }, { 4, 0, 0 }, { 4, 0, 0 }, { 4, 0, 0 }, { 5, 0, -3 }, { 5, 0, -3 }, { 5, 0, -3 },
+  { 2, 18, -12 }, { 2, 18, -12 }, { 1, 46, -34 }, { 1, 46, -34 },
+}
+local SHAKE <const> = { { 3, -2 }, { -2, 2 } }       -- the two frames after a slam
+local CHAD_AT <const> = 4        -- the jaws open: the chad flips out
+local CHIP_AT <const> = 8        -- the reward rises
+local STAMP_AT <const> = 13      -- a full (or new) card: the rubber stamp comes down
+local DONE_AT <const> = 40
+
+local function drawPliers(f, hx, hy, ox, oy)
+  local img = art("punch-" .. f)
+  local an = BonusArt and BonusArt.punch and BonusArt.punch[f]
+  if img and an then img:draw(hx - an[1] + ox, hy - an[2] + oy) end
 end
 
 function Punch:update()
@@ -440,78 +488,74 @@ function Punch:update()
   -- the card slides up
   local k = Game.settings.reduceMotion and 1 or math.min(1, self.t / 6)
   local oy = math.floor((1 - (1 - (1 - k) ^ 3)) * 150)
-  self.img:draw(CX, CY + oy)
-  if k < 1 then return end
   local hx, hy = holeAt(self.card or {}, self.target or 1)
-  -- the hole punch: hovers over the next hole, slams on the response, lifts away
-  local tool = nil
+  -- the slam's shake: the card and everything on it
+  local sx, sy = 0, 0
+  local pt = self.state == "punch" and self.pt or nil
+  local stampOn = self.res and self.res.reward and ((self.res.reward.packs or 0) > 0 or self.res.lapsed)
+  if pt and pt >= 0 then
+    local sh = SHAKE[pt + 1] or (stampOn and SHAKE[pt - STAMP_AT - 2]) or nil
+    if sh then sx, sy = sh[1], sh[2] end
+  end
+  self.img:draw(CX + sx, CY + oy + sy)
+  if k < 1 then return end
+  hx, hy = hx + sx, hy + sy
+  local wf = self.t - (self.t0 or 0)
   if self.state == "wait" then
-    tool = -16 - math.floor(math.abs(math.sin((self.t - (self.t0 or 0)) / 3)) * 6)
+    local a = APPROACH[math.min(#APPROACH, wf + 1)]
+    -- (the hover bobs a pixel while the server thinks)
+    drawPliers(a[1], hx, hy, a[2], a[3] - ((wf >= #APPROACH and (self.t // 6) % 2 == 0) and 1 or 0))
   elseif self.state == "punch" then
-    local pt = self.t - self.t0
-    if pt < 4 then tool = -16 + pt * 5
-    elseif pt < 10 then tool = 2
-    elseif pt < 20 then tool = 2 - (pt - 10) * 4 end
-    if pt == 4 then
-      Sfx.stamp()
-      -- chad: little paper circles spray from the hole
-      for i = 1, 8 do self.chad[i] = { x = hx, y = hy, vx = math.random(-30, 30) / 10, vy = math.random(-40, -10) / 10 } end
-      self.punching = nil
-      self:paint()
-    end
-    if pt == 10 then
-      Game.moneyHold = false
-      local r = self.res and self.res.reward or {}
-      if (r.packs or 0) > 0 then
-        Sfx.roar()
-        packStamp = packStamp or bigStamp({ "FULL CARD!", "FREE PACK" })
-      else
-        Sfx.kaching()
+    -- the slam waits for the approach to finish
+    if self.pt < 0 and wf < #APPROACH then
+      local a = APPROACH[wf + 1]
+      drawPliers(a[1], hx, hy, a[2], a[3])
+    else
+      self.pt += 1
+      pt = self.pt
+      if pt == 0 then
+        Sfx.stamp()
+        self.punching = nil
+        self:paint()   -- the hole is cut
       end
-      self.chip = rewardChip("+" .. (r.label or "?"))
-    end
-    if pt >= 34 then self.state = "done" end
-  end
-  if self.state == "wait" and (self.t // 10) % 2 == 0 then
-    -- the next hole blinks while the server thinks
-    gfx.setColor(gfx.kColorWhite)
-    gfx.fillCircleAtPoint(hx, hy, HOLE_R - 2)
-    gfx.setColor(gfx.kColorBlack)
-  end
-  if tool then
-    -- the hole punch (side view): a lever on a post, the pin comes down into the hole
-    local pinB = hy + tool - 2          -- the pin's tip: in the hole at the slam
-    local pinT = pinB - 22
-    gfx.setColor(gfx.kColorBlack)
-    gfx.fillRect(hx - 3, pinT, 7, pinB - pinT)                -- the pin
-    gfx.fillRoundRect(hx - 30, pinT - 9, 66, 10, 4)          -- the lever
-    gfx.fillRect(hx + 24, pinT - 2, 9, pinB - pinT + 6)       -- the post
-    gfx.setColor(gfx.kColorWhite)
-    gfx.drawLine(hx - 26, pinT - 6, hx + 30, pinT - 6)       -- chrome
-    gfx.fillRect(hx - 1, pinT + 2, 2, pinB - pinT - 4)
-    gfx.setColor(gfx.kColorBlack)
-  end
-  -- chad falls
-  for _, c in ipairs(self.chad or {}) do
-    c.x += c.vx
-    c.y += c.vy
-    c.vy += 0.6
-    if c.y < 240 then
-      gfx.setColor(gfx.kColorWhite)
-      gfx.fillCircleAtPoint(c.x, c.y, 3)
-      gfx.setColor(gfx.kColorBlack)
-      gfx.drawCircleAtPoint(c.x, c.y, 3)
+      local a = AFTER[pt + 1]
+      if a then drawPliers(a[1], hx, hy, a[2], a[3]) end
+      if pt <= 5 then
+        local burst = art(pt == 0 and "chnk-1" or "chnk-2")
+        if burst then local bw, bh = burst:getSize() burst:draw(hx - 62 - bw // 2, hy - 34 - bh // 2) end
+      end
+      if pt == CHAD_AT then
+        self.chad = { x = hx - 6, y = hy + 2, vx = -2.4, vy = -2.5, f = 0 }
+      end
+      if pt == CHIP_AT then
+        Game.moneyHold = false
+        local r = self.res and self.res.reward or {}
+        if (r.packs or 0) > 0 then Sfx.roar() else Sfx.kaching() end
+        self.chip = rewardChip("+" .. (r.label or "?"))
+      end
+      if stampOn and pt == STAMP_AT + 3 then Sfx.stamp() end
+      if pt >= DONE_AT + (stampOn and 10 or 0) then self.state = "done" end
     end
   end
   -- the reward floats up out of the hole
   if self.chip then
-    local pt = self.t - (self.t0 or 0) - 10
+    local rise = math.min(18, (self.pt or 0) - CHIP_AT)
     local cw = self.chip:getSize()
-    self.chip:draw(math.max(4, math.min(396 - cw, hx - cw // 2)), hy - 40 - math.min(18, pt))
+    self.chip:draw(math.max(4, math.min(396 - cw, hx - cw // 2)), hy - 40 - rise)
   end
-  if packStamp and self.res and self.res.reward and (self.res.reward.packs or 0) > 0 and self.chip then
-    local w, h = packStamp:getSize()
-    packStamp:draw(200 - w // 2, CY + 38 - h // 2)
+  -- the chad: flips (4 prerendered faces) and falls
+  local c = self.chad
+  if c and c.y < 250 then
+    c.x += c.vx
+    c.y += c.vy
+    c.vy += 0.7
+    c.f += 1
+    local img = art("chad-" .. ((c.f // 2) % 4 + 1))
+    if img then local w, h = img:getSize() img:draw(math.floor(c.x) - w // 2, math.floor(c.y) - h // 2) end
+  end
+  -- a full card (or a new one): the stamp comes down, 1.6x -> 1x in four prerendered steps
+  if stampOn and self.pt and self.pt >= STAMP_AT then
+    drawStamp((self.res.reward.packs or 0) > 0 and "stamp-pack" or "stamp-new", self.pt - STAMP_AT + 1, 200 + sx, CY + 62 + sy)
   end
   -- the bar under the card: the line, then the buttons
   local by = CY + CH + 12
@@ -563,25 +607,6 @@ function Odd:loaded()
   if self.data.b then Bonus.absorb(self.data.b) end
 end
 
-local paidImg = nil
-local function paidStamp()
-  if paidImg then return paidImg end
-  local f = UI.fonts.head
-  local w = f:getTextWidth("PAID") + 12
-  local img = gfx.image.new(w + 4, 22, gfx.kColorClear)
-  gfx.pushContext(img)
-  gfx.setColor(gfx.kColorWhite)
-  gfx.fillRect(2, 2, w, 18)
-  gfx.setColor(gfx.kColorBlack)
-  gfx.setLineWidth(2)
-  gfx.drawRect(2, 2, w, 18)
-  gfx.setLineWidth(1)
-  Text.draw("PAID", 2 + w // 2, 4, f, nil, "center")
-  gfx.popContext()
-  paidImg = img:rotatedImage(-10)
-  return paidImg
-end
-
 local function countdown(ms)
   if not ms or ms <= 0 then return "now" end
   if ms < 3600000 then return Fmt.countdown(ms) end
@@ -591,6 +616,10 @@ end
 --- One job row. Returns the y below it.
 function Odd:jobRow(L, j, y)
   local x = 6
+  -- a solid white plate under the row: the page's dither stays in the margins, not behind the words
+  gfx.setColor(gfx.kColorWhite)
+  gfx.fillRect(2, y, W - 4, ROW_H - 1)
+  gfx.setColor(gfx.kColorBlack)
   -- the box: empty, a check (done), filled (paid)
   gfx.setColor(gfx.kColorWhite)
   gfx.fillRect(x, y + 3, 16, 16)
@@ -618,7 +647,7 @@ function Odd:jobRow(L, j, y)
     local where = ({ bets = "Bobby's", gossip = "Gossip Board", news = "SportsWire", bbs = "the Clubhouse", scores = "Scores", market = "Bidz-R-Us", shop = "Card Shop", fanpage = "a fan page", syndicate = "Syndicate" })[j.go or ""] or "the desktop"
     Text.draw("\u{25b6} " .. where, bx, y + 18, UI.fonts.body)
   elseif j.status == "claimed" then
-    Text.draw("Done and paid.", bx, y + 18, UI.fonts.body)
+    Text.draw("Done and paid: " .. (j.reward and j.reward.label or ""), bx, y + 18, UI.fonts.body)
   end
   -- the right column: the reward, CLAIM when it's owed, PAID once it's paid
   local rx = W - rw
@@ -626,25 +655,20 @@ function Odd:jobRow(L, j, y)
   local petty = (self.data.b and self.data.b.pettyCash and self.data.b.pettyCash.left) or 1
   local owed = j.status == "done" and (j.weekly or petty > 0)
   if j.status == "claimed" then
-    Text.draw(label, rx + rw - 6, y + 2, UI.fonts.bold, nil, "right")
     local fx = self.paidFx
-    if fx and fx.id == j.id and fx.t < 12 then
-      L:live(rx, y, rw, ROW_H - 2, function(_, sx, sy)
+    -- the stamp owns the reward column (the amount moved to "Done and paid: $5")
+    local px, py = rx + rw // 2 - 2, y + 18
+    if fx and fx.id == j.id and fx.t < 10 then
+      -- the PAID stamp slams: 1.6x -> 1x in four prerendered steps, a thunk and a 2-frame shake
+      L:live(rx - 30, y - 12, rw + 30, ROW_H + 20, function(_, sx, sy)
         fx.t += 1
-        local img = paidStamp()
-        local w, h = img:getSize()
-        if fx.t < 5 then
-          img:drawScaled(sx + rw // 2 - math.floor(w * (2 - fx.t / 5)) // 2, sy + 4, 2 - fx.t / 5)
-        else
-          if fx.t == 5 then Sfx.stamp() end
-          img:draw(sx + rw // 2 - w // 2, sy + 9)
-        end
-        if fx.t >= 11 then self.paidFx = nil self.needRender = true end
+        if fx.t == 4 then Sfx.stamp() end
+        local shake = (fx.t == 4 and 2) or (fx.t == 5 and -1) or 0
+        Bonus.drawStamp("stamp-paid", fx.t, sx + (px - rx + 30) + shake, sy + (py - y + 12) - shake)
+        if fx.t >= 9 then self.paidFx = nil self.needRender = true end
       end)
     else
-      local img = paidStamp()
-      local w = img:getSize()
-      img:draw(rx + rw // 2 - w // 2, y + 9)
+      Bonus.drawStamp("stamp-paid", 4, px, py)
     end
   elseif owed then
     gfx.fillRect(rx, y + 2, rw - 4, 32)
@@ -692,7 +716,7 @@ function Odd:layout(L)
   Text.draw("BOBBY'S LOYALTY CLUB", 12, y + 5, UI.fonts.head)
   local streak = card.streak or 0
   Text.draw("Streak " .. streak .. (streak == 1 and " day" or " days") .. "  \u{2022}  best " .. (card.best or 0), 12, y + 22, UI.fonts.body)
-  Bonus.drawHoles(card, 168, y + 18, 220, 9, { labels = true })
+  Bonus.drawHoles(card, 168, y + 18, 220, 7, { labels = true })
   if card.punchedToday == false then
     L:button("Punch it!", 12, y + 38, 90, 18, function() Sites.PunchCard.open({ cb = function() self:reload(true) end }) end,
       { id = "punch", hint = "One punch a real day (UTC). Day 7: a free pack." })
@@ -721,6 +745,10 @@ function Odd:layout(L)
   -- the drawer
   local pc = d.pettyCash or {}
   y += 6
+  -- the fine print sits on a white plate too
+  gfx.setColor(gfx.kColorWhite)
+  gfx.fillRect(2, y - 3, W - 4, 88)
+  gfx.setColor(gfx.kColorBlack)
   local max, left = pc.max or 4, pc.left or 0
   Text.draw("PETTY CASH", 8, y, UI.fonts.bold)
   local px = 8 + UI.fonts.bold:getTextWidth("PETTY CASH") + 8
