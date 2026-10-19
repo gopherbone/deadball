@@ -16,6 +16,7 @@ import "ballcast/looks"
 local gfx <const> = playdate.graphics
 local floor <const>, sqrt <const>, abs <const>, min <const>, max <const> = math.floor, math.sqrt, math.abs, math.min, math.max
 local sin <const>, cos <const>, exp <const>, log <const> = math.sin, math.cos, math.exp, math.log
+local atan2 = math.atan
 
 BallCast = BallCast or {}
 local Play = {}
@@ -335,6 +336,73 @@ local function reachFor(px, pz)
 end
 Play.reachFor = reachFor
 
+---------------------------------------------------------------------------
+-- bunts (Pennant: pdsim logs "bunt" on the pitch and the bip; a take while showing bunt is the
+-- fake / pull-back). Sac bunt: squares around early, the corners crash, the second baseman
+-- covers first. Squeeze (a man on third): shows late, at the release, and the runner breaks with
+-- the pitch. Drag (nobody on): from the stance at the last instant, gone up the line.
+local CRASH <const> = { ["1B"] = { 34, 40 }, ["3B"] = { -34, 40 } }
+local COVER1 <const> = { 59, 61 }
+local function buntKind(b)
+  local pre = b.pre
+  if pre.b3 then return "squeeze" end
+  if not (pre.b1 or pre.b2) then return "drag" end
+  return "sac"
+end
+Play.buntKind = buntKind
+
+-- the pitch beat of a bunt: when he shows it, the defense's crash, the runner's break
+local function planBuntPitch(b, plan, tRel, tPlate)
+  local e = b.e
+  local kind = buntKind(b)
+  local fake = e.r == "B" or e.r == "C"
+  local show = kind == "sac" and max(0.15, tRel - 0.7) or (kind == "squeeze" and tRel - 0.05 or tPlate - 0.32)
+  if fake then show = max(0.15, tRel - 0.6) end
+  local pb = { kind = kind, show = show, fake = fake, pull = tPlate - 0.2, contact = e.r == "X" or e.r == "F",
+    miss = e.r == "S", foul = e.r == "F" }
+  plan.bunt = pb
+  plan.swing = nil
+  if kind ~= "drag" then
+    -- the corners crash as he squares (the squeeze: with the pitch), the second baseman to first
+    local c0 = kind == "squeeze" and tRel or show
+    for pos, c in pairs(CRASH) do
+      local a = ALIGN[pos]
+      fmove(plan, pos, c0 + 0.1, tPlate + 0.25, a[1], a[2], a[1] + (c[1] - a[1]) * 0.8, a[2] + (c[2] - a[2]) * 0.8)
+    end
+    plan.chargers = { ["1B"] = true, ["3B"] = true }
+    local a2 = ALIGN["2B"]
+    fmove(plan, "2B", tRel + 0.1, tPlate + 0.6, a2[1], a2[2], a2[1] + (COVER1[1] - a2[1]) * 0.5, a2[2] + (COVER1[2] - a2[2]) * 0.5)
+  end
+  if kind == "squeeze" then plan.squeezeBreak = tRel end
+  -- he shows it: cut to the low bunt angle (the bip beat that follows keeps it)
+  if kind ~= "drag" or e.r == "X" then
+    cam(plan, max(0.05, (kind == "drag" and tPlate - 0.5 or show) - 0.12), "dugout", { play = "bunt", side = batSide(b.pre.bat) })
+  end
+  if pb.foul then
+    -- a foul bunt: dribbled off the end of the bat, out of play by the line
+    local side = K.hash01(b.i, 143) < 0.5 and -1 or 1
+    plan.ball[#plan.ball] = nil     -- (the swinging foul's long line)
+    seg(plan, { kind = "line", t0 = tPlate, t1 = tPlate + 0.35, ax = 0, ay = 1, az = 2.4, bx = side * 7, by = -2, bz = 0, arc = 2 })
+    seg(plan, { kind = "roll", t0 = tPlate + 0.35, t1 = tPlate + 1.0, ax = side * 7, ay = -2, bx = side * 16, by = -6, hop = 0.8, hops = 2 })
+  end
+  if fake then pop(plan, tPlate + 0.2, "PULLS IT BACK", 0, -6, 9, 1.0)
+  elseif kind == "squeeze" then pop(plan, tRel + 0.05, "SQUEEZE ON!", 0, 30, 8, 1.0) end
+end
+
+-- the batter in a bunt pitch beat → track, track time (nil: his usual stance)
+local function bunterAt(pb, tau, tPlate)
+  if tau < pb.show then return nil end
+  if pb.fake then
+    if tau < pb.pull then return "square", tau - pb.show end
+    return "bunt_pull", tau - pb.pull
+  end
+  if pb.kind == "drag" then return "drag_bunt", tau - (tPlate - Anim.keyTime("drag_bunt", 3)) end
+  if pb.contact and tau >= tPlate - Anim.keyTime("bunt_contact", 2) and not (pb.foul and tau > tPlate + 0.45) then
+    return "bunt_contact", tau - (tPlate - Anim.keyTime("bunt_contact", 2))
+  end
+  return "square", tau - pb.show
+end
+
 local function planPitch(b, tl, plan)
   local e = b.e
   local D = DUR()
@@ -445,6 +513,7 @@ local function planPitch(b, tl, plan)
     plan.umpCall = tPlate + 0.2
     umpCall(plan, tPlate + 0.2, "ump_strike", 0.8)
   end
+  if e.bunt then planBuntPitch(b, plan, tRel, tPlate) end
   if r ~= "X" and r ~= "H" then plan.receive = tPlate end
   if r == "H" then plan.hbp = tPlate end
   if b.walk then
@@ -490,6 +559,262 @@ end
 
 local function deepCamFor(sp) if sp < -14 then return "deepL" elseif sp > 14 then return "deepR" else return "deepC" end end
 
+---------------------------------------------------------------------------
+-- catches with reach: the fielders' glove anchors (anim_tracks.json reach.fieldx/fieldin, from
+-- the pipeline's IK-posed frames) say where each catch pose holds the glove relative to his
+-- feet; the play is planned backwards from where the ball is, so the glove meets the ball:
+-- pick the pose for the geometry (how far he has to go vs. the hang time, how low the ball is,
+-- the wall), find the moment the ball comes down to that glove height, then put his feet at
+-- ball - rotate(glove offset, his facing). Whole-body "IK" from prerendered poses: no drawn limbs.
+local REACH = nil
+local function gloveOf(set, f)
+  if not REACH then Anim.load(); REACH = Anim.reach or {} end
+  local r = REACH[set]
+  local g = r and r.glove and r.glove[f]
+  local gx, gy, gz = 0, 1.5, 4
+  if g then gx, gy, gz = g[1], g[2], g[3] end
+  -- forward and up as the sprite actually shows them (the side view, after the pipeline's fit
+  -- shrink of the long poses: the layout is drawn smaller than life): 6.2 ft = 40 px at 1x
+  local cx, cy = Pup.gloveCell(set, f)
+  if cx then gy, gz = (cx - 14) * 0.155, (42 - cy) * 0.155 end
+  return gx, gy, gz
+end
+Play.gloveOf = gloveOf
+-- style → animatic track, fieldx frame holding the glove at the catch, the track key that's the catch
+local CATCH <const> = {
+  basket = { "basket", 4, 2 }, stab = { "stab_high", 5, 2 }, side = { "reach_side", 6, 2 },
+  backhand = { "backhand", 7, 2 }, shoe = { "shoestring", 8, 3 }, layout = { "dive_layout", 9, 3 },
+  slide = { "slide_catch", 10, 4 }, leap = { "leap_wall", 12, 4 }, crash = { "crash", 13, 1 },
+  juggle = { "juggle", 5, 2 }, bobble = { "bobble", 5, 2 },
+}
+Play.CATCH = CATCH
+local AIRBORNE <const> = { layout = true, leap = true }
+local CALLS <const> = { layout = "WHAT A GRAB!", slide = "SLIDING CATCH!", shoe = "SHOESTRING!", leap = "AT THE WALL!",
+  crash = "CRASHES INTO THE WALL!", juggle = "JUGGLES IT... HELD!", basket = "BASKET CATCH" }
+
+--- the descending index where the ball has come down to z (else the last point)
+local function downTo(p, z)
+  return catchIndex(p, z)
+end
+
+--- Plan a caught fly: style, timing, where he stands. → fx, fy (ball at the catch), tc, done
+local function planFlyCatch(b, plan, f, fa, path, fence, park)
+  local n = #path // 3
+  local i6 = downTo(path, 6)
+  local bx6, by6 = path[i6 * 3 + 1], path[i6 * 3 + 2]
+  local need = dist2(fa[1], fa[2], bx6, by6)
+  local avail = max(0.3, i6 * 0.1 - 0.35) * FSPEED
+  local m = need / avail
+  local apex = pathMaxZ(path)
+  local lx, ly = path[(n - 1) * 3 + 1], path[(n - 1) * 3 + 2]
+  local landD = sqrt(lx * lx + ly * ly)
+  local h = K.hash01(b.i, 131)
+  local of = not INFIELD[f]
+  local style
+  if of and landD > fence - 16 and need > 40 then style = (apex > 45 and h < 0.6) and "leap" or "crash"
+  elseif of and m > 0.78 and need > 40 then style = h < 0.65 and "layout" or "slide"
+  elseif of and m > 0.68 and apex < 50 then style = "shoe"
+  elseif m < 0.5 and apex > 55 then style = h < 0.22 and "basket" or "stab"
+  else
+    -- running catch: glove side (his left) or backhand by which side of his run it comes down
+    local rx, ry = bx6 - fa[1], by6 - fa[2]
+    local cross = rx * by6 - ry * bx6          -- (sign: is the ball left of the line home->him)
+    style = (need < 12) and "stab" or ((cross > 0) == (fa[1] < 0) and "side" or "backhand")
+  end
+  if (style == "stab" or style == "side" or style == "basket") and K.hash01(b.i, 137) < 0.07 then style = "juggle" end
+  local C = CATCH[style]
+  local gx, gy, gz = gloveOf("fieldx", C[2])
+  -- the catch moment: the ball comes down to the glove (a dive reaches it low; at the wall, the
+  -- crossing of the warning track)
+  local ci
+  if style == "leap" or style == "crash" then
+    ci = n - 1
+    for i = 0, n - 1 do
+      local x, y = path[i * 3 + 1], path[i * 3 + 2]
+      if sqrt(x * x + y * y) >= fence - 4 then ci = i break end
+    end
+  else
+    ci = downTo(path, max(1.2, gz))
+  end
+  local tc = ci * 0.1
+  local bx, by, bz = path[ci * 3 + 1], path[ci * 3 + 2], path[ci * 3 + 3]
+  -- his facing: the way he runs (camped under it: toward home)
+  local camp = style == "basket" or style == "stab" or style == "juggle"
+  local face = (need > 10 and not camp) and atan2(by - fa[2], bx - fa[1]) or atan2(-by, -bx)
+  if style == "leap" or style == "crash" then face = atan2(by, bx) end      -- back to the plate, at the wall
+  local fx, fy = cos(face), sin(face)
+  local rx, ry = fy, -fx                                                    -- his right
+  local wx, wy = gx * rx + gy * fx, gx * ry + gy * fy
+  local px, py = bx - wx, by - wy
+  local pd = sqrt(px * px + py * py)
+  if pd > fence - 3 then px, py = px * (fence - 3) / pd, py * (fence - 3) / pd end
+  local lift = max(0, bz - gz)
+  if not AIRBORNE[style] then lift = 0 end
+  local tk = Anim.keyTime(C[1], C[3])
+  local tTrack = tc - tk
+  local run = dist2(fa[1], fa[2], px, py)
+  local tStart = max(0.25, tTrack - run / FSPEED - (camp and 0.6 or 0.25))
+  local tArrive = camp and max(tStart + 0.1, tc - 0.6) or max(tStart + 0.1, tTrack)
+  fmove(plan, f, tStart, tArrive, fa[1], fa[2], px, py)
+  if run > 55 then plan.chase = { pos = f, t0 = tStart, t1 = tArrive, glove = tArrive - 0.45 } end
+  local hold = AIRBORNE[style] and 1.0 or ((style == "slide" or style == "shoe") and 0.9 or 0.6)
+  local c = fcatch(plan, f, tc, style, hold)
+  c.track, c.t0, c.t1 = C[1], min(tTrack, tc - 0.05), max(tc + hold, tTrack + Anim.length(C[1]))
+  c.face, c.gx, c.gy, c.gz, c.lift, c.style = face, wx, wy, gz, lift, style
+  c.fx, c.fy = px, py
+  plan.flyCatch = c
+  plan.catchStyle, plan.catchM, plan.catchNeed = style, m, need
+  plan.catchZ = max(2, bz - 1)
+  seg(plan, { kind = "path", t0 = 0, t1 = tc, pts = path })
+  if style == "juggle" then
+    -- off the heel of the glove, up a couple of feet, gloved again
+    seg(plan, { kind = "line", t0 = tc, t1 = tc + 0.33, ax = bx, ay = by, az = bz, bx = bx + wx * 0.2, by = by + wy * 0.2, bz = bz, arc = 3 })
+    c.ct2 = tc + 0.33
+  end
+  -- the call, the slo-mo and the juice for the big ones
+  local call = CALLS[style]
+  if call then pop(plan, tc + 0.12, call, bx, by, bz + 9, 1.2) else pop(plan, tc + 0.1, "CAUGHT", bx, by, 14, 1.0) end
+  plan.juiceX = plan.juiceX or {}
+  local JX = plan.juiceX
+  local dx, dy = fx, fy
+  if style == "layout" or style == "slide" or style == "shoe" then
+    local tl = tc + (style == "layout" and 0.1 or 0.0)
+    JX[#JX + 1] = { k = "dust", t0 = tl, t1 = tl + 0.55, x = px + fx * 2, y = py + fy * 2, z = 0, s = 1.25 }
+    JX[#JX + 1] = { k = "skid", t0 = tl, t1 = tl + 0.8, x = px, y = py, z = 0, s = 1.1, dx = dx, dy = dy, len = 9 }
+    JX[#JX + 1] = { k = "dust", t0 = tl + 0.25, t1 = tl + 0.7, x = px + fx * 6, y = py + fy * 6, z = 0, s = 0.8 }
+  end
+  if style == "leap" or style == "crash" then
+    local tw = tc + (style == "leap" and 0.13 or 0.0)
+    local wd = fence + 0.5
+    local ang = atan2(by, bx)
+    JX[#JX + 1] = { k = "wall", t0 = tw, t1 = tw + 0.4, x = cos(ang) * wd, y = sin(ang) * wd, z = 6, s = 1.2, kick = true }
+    JX[#JX + 1] = { k = "dust", t0 = tw + 0.3, t1 = tw + 0.8, x = px, y = py, z = 0, s = 0.9 }
+    plan.shake = tw
+    sfx(plan, tw, "thud")
+  end
+  if style == "leap" or style == "layout" or style == "slide" or style == "crash" then
+    plan.slo = { tc - 0.6, tc + 0.3 }
+    -- (robbed: only when it was carrying over the wall where he caught it)
+    local robbed = style == "leap" and park and bz > (Cam.wallAt(park, math.deg(atan2(bx, by))) or 10) + 0.5
+    b.big = b.big or (robbed and "ROBBED!" or "WHAT A CATCH")
+    plan.bannerT = tc + 0.5
+    sfx(plan, tc + 0.05, "roar", 0.9)
+    plan.crowdPop = tc + 0.05
+  end
+  return bx, by, tc, tc + hold + (AIRBORNE[style] and 0.3 or 0), style
+end
+
+-- the bunt in play: deadened off the bat into a short roll with a little hop; the fielder the
+-- engine named charges it (barehand and throw on the run, or glove it and set), the corners and
+-- the pitcher crash, the second baseman covers first. → ball spot x, y, fielded at, ball done
+local BUNT_SPOT <const> = { C = { 2.5, 8, 0.75 }, P = { 5, 27, 1.15 }, ["1B"] = { 15, 26, 1.25 }, ["3B"] = { -15, 26, 1.25 } }
+local function planBuntBip(b, plan, throws)
+  local e = b.e
+  local kind = buntKind(b)
+  local f = e.f or "C"
+  local h = K.hash01(b.i, 141)
+  local side = h < 0.5 and -1 or 1
+  local sp = BUNT_SPOT[f] or { side * 8, 30, 1.3 }
+  local fx = (f == "C" or f == "P") and side * sp[1] or sp[1]
+  local fy, ta = sp[2] + (h - 0.5) * 4, sp[3]
+  plan.bunt = { kind = kind, bip = true }
+  local bs = batSide(b.pre.bat)
+  -- where the defenders are as the ball comes off the bat (sac/squeeze: already crashing)
+  local start = { P = { 0, 56 }, C = { 0, -3.2 } }
+  for pos, c in pairs(CRASH) do
+    local a = ALIGN[pos]
+    start[pos] = kind == "drag" and a or { a[1] + (c[1] - a[1]) * 0.8, a[2] + (c[2] - a[2]) * 0.8 }
+  end
+  local tDone
+  if e.out == "PO" then
+    -- popped up: a soft looper the catcher or the pitcher gets under
+    local px, py = fx * 0.6, max(4, fy * 0.6)
+    ta = 1.25
+    seg(plan, { kind = "line", t0 = 0, t1 = ta, ax = -bs * 0.6, ay = 1.2, az = 2.6, bx = px, by = py, bz = 4.5, arc = 13 })
+    local st = start[f] or ALIGN[f] or { 0, 30 }
+    fmove(plan, f, 0.15, ta - 0.25, st[1], st[2], px, py - 1)
+    fcatch(plan, f, ta, "high", 0.6)
+    seg(plan, { kind = "hold", t0 = ta, t1 = ta + 0.6, ax = px, ay = py - 1, az = 5.6 })
+    pop(plan, ta + 0.1, "POPPED IT UP", px, py, 12, 1.1)
+    fx, fy, tDone = px, py - 1, ta + 0.6
+  else
+    -- off the bat: dead, a little hop, a short roll
+    local x0, y0 = -bs * 0.8, 1.6
+    seg(plan, { kind = "line", t0 = 0, t1 = 0.12, ax = x0, ay = y0, az = 2.4, bx = x0 + fx * 0.08, by = y0 + fy * 0.08, bz = 0.2, arc = 0.6 })
+    seg(plan, { kind = "roll", t0 = 0.12, t1 = ta, ax = x0 + fx * 0.08, ay = y0 + fy * 0.08, bx = fx, by = fy, hop = 1.3, hops = 2 })
+    plan.juiceX = plan.juiceX or {}
+    plan.juiceX[#plan.juiceX + 1] = { k = "dust", t0 = 0.12, t1 = 0.5, x = x0 + fx * 0.08, y = y0 + fy * 0.08, z = 0, s = 0.6 }
+    -- the charge: the fielder runs through the ball; the others crash toward it and peel off
+    local st = start[f] or ALIGN[f] or { 0, 40 }
+    local dd = dist2(st[1], st[2], fx, fy)
+    local ux, uy = (fx - st[1]) / max(dd, 1), (fy - st[2]) / max(dd, 1)
+    local gx, gy = fx - ux * 1.6, fy - uy * 1.6
+    plan.chargers = { [f] = true }
+    for pos, p0 in pairs(start) do
+      if pos ~= f and pos ~= "C" then
+        plan.chargers[pos] = true
+        fmove(plan, pos, 0.05, ta + 0.2, p0[1], p0[2], p0[1] + (fx - p0[1]) * 0.45, p0[2] + (fy - p0[2]) * 0.45)
+      end
+    end
+    local bare = f ~= "C" and (kind == "drag" or K.hash01(b.i, 145) < 0.45)
+    if bare then
+      -- barehanded on the run and fired off balance
+      local kt2 = Anim.keyTime("barehand_throw", 2)
+      local t0 = ta - kt2
+      fmove(plan, f, 0.05, max(0.15, t0), st[1], st[2], gx, gy)
+      ftrack(plan, f, t0, t0 + Anim.length("barehand_throw") + 0.2, "barehand_throw")
+      seg(plan, { kind = "hold", t0 = ta, t1 = t0 + Anim.keyTime("barehand_throw", 4), ax = fx, ay = fy, az = 2.5 })
+      tDone = t0 + Anim.keyTime("barehand_throw", 4)
+      plan.barehand = { pos = f, t = ta }
+      pop(plan, ta + 0.05, "BAREHANDED!", fx, fy, 10, 1.0)
+    else
+      fmove(plan, f, 0.05, ta - 0.08, st[1], st[2], gx, gy)
+      fcatch(plan, f, ta, "low", 0.3)
+      seg(plan, { kind = "hold", t0 = ta, t1 = ta + 0.3, ax = fx, ay = fy, az = 2 })
+      tDone = ta + 0.3
+    end
+    fx, fy = gx, gy
+  end
+  -- the second baseman covers first
+  local a2 = ALIGN["2B"]
+  local c2x, c2y = a2[1] + (COVER1[1] - a2[1]) * 0.5, a2[2] + (COVER1[2] - a2[2]) * 0.5
+  if kind == "drag" then c2x, c2y = a2[1], a2[2] end
+  fmove(plan, "2B", 0.05, max(0.6, tDone - 0.2), c2x, c2y, COVER1[1], COVER1[2])
+  plan.cover1 = "2B"
+  -- the throw: the lead runner (FC), else first
+  local res = e.res
+  if e.out ~= "PO" then
+    if res == "FC" then
+      local lead = 2
+      for _, m in ipairs(b.mvs) do if m.to == -1 and m.from > 0 then lead = min(4, m.from + 1) end end
+      local bx2, by2 = basePos(lead)
+      throws[#throws + 1] = { t0 = tDone, ax = fx, ay = fy, bx = bx2, by = by2, base = lead, noTrack = plan.barehand ~= nil,
+        rcv = lead == 3 and "SS" or nil }
+    elseif res == "ROE" then
+      local bx2, by2 = basePos(1)
+      throws[#throws + 1] = { t0 = tDone, ax = fx, ay = fy, bx = bx2 + 25, by = by2 - 30, base = 1, wild = true, noTrack = plan.barehand ~= nil }
+      pop(plan, tDone + 0.6, "E-" .. f, bx2, by2, 10, 1.4)
+    else
+      local bx2, by2 = basePos(1)
+      throws[#throws + 1] = { t0 = tDone, ax = fx, ay = fy, bx = bx2, by = by2, base = res == "OUT" and 1 or nil, rcv = "2B",
+        noTrack = plan.barehand ~= nil }
+    end
+  end
+  -- the calls, the camera: low from the far side of the line (the ball side's opposite), then
+  -- high for the throw
+  if kind == "drag" and res == "1B" then b.big = "BUNT SINGLE!"
+  elseif kind == "squeeze" then
+    local scored = false
+    for _, m in ipairs(b.mvs) do if m.from == 3 and m.to == 4 then scored = true end end
+    if scored then b.big = "SQUEEZE!" end
+  end
+  if e.out ~= "PO" then pop(plan, 0.2, kind == "drag" and "DRAG BUNT!" or "LAID DOWN!", fx * 0.5, fy * 0.5 + 4, 9, 0.9) end
+  cam(plan, 0, "dugout", { play = "bunt", side = bs })
+  cam(plan, tDone - 0.05, "high")
+  sfx(plan, 0, "thud", 0.5)
+  return fx, fy, (e.out == "PO") and ta or ta, tDone
+end
+
 local function planBip(b, tl, plan)
   local e = b.e
   local park = tl.meta.park or {}
@@ -529,7 +854,19 @@ local function planBip(b, tl, plan)
     local hang = (n - 1) * 0.1
     local caught = (res == "OUT" or res == "SF" or res == "FOUL_OUT" or res == "DP" and e.out ~= "DP") and not isHit
     if res == "DP" and e.out ~= "DP" then caught = true end
-    if caught then
+    if caught and not uL then
+      local fence = Cam.fenceAt(park, sp)
+      local tc
+      fx, fy, tc, tBallDone = planFlyCatch(b, plan, f, fa, path, fence, park)
+      tFielded = tc
+      plan.catchT, plan.catchPos = tc, { fx, fy }
+      local c = plan.flyCatch
+      sfx(plan, tc, "pop")
+      local tx, ty = basePos(res == "SF" and 0 or 2)
+      if res ~= "SF" then tx, ty = 0, 118 end
+      throws[#throws + 1] = { t0 = tBallDone, ax = c.fx, ay = c.fy, bx = tx, by = ty, from = f }
+      fx, fy = c.fx, c.fy
+    elseif caught then
       local ci = catchIndex(path, 6)
       local fence = Cam.fenceAt(park, sp)
       local wi = nil
@@ -632,11 +969,24 @@ local function planBip(b, tl, plan)
         end
         local fa2 = ALIGN[fpos]
         local tGet = hang + 1.1
-        fmove(plan, fpos, 0.3, tGet, fa2[1], fa2[2], rx, ry)
-        if dist2(fa2[1], fa2[2], lx, ly) < 25 and res == "ROE" then
-          ftrack(plan, fpos, hang - 0.2, hang + 0.9, "dive")
-          pop(plan, hang, "E-" .. (f or "?"), lx, ly, 10, 1.4)
+        if res == "ROE" and dist2(fa2[1], fa2[2], lx, ly) < (hang - 0.5) * FSPEED then
+          -- he gets there and it pops off the heel of his glove: the stab, the squash, the lunge after it
+          local tb = hang - Anim.keyTime("bobble", 2) - 0.04
+          local sx, sy = lx - dx * 2, ly - dy * 2
+          fmove(plan, fpos, 0.3, max(0.4, tb), fa2[1], fa2[2], sx, sy)
+          ftrack(plan, fpos, tb, hang + 0.7, "bobble")
+          fmove(plan, fpos, hang + 0.7, tGet, sx, sy, rx, ry)
+          pop(plan, hang + 0.05, "OFF THE GLOVE!", lx, ly, 12, 1.3)
+          plan.juiceX = plan.juiceX or {}
+          plan.juiceX[#plan.juiceX + 1] = { k = "pop", t0 = hang - 0.04, t1 = hang + 0.2, x = lx, y = ly, z = 5, s = 0.9 }
           sfx(plan, hang, "ooh")
+        else
+          fmove(plan, fpos, 0.3, tGet, fa2[1], fa2[2], rx, ry)
+          if dist2(fa2[1], fa2[2], lx, ly) < 25 and res == "ROE" then
+            ftrack(plan, fpos, hang - 0.2, hang + 0.9, "dive")
+            pop(plan, hang, "E-" .. (f or "?"), lx, ly, 10, 1.4)
+            sfx(plan, hang, "ooh")
+          end
         end
         seg(plan, { kind = "hold", t0 = tGet, t1 = tGet + 0.35, ax = rx, ay = ry, az = 3 })
         fcatch(plan, fpos, tGet, "low", 0.35)
@@ -651,6 +1001,14 @@ local function planBip(b, tl, plan)
         sfx(plan, hang * 0.6, "roar", 0.7)
       end
     end
+    -- running it down (a tracking shot alongside him), the dive / slide / leap (low, side-on)
+    local cs = plan.catchStyle
+    if plan.chase and plan.chase.t1 - plan.chase.t0 > 1.4 and plan.catchT then
+      cam(plan, plan.chase.t0 + 0.5, deepCamFor(sp), { play = "track", side = K.hash01(b.i, 151) < 0.5 and 1 or -1 })
+    end
+    if (cs == "layout" or cs == "slide" or cs == "shoe" or cs == "leap" or cs == "crash") and plan.catchT then
+      cam(plan, plan.catchT - 0.85, deepCamFor(sp), { play = "dive" })
+    end
     if res == "FOUL_OUT" then cam(plan, 0, "high")
     elseif not uL and res ~= "HR" and K.hash01(b.i, 53) < 0.3 then cam(plan, 0, "wallLow", { side = sp < 0 and 1 or -1 })
     else cam(plan, 0, deepCamFor(sp), { follow = true }) end
@@ -660,6 +1018,8 @@ local function planBip(b, tl, plan)
       cam(plan, (plan.wallT or tBallDone) + 3.6, K.hash01(b.i, 55) < 0.4 and "blimp" or "high")
     end
     if res ~= "HR" then sfx(plan, 0, "crack") end
+  elseif e.bunt then
+    fx, fy, tFielded, tBallDone = planBuntBip(b, plan, throws)
   else
     -- 2) ground ball / line drive on the ground --------------------------------
     local ev = (e.ev or 80)
@@ -726,11 +1086,11 @@ local function planBip(b, tl, plan)
     local d = dist2(th.ax, th.ay, th.bx, th.by)
     local spd = th.slow and throwSpeed * 0.75 or throwSpeed
     local t1 = th.t0 + d / spd
-    local rcv = (not th.wild) and receiverFor(th.bx, th.by, from) or nil
+    local rcv = (not th.wild) and (th.rcv or receiverFor(th.bx, th.by, from)) or nil
     local gz = GLOVE_Z.throw
     if rcv and rcv ~= "C" then th.bx, th.by = cover(plan, rcv, th.bx, th.by, th.ax, th.ay, t1) end
     seg(plan, { kind = "line", t0 = th.t0, t1 = t1, ax = th.ax, ay = th.ay, az = 5, bx = th.bx, by = th.by, bz = rcv and gz or 4, arc = d / 14 / (spd / THROW), throw = true })
-    if not plan.leap then ftrack(plan, from, th.t0 - 0.27, th.t0 + 0.46, "fielder_throw") end
+    if not plan.leap and not th.noTrack then ftrack(plan, from, th.t0 - 0.27, th.t0 + 0.46, "fielder_throw") end
     if th.base then outAt[th.base] = t1 end
     lastT = t1
     if th.relay then
@@ -763,6 +1123,8 @@ local function planBip(b, tl, plan)
     if m.from ~= m.to then
       local t0
       if m.from == 0 and res == "HR" then t0 = 0.85; plan.homerBatter = true   -- admire it first
+      elseif m.from == 0 and plan.bunt then t0 = 0.4                            -- (the give, then go)
+      elseif m.from == 3 and plan.bunt and plan.bunt.kind == "squeeze" then t0 = -0.45   -- broke with the pitch
       elseif m.from == 0 then t0 = 0.25
       elseif caughtFly then t0 = (tFielded or 1) + 0.1
       else t0 = 0.05 end
@@ -790,7 +1152,8 @@ local function planBip(b, tl, plan)
               umpCall(plan, oa, "ump_strike", 0.9)
             end
           end
-          pop(plan, oa or r.t1, "OUT!", select(1, basePos(tgt)), select(2, basePos(tgt)), 10, 1.0)
+          local sac = plan.bunt and plan.bunt.kind == "sac" and m.from == 0 and res == "OUT"
+          pop(plan, oa or r.t1, sac and "SACRIFICE" or "OUT!", select(1, basePos(tgt)), select(2, basePos(tgt)), 10, 1.0)
           sfx(plan, oa or r.t1, "ooh")
         end
       else
@@ -1306,7 +1669,30 @@ end
 
 -- a catch: held keys around the moment the ball hits the glove (t = pe.ct)
 --   reach: stretch up · SQUASH + shake on the pop · settle     scoop: crouch · squash · rise
+-- airborne catches: untweened lift steps around the catch (the dive's flight, the leap)
+local function catchLift(pe, tau)
+  local L = pe.lift or 0
+  local style = pe.style
+  if style == "leap" then
+    local k = tau - pe.ct
+    if k < -0.2 then return 0 elseif k < -0.1 then return 0.45 * (L + 1.5) elseif k < 0.12 then return L + 1.5
+    elseif k < 0.2 then return 0.5 * (L + 1.5) end
+    return 0
+  elseif style == "layout" then
+    local k = tau - pe.ct
+    if k < -0.17 then return 0 elseif k < -0.07 then return 0.5 + L * 0.6 elseif k < 0.06 then return 0.4 + L
+    elseif k < 0.13 then return 0.25 end
+    return 0
+  end
+  return 0
+end
+Play.catchLift = catchLift
+
 local function drawCatch(R, variant, pe, x, y, tau, flip, seed, face)
+  if pe.track then
+    putTrack(R, variant, pe.track, tau - pe.t0, x, y, catchLift(pe, tau), flip, seed, nil, nil, pe.face or face)
+    return
+  end
   local k = tau - pe.ct
   if pe.catch == "dive" then
     putTrack(R, variant, "dive", k + 0.2, x, y, 0, flip, seed, nil, nil, face)
@@ -1876,12 +2262,20 @@ function Play.drawWorld(R, view, b, tau)
         if pos == "C" then x, y = 0, -3.2 end
         local fc = yawOf(ddx, ddy, yawTo(x, y, 0, 0))
         if pe.track == "fielder_throw" then fc = yawOf(-x, 60 - y, fc) end
+        if pe.track == "barehand_throw" then local tx, ty = basePos(1); fc = yawTo(x, y, tx, ty) end
         putTrack(R, defV, pe.track, tau - pe.t0, x, y, 0, false, seed, pe.vib or big, nil, fc)
       else
         local frame = (pe and pe.pose) or (moving and runFrame(tau + i * 0.05)) or "ready"
         if pos == "P" and not pe and not moving then frame = (b.kind == "pa" or b.kind == "sub") and "set" or "ready" end
         if pos == "C" then x, y = 0, -3.2; if not pe then frame = "catcher" end end
-        if moving then
+        local ch = plan.chase
+        if moving and ch and ch.pos == pos then
+          -- running it down: looking back over his shoulder, the glove up late
+          putTrack(R, defV, tau < ch.glove and "run_look" or "run_glove", tau - ch.t0, x, y, 0, false, seed, nil, nil, yawOf(ddx, ddy, 0))
+        elseif moving and plan.chargers and plan.chargers[pos] then
+          -- crashing in on the bunt
+          putTrack(R, defV, "charge", tau + i * 0.1, x, y, 0, false, seed, nil, nil, yawOf(ddx, ddy, 0))
+        elseif moving then
           -- fielders on the run: alternate stride frames with a little bob
           local up = frame == "run2" and -1 or 0
           R:puppet(defV, frame, x, y, 0, false, 0, up, yawOf(ddx, ddy, 0), seed)
@@ -1947,6 +2341,14 @@ function Play.drawWorld(R, view, b, tau)
     if idle then
       local fr, dx, ivib = idleBatter(idle, n)
       putIdle(R, offV, fr, x - side * dx, y - (dx > 0 and 1.2 or 0), 0, fl, seed, n, ivib or vib, bf)
+    elseif b.kind == "bip" and plan.bunt then
+      -- (the bunt beat starts at the give: the rest of the contact, then out of the box)
+      local tr = plan.bunt.kind == "drag" and "drag_bunt" or "bunt_contact"
+      putTrack(R, offV, tr, tau + Anim.keyTime(tr, plan.bunt.kind == "drag" and 3 or 2), x, y, 0, fl, seed, vib, nil, bf)
+    elseif plan.bunt and pitchPlan and bunterAt(plan.bunt, tau, pitchPlan.tPlate) then
+      local tr, tt = bunterAt(plan.bunt, tau, pitchPlan.tPlate)
+      if plan.bunt.miss and tau > pitchPlan.tPlate and tau < pitchPlan.tPlate + 0.4 then vib = 1 end   -- whiffed it
+      putTrack(R, offV, tr, tt, x, y, 0, fl, seed, vib, nil, bf)
     elseif b.kind == "bip" then
       if plan.homerBatter then putTrack(R, offV, "homer_batter", tau, x, y, 0, fl, seed, vib, nil, bf)
       else putTrack(R, offV, "swing", kt.swingLen + tau, x, y, 0, fl, seed, vib, nil, bf) end
@@ -2001,6 +2403,11 @@ function Play.drawWorld(R, view, b, tau)
           local l = sqrt(dx * dx + dy * dy)
           x, y = x + dx / l * steps * 2.2, y + dy / l * steps * 2.2
           putIdle(R, offV, steps > 0 and "ready" or "stand", x, y - 2, 0, false, 200 + bi * 7, n, big, yawTo(x, y - 2, nx, ny))
+        elseif bi == 3 and plan.squeezeBreak and tau > plan.squeezeBreak then
+          -- the squeeze: he's gone with the pitch
+          local d = min((tau - plan.squeezeBreak) * RUN, 14)
+          local hx, hy = x + (0 - x) * d / 90, y + (0 - y) * d / 90
+          putTrack(R, offV, "run", tau - plan.squeezeBreak, hx, hy, 0, false, 200 + bi * 7, nil, nil, yawTo(hx, hy, 0, 0))
         else
           putIdle(R, offV, "stand", x - 4, y - 2, 0, false, 200 + bi * 7, n, big, yawTo(x - 4, y - 2, 0, 0))
         end
@@ -2145,8 +2552,17 @@ function Play.drawWorld(R, view, b, tau)
       -- it's in his glove: ride with him, drawn in front of him
       local gx, gy = fielderAt(plan, c.pos, tau)
       if c.pos == "C" then gx, gy = 0, -3.2 end
-      bx, by, bz = gx, gy, GLOVE_Z[c.catch] or 5
-      inGlove = true
+      if c.gz then
+        -- in the glove of the reach pose (then held up as he pops up)
+        if tau < c.ct + 0.3 then bx, by, bz = gx + c.gx, gy + c.gy, c.gz + catchLift(c, tau)
+        else bx, by, bz = gx, gy, 6.2 end
+        if c.ct2 and tau < c.ct2 then bx = nil end      -- (juggled: the line segment has it)
+        inGlove = bx ~= nil
+        if not bx then bx, by, bz = ballAt(plan, tau) end
+      else
+        bx, by, bz = gx, gy, GLOVE_Z[c.catch] or 5
+        inGlove = true
+      end
     end
   end
   local hide = false
@@ -2269,6 +2685,86 @@ function Play.changeoverShot(r, b, tau, k)
     if x ~= e[1] or y ~= e[2] then return { x, y, e[3] }, t, fov end
   end
   return e, t, fov
+end
+
+---------------------------------------------------------------------------
+-- play cameras (render3d R3.shot → Play.playShot for opt.play): built on the field, pulled in
+-- off the stands (Cam.pullIn), and audited across every park (devharness camaudit). The bunt
+-- angle is fixed per side, so it's vetted once per park at load (Play.playCamPrepare, Cam.isClear).
+local buntCams = {}     -- park id -> { [1] = {eye, target}, [-1] = ... }
+local function buntBase(sd, k)
+  if k == 1 then return { sd * 40, 22, 8 }, { -sd * 2, 9, 2 } end
+  if k == 2 then return { sd * 34, 8, 9 }, { -sd * 2, 11, 2 } end
+  return { sd * 40, 22, 16 }, { -sd * 2, 9, 2 }
+end
+local BUNT_FOV <const> = 46
+function Play.buntPts()
+  return { { 0, 0, 3 }, { 0, -3.2, 2 }, { 15, 26, 1 }, { -15, 26, 1 }, { 0, 27, 1 }, { 2.5, 8, 1 } }
+end
+--- loader step: vet the bunt angle for one side of the plate in this park
+function Play.playCamPrepare(park, sd)
+  local Cam = BallCast.Cam
+  local pid = park and park.id or "park-farm"
+  buntCams[pid] = buntCams[pid] or {}
+  local pick
+  for k = 1, 3 do
+    local e, t = buntBase(sd, k)
+    local cam = Cam.safeEye(park, { e[1], e[2], e[3], t[1], t[2], t[3], BUNT_FOV })
+    if Cam.isClear(park, cam, Play.buntPts()) then pick = { e, t } break end
+  end
+  buntCams[pid][sd] = pick or { buntBase(sd, 3) }
+  return buntCams[pid][sd]
+end
+
+local function inFieldEye(park, ex, ey, tx, ty)
+  local Cam = BallCast.Cam
+  if park and Cam.pullIn then return Cam.pullIn(park, ex, ey, tx, ty, 6) end
+  return ex, ey
+end
+
+--- → eye, target, fov for a play camera (nil: let the named shot frame it)
+function Play.playShot(r, b, tau, cc)
+  local opt = cc.opt
+  local kind = opt.play
+  local plan = b.plan
+  local park = r and r.park
+  if kind == "bunt" then
+    local sd = opt.side or 1
+    local pid = park and park.id or "park-farm"
+    local c = buntCams[pid] and buntCams[pid][sd]
+    if c then return c[1], c[2], BUNT_FOV end
+    local e, t = buntBase(sd, 1)
+    return e, t, BUNT_FOV
+  end
+  local c = plan.flyCatch
+  if not c or not c.fx then return nil end
+  if kind == "track" then
+    -- alongside him from the infield side, a little behind: he runs across and away
+    local x, y = fielderAt(plan, c.pos, tau)
+    local d = sqrt(x * x + y * y)
+    local ux, uy = -x / max(d, 1), -y / max(d, 1)          -- toward home
+    local sd = opt.side or 1
+    local ex, ey = x + ux * 58 - uy * sd * 24, y + uy * 58 + ux * sd * 24
+    ex, ey = inFieldEye(park, ex, ey, x, y)
+    -- (aimed a touch ahead of him, toward where he's going: he stays left of centre, running in)
+    local dx, dy = c.fx - x, c.fy - y
+    local dl = sqrt(dx * dx + dy * dy)
+    local ax = dl > 1 and min(6, dl) / dl or 0
+    return { ex, ey, 11 }, { x + dx * ax, y + dy * ax, 3 }, 32
+  elseif kind == "dive" then
+    -- low and side-on to his run, nearer the plate: the full stretch of the dive across the frame
+    local px, py = c.fx, c.fy
+    local fx, fy = cos(c.face), sin(c.face)
+    local vx, vy = -fy, fx
+    if vx * -px + vy * -py < 0 then vx, vy = -vx, -vy end
+    local d = sqrt(px * px + py * py)
+    local ux, uy = -px / max(d, 1), -py / max(d, 1)
+    local ex, ey = px + vx * 38 + ux * 14, py + vy * 38 + uy * 14
+    ex, ey = inFieldEye(park, ex, ey, px, py)
+    local z = c.style == "leap" and 7 or 4.5
+    return { ex, ey, z }, { px + fx * 2, py + fy * 2, c.style == "leap" and 6 or 2.2 }, c.style == "leap" and 40 or 34
+  end
+  return nil
 end
 
 --- Field points the changeover shot must keep in view (for a camera "is the eye clear of the

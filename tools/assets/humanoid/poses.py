@@ -370,6 +370,130 @@ W_TABLE = {"name": "walker", "outfit": "player", "props": PLAYER, "view": SIDE, 
                       ("drag_a", P(walk(0, slump=0.8, stride=0.7, drag=True), _props=("bat",))),
                       ("drag_b", P(walk(1, slump=0.8, stride=0.7, drag=True), _props=("bat",)))]}
 SEQ.append(W_TABLE)
+# ---------------------------------------------------------------- bunter (sac bunt, squeeze, drag, fake)
+# A right-handed batter (as batter_seq: he faces 'forward' = the plate, the pitcher on his left).
+# Squaring around = turning ~80 deg to his left to face the pitcher, bat level out over the plate
+# (the top hand slid up the barrel); pivot = feet stay, hips and shoulders open; give = down
+# low as the ball hits; pull back = bat back up to the shoulder (the fake / slash); go = the
+# first step out of the box, the bat dropping behind him (bunt for a hit).
+BU_ARMS = {"arm.R": {"ik": V(0.30, 0.04, 1.14), "pole": V(-0.2, -1, -0.4)},
+           "arm.L": {"ik": V(0.22, -0.16, 1.08), "pole": V(0.2, -1, -0.4)},
+           "hand.R": V(0.6, 0.2, 0.4), "bat": V(0.25, 1, 0.06)}
+BU_SQUARE = P({"root": (0, 0, 80), "pelvis": V(0, -0.02, 0.80), "hips": (16, 0, 0), "spine": (6, 0, 0), "neck": (-14, 0, 0),
+               "leg.L": {"ik": V(0.16, 0.06, 0.08), "pole": V(0.3, 1, 0)},
+               "leg.R": {"ik": V(-0.16, -0.02, 0.08), "pole": V(-0.3, 1, 0)},
+               "arm.R": {"ik": V(-0.02, 0.36, 1.16), "pole": V(-1, -0.3, -0.5)},
+               "arm.L": {"ik": V(0.16, 0.30, 1.12), "pole": V(1, -0.3, -0.5)},
+               "hand.R": V(0.3, 0.6, 0.6), "bat": V(-1, 0.15, 0.05)})
+BU_PIVOT = P(B_STANCE,
+             {"pelvis": V(0, -0.02, 0.80), "hips": (12, 0, 40), "spine": (8, 0, 38), "neck": (-12, 0, 0), "head": (0, 0, 0),
+              "arm.R": {"ik": V(0.30, 0.10, 1.16), "pole": V(-0.4, -1, -0.5)},
+              "arm.L": {"ik": V(0.26, -0.08, 1.12), "pole": V(0.6, -1, -0.5)},
+              "hand.R": V(0.6, 0.3, 0.6), "bat": V(0.12, -1, 0.05)})
+BU_GIVE = P(BU_SQUARE, {"pelvis": V(0, -0.06, 0.68), "hips": (28, 0, 0), "spine": (10, 0, 0),
+                        "leg.L": {"ik": V(0.20, 0.10, 0.08), "pole": V(0.4, 1, 0)},
+                        "leg.R": {"ik": V(-0.20, -0.04, 0.08), "pole": V(-0.4, 1, 0)},
+                        "arm.R": {"ik": V(-0.02, 0.40, 0.98), "pole": V(-1, -0.3, -0.5)},
+                        "arm.L": {"ik": V(0.16, 0.32, 0.96), "pole": V(1, -0.3, -0.5)},
+                        "bat": V(-1, 0.2, -0.12)})
+BU_PULL = P(B_STANCE, {"root": (0, 0, 25), "pelvis": V(0, -0.02, 0.86), "hips": (4, 0, 0), "spine": (4, 0, 10), "neck": (-6, 0, 20),
+                       "head": (0, 0, 25)})
+BU_GO = P(run(0, lean=22), {"root": (0, 0, 70), "upper_arm.R": V(-0.25, -0.35, -0.9), "forearm.R": V(-0.1, -0.5, -0.8),
+                            "hand.R": V(0, -0.3, -1), "bat": V(-0.2, -0.8, -0.5)})
+BUNTER = {"name": "bunter", "outfit": "player", "props": PLAYER + ("bat",), "view": BATTER_VIEW, "variants": HOME_AWAY,
+          "desc": "EXTRA bunts (CF cam, right-handed): 1 square around, 2 pivot, 3 give (contact, low), 4 pull back "
+                  "(the fake), 5 first step out of the box, bat dropping (bunt for a hit)",
+          "frames": [("square", BU_SQUARE), ("pivot", BU_PIVOT), ("give", BU_GIVE), ("pullback", BU_PULL), ("go", BU_GO)]}
+SEQ.append(BUNTER)
+
+# ---------------------------------------------------------------- outfield catches (fieldx) and bunt plays (fieldin)
+# Side-on by default (facing 'forward' = where he's running / diving). The glove (left hand) is
+# placed with the two-bone IK; the glove centre of every frame is exported (render_frames glove
+# anchors -> anim_tracks.json "reach") so the runtime puts the fielder where the glove meets the ball.
+def runner_glove(phase, glove=None, look_back=False, lean=16):
+    d = run(phase, lean=lean)
+    if glove is not None:
+        d["arm.L"] = {"ik": glove, "pole": V(1, -0.3, -0.4)}
+        d.pop("upper_arm.L", None); d.pop("forearm.L", None)
+        d["hand.L"] = V(0.1, 0.3, 1)
+    if look_back:
+        d["neck"] = (-8, 0, 55); d["head"] = (-25, 0, 50); d["spine"] = (4, 0, 22)
+    return d
+
+
+FX_RUNUP = runner_glove(0, glove=V(0.14, 0.55, 1.40))                 # glove out late, still running
+FX_LOOK = runner_glove(1, look_back=True, lean=10)                    # over the shoulder
+FX_DRIFT = P(STAND, legs(V(0.14, 0.08, 0.08), V(-0.12, -0.10, 0.10)),
+             {"neck": (-30, 0, 0), "head": (-15, 0, 0), "spine": (-6, 0, 0),
+              "arm.L": {"ik": V(0.12, 0.30, 1.80), "pole": V(1, 0, 0)}, "hand.L": V(0, 0.4, 1),
+              "arm.R": {"ik": V(-0.06, 0.30, 1.70), "pole": V(-1, 0, 0)}})
+FX_BASKET = P(STAND, legs(V(0.14, 0.04, 0.08), V(-0.14, -0.04, 0.08)),
+              {"pelvis": V(0, 0, 0.84), "hips": (6, 0, 0), "neck": (-20, 0, 0), "head": (-10, 0, 0),
+               "arm.L": {"ik": V(0.06, 0.26, 0.96), "pole": V(1, -0.2, -0.4)}, "hand.L": V(0, 1, 0.1),
+               "arm.R": {"ik": V(-0.08, 0.24, 0.98), "pole": V(-1, -0.2, -0.4)}})
+FX_HIGH = P(FX_RUNUP, {"arm.L": {"ik": V(0.20, 0.30, 1.95), "pole": V(1, 0, 0)}, "neck": (-25, 0, 0)})
+FX_SIDE = {"pelvis": V(0.10, 0, 0.74), "hips": (10, 18, 0), "spine": (6, 14, 0), "neck": (-10, -10, 0),
+           "leg.L": {"ik": V(0.50, 0.04, 0.08), "pole": V(1, 0.4, 0)}, "leg.R": {"ik": V(-0.14, 0, 0.08), "pole": V(-0.3, 1, 0)},
+           "arm.L": {"ik": V(0.92, 0.18, 1.10), "pole": V(0.2, -0.5, -1)}, "hand.L": V(1, 0.2, 0.3),
+           "upper_arm.R": V(-0.4, -0.2, -0.85), "forearm.R": V(-0.2, 0.2, -1)}
+FX_BACKHAND = {"pelvis": V(-0.10, 0, 0.74), "hips": (10, -18, -20), "spine": (8, -14, -25), "neck": (-10, 10, 0),
+               "leg.R": {"ik": V(-0.50, 0.04, 0.08), "pole": V(-1, 0.4, 0)}, "leg.L": {"ik": V(0.14, 0, 0.08), "pole": V(0.3, 1, 0)},
+               "arm.L": {"ik": V(-0.78, 0.30, 0.86), "pole": V(0.2, -1, 0.2)}, "hand.L": V(-1, 0.3, -0.2),
+               "upper_arm.R": V(-0.3, -0.4, -0.85), "forearm.R": V(-0.1, -0.2, -1)}
+FX_SHOE = {"pelvis": V(0, 0.10, 0.55), "hips": (45, 0, 0), "spine": (25, 0, 0), "neck": (-45, 0, 0),
+           "leg.L": {"ik": V(0.10, 0.62, 0.08), "pole": V(0.1, 1, 0)}, "leg.R": {"ik": V(-0.12, -0.42, 0.10), "pole": V(0, 1, -1)},
+           "foot.R": {"abs": (70, 0, 0)},
+           "arm.L": {"ik": V(0.06, 0.95, 0.12), "pole": V(1, 0, 0.6)}, "hand.L": V(0, 1, -0.6),
+           "upper_arm.R": V(-0.3, -0.5, -0.8), "forearm.R": V(-0.1, 0.2, -1)}
+FX_LAYOUT = {"root": (82, 0, 0), "pelvis": V(0, 0.0, 0.90), "neck": (-60, 0, 0), "_lift": 0.06,
+             "arm.L": {"ik": V(0.10, 0.08, 1.98), "pole": V(1, 0, 0)}, "hand.L": V(0, 0, 1),
+             "upper_arm.R": V(-0.25, 0.1, 1), "forearm.R": V(-0.1, 0.3, 1),
+             "thigh.L": V(0.08, -0.12, -1), "shin.L": V(0.02, -0.3, -0.95), "foot.L": V(0, -0.4, -1),
+             "thigh.R": V(-0.08, 0.1, -1), "shin.R": V(-0.02, -0.55, -0.85), "foot.R": V(0, -0.5, -1)}
+FX_SLIDE = P(R_SLIDE, {"arm.L": {"ik": V(0.06, 0.40, 0.98), "pole": V(1, 0, -0.3)}, "hand.L": V(0, 0.5, 1),
+                       "neck": (10, 0, 0)})
+FX_POP = P(STAND, legs(V(0.16, 0.06, 0.08), V(-0.14, -0.06, 0.08)),
+           {"arm.L": {"ik": V(0.24, 0.16, 1.92), "pole": V(1, 0, 0)}, "hand.L": V(0, 0.3, 1),
+            "upper_arm.R": V(-0.45, 0.2, 0.2), "forearm.R": V(-0.3, 0.3, 0.7), "head": (-12, 0, 0)})
+FX_LEAP = {"_lift": 0.0, "pelvis": V(0, 0, 0.90), "hips": (-4, 0, 0), "spine": (-6, 0, 0), "neck": (-28, 0, 0),
+           "arm.L": {"ik": V(0.10, 0.22, 1.92), "pole": V(1, 0, 0)}, "hand.L": V(0, 0.5, 1),
+           "upper_arm.R": V(-0.4, 0.0, -0.8), "forearm.R": V(-0.3, 0.3, -0.8),
+           "thigh.L": V(0.1, 0.35, -0.95), "shin.L": V(0.05, -0.6, -0.8), "foot.L": {"abs": (40, 0, 0)},
+           "thigh.R": V(-0.1, -0.1, -1), "shin.R": V(-0.05, -0.75, -0.65), "foot.R": {"abs": (50, 0, 0)}}
+FX_CRASH = {"pelvis": V(0, -0.02, 0.88), "hips": (-8, 6, 0), "spine": (-10, 8, 0), "neck": (5, -12, 0), "head": (0, 0, 70),
+            "leg.L": {"ik": V(0.22, 0.02, 0.10)}, "leg.R": {"ik": V(-0.20, 0.06, 0.20)}, "foot.R": {"abs": (30, 0, 0)},
+            "arm.L": {"ik": V(0.55, 0.06, 1.70), "pole": V(1, 0, 0)}, "hand.L": V(0.3, 0, 1),
+            "arm.R": {"ik": V(-0.58, 0.04, 1.30), "pole": V(-1, 0, 0)}}
+FIELDX = {"name": "fieldx", "outfit": "player", "props": PLAYER + ("glove",), "view": SIDE, "variants": HOME_AWAY,
+          "glove": True,
+          "desc": "EXTRA outfield catches (side-on facing right, glove = left hand): 1 run glove up, 2 run looking back "
+                  "over the shoulder, 3 drift (under it, glove up), 4 basket catch, 5 high stab, 6 glove-side reach, "
+                  "7 backhand, 8 shoestring lunge, 9 layout dive (airborne), 10 sliding catch, 11 pop up, glove raised, "
+                  "12 leap at the wall, 13 crash into the wall. Glove anchors in anim_tracks.json reach.fieldx",
+          "frames": [("runup", FX_RUNUP), ("lookback", FX_LOOK), ("drift", FX_DRIFT), ("basket", FX_BASKET),
+                     ("high", FX_HIGH), ("side", FX_SIDE), ("backhand", FX_BACKHAND), ("shoestring", FX_SHOE),
+                     ("layout", FX_LAYOUT), ("slidecatch", FX_SLIDE), ("popup", FX_POP), ("leap", FX_LEAP),
+                     ("crash", FX_CRASH)]}
+SEQ.append(FIELDX)
+
+FI_CHARGE = P(runner_glove(0, glove=V(0.10, 0.55, 0.45), lean=30), {"neck": (-40, 0, 0)})
+FI_BARE = {"pelvis": V(0, 0.12, 0.62), "hips": (52, 0, 0), "spine": (22, 0, 0), "neck": (-55, 0, 0),
+           "leg.L": {"ik": V(0.14, 0.40, 0.08), "pole": V(0.3, 1, 0)}, "leg.R": {"ik": V(-0.16, -0.30, 0.10), "pole": V(-0.2, 1, 0)},
+           "foot.R": {"abs": (40, 0, 0)},
+           "arm.R": {"ik": V(-0.06, 0.78, 0.10), "pole": V(-1, 0, 0.4)}, "hand.R": V(0, 1, -0.5),
+           "upper_arm.L": V(0.4, -0.2, -0.8), "forearm.L": V(0.2, 0.3, -0.8)}
+FI_THROWRUN = {"root": (0, 0, 10), "_lift": 0.10, "pelvis": V(0, 0.10, 0.82), "hips": (10, 0, -30), "spine": (6, 20, -30),
+               "neck": (-8, -10, 45),
+               "leg.L": {"ik": V(0.10, 0.36, 0.10)}, "leg.R": {"ik": V(-0.14, -0.30, 0.30), "pole": V(0, 1, -1)},
+               "foot.R": {"abs": (60, 0, 0)},
+               "upper_arm.R": V(-0.95, 0.15, 0.2), "forearm.R": V(-0.35, 0.8, 0.3),
+               "upper_arm.L": V(0.6, 0.6, -0.2), "forearm.L": V(0.3, 0.9, 0)}
+FIELDIN = {"name": "fieldin", "outfit": "player", "props": PLAYER + ("glove",), "view": SIDE, "variants": HOME_AWAY,
+           "glove": True,
+           "desc": "EXTRA bunt plays (side-on facing right): 1 charging in, glove down; 2 barehand pickup; 3 throw on the run",
+           "frames": [("charge", FI_CHARGE), ("barehand", FI_BARE), ("throwrun", FI_THROWRUN)]}
+SEQ.append(FIELDIN)
+
 # ---------------------------------------------------------------- accent poses for silly incidents / celebrations
 A_CARTWHEEL = {"root": (0, 180, 0), "pelvis": V(0, 0, 0.89),
                "upper_arm.L": V(0.45, 0.05, 1), "forearm.L": V(0.35, 0.05, 1),
@@ -418,10 +542,11 @@ VIEWS = [(f"v{k}", ((k * 45 + 180) % 360) - 180, 6) for k in range(8)]
 # accent/streaker/mascot stay single-view (legacy art).
 VIEW_SETS = [("pitcher_seq", "pitcher_back_seq"), ("batter_seq", "batter_seq"), ("catcher", "catcher"),
              ("umpire", "umpire"), ("fielder", "fielder"), ("runner", "runner"), ("runner_seq", "runner_seq"),
-             ("catcher_reach", "catcher_reach"), ("walker", "walker")]
+             ("catcher_reach", "catcher_reach"), ("walker", "walker"),
+             ("bunter", "bunter"), ("fieldx", "fieldx"), ("fieldin", "fieldin")]
 # sets drawn only from a few directions (index into VIEWS): the catcher is seen from the pitch cam
 # (front), behind the plate (back) and the side cams
-VIEW_SUBSET = {"catcher_reach": [0, 2, 4, 6]}
+VIEW_SUBSET = {"catcher_reach": [0, 2, 4, 6], "fieldx": [0, 2, 4, 6]}
 TABLE_POSESET = {src: ps for ps, src in VIEW_SETS}
 
 

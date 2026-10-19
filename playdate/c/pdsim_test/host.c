@@ -633,6 +633,69 @@ int main(int argc, char** argv)
 		printf("squeezes ordered %ld\n", t.sq);
 		return f ? 1 : 0;
 	}
+	if ( !strcmp(mode, "tacticslog") ) {
+		// BallCast fixture: the tactics bot's game with the most bunt variety, as a game-log JSON
+		// ({id, log, people}) for the BallCast dev harness. Usage: host tacticslog <dir> <out.json> [games]
+		const char* outp = argc > 3 ? argv[3] : "bunts.json";
+		int games = argc > 4 ? atoi(argv[4]) : 200;
+		World* w = malloc(sizeof(World));
+		loadWorld(w, dir, 0);
+		PdRng sched; pd_rng_seed(&sched, "tacticslog");
+		int bestI = -1, bestScore = -1;
+		for ( int pass = 0; pass < 2; pass++ ) {
+			for ( int i = 0; i < (pass ? 1 : games); i++ ) {
+				int gi = pass ? bestI : i;
+				char seed[32]; snprintf(seed, sizeof seed, "tl-%d", gi);
+				int h = gi % w->nt, a = (gi + 1) % w->nt;
+				pd_rng_seed(&sched, seed);
+				setupGame(w, &sched, h, a, seed, 1);
+				Tac t; memset(&t, 0, sizeof t); pd_rng_seed(&t.r, seed);
+				tacDriver(&G, &t);
+				// variety: bunts in play (sac, squeeze, hit), fakes (bunt-flag takes), squeeze misses
+				int sac = 0, sq = 0, hit = 0, fake = 0, miss = 0, top = 1;
+				int on3 = 0;
+				for ( int k = 0; k < G.nev; k++ ) {
+					PdEvent* e = &G.ev[k];
+					if ( e->k == EV_HALF ) top = e->a;
+					if ( top ) continue;
+					if ( e->k == EV_P && (e->i3 & 2) && (e->c == 'B' || e->c == 'C') ) fake = 1;
+					if ( e->k == EV_SB && e->a == 4 ) miss = 1;
+					if ( e->k == EV_BIP && e->d ) {
+						if ( e->a == 1 ) hit = 1;
+						for ( int j = k + 1; j < G.nev && G.ev[j].k == EV_MV; j++ ) if ( G.ev[j].a == 3 || G.ev[j].b == 4 ) on3 = 1;
+						if ( on3 ) sq = 1; else if ( e->a == 4 ) sac = 1;
+						on3 = 0;
+					}
+				}
+				int score = sac + sq * 2 + hit + fake + miss;
+				if ( !pass && score > bestScore ) { bestScore = score; bestI = i; }
+				if ( pass ) {
+					static char buf[1 << 20];
+					FILE* f = fopen(outp, "w");
+					if ( !f ) return 1;
+					fprintf(f, "{\"id\":\"bunts\",\"people\":{");
+					int first = 1;
+					for ( int sd = 0; sd < 2; sd++ ) {
+						PdTeam* T = &G.side[sd].t;
+						for ( int q = 0; q < T->np; q++ ) {
+							fprintf(f, "%s\"%s\":{\"id\":\"%s\",\"name\":\"Player %s\",\"teamAbbr\":\"%s\",\"pos\":\"%s\",\"throws\":\"%c\",\"bats\":\"%c\"}",
+								first ? "" : ",", T->pl[q].id, T->pl[q].id, T->pl[q].id, T->abbr, pd_pos_name(T->pl[q].pos), T->pl[q].throws, T->pl[q].bats);
+							first = 0;
+						}
+					}
+					fprintf(f, "},\"log\":");
+					pd_events_json(&G, 0, G.nev, buf, sizeof buf);
+					fprintf(f, "%s}\n", buf);
+					fclose(f);
+					char cp[512]; snprintf(cp, sizeof cp, "%s.logc", outp);
+					f = fopen(cp, "w");
+					if ( f ) { int n = pd_logc(&G, 0, buf, sizeof buf); fwrite(buf, 1, (size_t)n, f); fclose(f); }
+					printf("tacticslog: game %d (variety %d), %d events -> %s\n", gi, bestScore, G.nev, outp);
+				}
+			}
+		}
+		return 0;
+	}
 	fprintf(stderr, "unknown mode\n");
 	return 2;
 }

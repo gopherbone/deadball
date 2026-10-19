@@ -126,6 +126,12 @@ local function build(b)
       e.bx, e.by = tx, ty
     end
   end
+  -- extra events the planner asked for (play.lua plan.juiceX: dives, slides, wall crashes, bobbles)
+  for i = 1, #(plan.juiceX or {}) do
+    local x = plan.juiceX[i]
+    local e = ev(L, x.k, x.t0, x.t1, x.x, x.y, x.z, x.s)
+    e.dx, e.dy, e.len, e.kick = x.dx, x.dy, x.len, x.kick
+  end
   table.sort(L, function(a, c) return a.t0 < c.t0 end)
   local md, kick = 0, false
   for i = 1, #L do
@@ -270,7 +276,7 @@ end
 
 local function groundSkid(R, e, tau)
   local p = (tau - e.t0) / (e.t1 - e.t0)
-  local len = 5 * clamp((tau - e.t0) / 0.25, 0, 1)
+  local len = (e.len or 5) * clamp((tau - e.t0) / 0.25, 0, 1)
   local ax, ay, k = ppfAt(R, e.x, e.y, 0)
   local bx, by = R:project(e.x + e.dx * len, e.y + e.dy * len, 0)
   if not ax or not bx then return end

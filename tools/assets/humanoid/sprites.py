@@ -273,9 +273,28 @@ def write_landmarks(meta, install=True):
                 for key in LM_KEYS[3:]:
                     s += enc(c[key][0]) + enc(c[key][1])
             out[ps["name"] + "#" + vid[1:]] = s
+    # the glove in the side view (v6: facing screen right), 1x cell px, per frame of the catch sets:
+    # the runtime puts the fielder where this glove meets the ball (fit-shrunk frames included)
+    gloves = {}
+    for ps in ("fieldx", "fieldin"):
+        tname = ps + "_v6"
+        tm = meta["tables"].get(tname)
+        if not tm or tname not in LM or "glove" not in LM[tname][0]:
+            continue
+        g = []
+        for fi, fr in enumerate(tm["frames"]):
+            bufs = load(os.path.join(hlib.RENDERS, fr["file"]))
+            place = []
+            make_cell(bufs, 1, meta, fr, "home", place)
+            X0, Y0, scale, ox, oy, b = place
+            x, y = LM[tname][fi]["glove"]
+            if scale < 0.999:
+                x, y = (x - ox) * scale + ox, (y - oy) * scale + oy
+            g.append([round((x - X0) / b, 1), round((y - Y0) / b, 1)])
+        gloves[ps] = g
     ppm1 = meta["ppm_hi"] / hlib.SS
     doc = {"version": 1, "doc": "tools/assets/humanoid/sprites.py write_landmarks", "headR": round(0.115 * ppm1, 2),
-           "stride": 24, "cells": out}
+           "stride": 24, "cells": out, "glove": gloves}
     d = hlib.PUPPETS_OUT if install else os.path.join(hlib.CACHE, "out")
     p = os.path.join(d, "landmarks.json")
     with open(p, "w") as f:
@@ -335,7 +354,8 @@ def pack(strips, maxw):
 
 
 # 2x view rows only for the sets that close cameras show big (memory + load time)
-CLOSE_2X = {"pitcher_seq", "batter_seq", "catcher", "umpire", "fielder", "catcher_reach", "walker"}
+CLOSE_2X = {"pitcher_seq", "batter_seq", "catcher", "umpire", "fielder", "catcher_reach", "walker",
+            "bunter", "fieldx", "fieldin"}
 # small single-view tables packed after the view rows (the face-less draws: celebrations, mascot, streaker)
 LEGACY_ROWS = ["accent", "accent_away", "fan", "mascot", "streaker"]
 CHUNK_CAP = {1: 112, 2: 46}     # cells per chunk file: each file loads in one ~40 ms loader slice on device

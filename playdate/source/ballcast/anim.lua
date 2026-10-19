@@ -51,6 +51,7 @@ local function load()
   local path = "images/puppets/anim_tracks.json"
   local doc = playdate.file.exists(path) and json.decodeFile(path) or nil
   if doc and doc.catcherReach then A.catcherReach = doc.catcherReach end   -- glove anchors (play.lua)
+  if doc and doc.reach then A.reach = doc.reach end                        -- fielders' glove anchors
   if doc and doc.tracks then
     local m = doc.meta or {}
     FPS = m.fps or FPS

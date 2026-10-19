@@ -186,6 +186,20 @@ rotation, flipX, pixel offset; nearest-neighbour, pivot on the feet anchor or th
   `lookPass`): skin dither, facial hair, socks, sleeves, batting helmet, jersey number. Body types are a
   width factor + figure height baked into the C size caches (`ballcast/looks.lua`, `puppets.lua BODY`).
 
+### Bunts and catches
+
+- `bunter` view set (F 5, 8 views, 1x+2x): 1 square around, 2 pivot, 3 give (contact), 4 pull back (the fake),
+  5 first step out of the box. Tracks `square`, `bunt_contact`, `bunt_pull`, `drag_bunt`.
+- `fieldx` view set (F 13, views v0/v2/v4/v6, 1x+2x; ties between shipped views prefer the side views):
+  1 run glove up, 2 run looking back, 3 drift, 4 basket, 5 high stab, 6 glove-side reach, 7 backhand, 8 shoestring,
+  9 layout dive, 10 sliding catch, 11 pop up with the glove raised, 12 leap at the wall, 13 wall crash.
+  `fieldin` (F 3, 8 views): charge, barehand, throw on the run. Tracks `run_look`, `run_glove`, `basket`,
+  `stab_high`, `reach_side`, `backhand`, `shoestring`, `dive_layout`, `slide_catch`, `leap_wall`, `crash`, `juggle`,
+  `bobble`, `charge`, `barehand_throw`.
+- Glove anchors: `anim_tracks.json` `reach.fieldx|fieldin` (IK-posed glove centre, figure frame, ft) and
+  `landmarks.json` `glove.fieldx|fieldin` (the glove in the side view, 1x cell px after the fit shrink). The runtime
+  places the fielder so the chosen pose's glove meets the ball (play.lua `planFlyCatch`).
+
 ## BallCast ballparks (`images/parks/`)
 
 Static 400x240 opaque 1-bit backgrounds, one per park per camera:

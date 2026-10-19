@@ -231,6 +231,13 @@ def landmarks(Mp, right, up, fwd):
     back = head("chest").lerp(head("neck"), 0.35)
     out = {"head": px(hc), "nose": px(hc + hf * 0.12), "face": round(hf.dot(toCam), 2),
            "back": px(back), "backv": round(-cf.dot(toCam), 2)}
+    # the glove's centre (the fielders' catch poses: sprites.py turns it into cell px)
+    dg = bpy.context.evaluated_depsgraph_get()
+    go = props["glove"].evaluated_get(dg)
+    gm = go.to_mesh()
+    gc = sum((go.matrix_world @ v.co for v in gm.vertices), Vector()) / max(1, len(gm.vertices))
+    go.to_mesh_clear()
+    out["glove"] = px(gc)
     for s in ("L", "R"):
         out["knee" + s] = px(head("shin." + s)); out["ankle" + s] = px(head("foot." + s))
         out["elbow" + s] = px(head("forearm." + s)); out["wrist" + s] = px(head("hand." + s))
@@ -282,7 +289,8 @@ for t in poses.ALL_TABLES:
             # posed mitt centre in game feet, in the figure's frame: x = -left (it faces +y in the
             # field), y = forward, z = up (1 m = 6.2 ft / rest height, the sprite scale)
             dg = bpy.context.evaluated_depsgraph_get()
-            mo = props["mitt"].evaluated_get(dg)
+            gp = props["mitt"] if not props["mitt"].hide_render else props["glove"]
+            mo = gp.evaluated_get(dg)
             mm = mo.to_mesh()
             cs = [mo.matrix_world @ v.co for v in mm.vertices]
             mo.to_mesh_clear()

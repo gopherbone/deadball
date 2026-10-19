@@ -133,6 +133,65 @@ TRACKS = {
     "practice": {"loop": False, "keys": [
         K("batter_seq", 1, 6), K("batter_seq", 2, 5, sx=0.95, sy=1.05), K("batter_seq", 3, 2),
         K("batter_seq", 5, 3, **STH), K("batter_seq", 6, 6), K("batter_seq", 1, 8, **SQ), K("batter_seq", 1, 4)]},
+    # bunts (bunter table, CF-cam right-hander): square around and hold; the give at contact (the
+    # bat catches it, a squash) then the first step out; the fake (pull it back); the drag bunt
+    # (late show: from the stance straight to the pivot, give, gone)
+    "square": {"loop": False, "boil": True, "keys": [
+        K("batter_seq", 1, 3), K("bunter", 1, 3, sx=1.08, sy=0.93), K("bunter", 1, 30)]},
+    "bunt_contact": {"loop": False, "keys": [
+        K("bunter", 1, 2), K("bunter", 3, 2, **SQ, fx={"shake": [3, 3]}), K("bunter", 3, 6),
+        K("bunter", 5, 4, **STH, dx=2), K("bunter", 5, 10, dx=4)]},
+    "bunt_pull": {"loop": False, "keys": [
+        K("bunter", 1, 3), K("bunter", 4, 2, **ST, dy=-1), K("bunter", 4, 3, sx=1.04, sy=0.96), K("bunter", 4, 14)]},
+    "drag_bunt": {"loop": False, "keys": [
+        K("batter_seq", 1, 3), K("bunter", 2, 3, sx=1.06, sy=0.95), K("bunter", 3, 2, **SQ, fx={"shake": [3, 3]}),
+        K("bunter", 5, 3, **STH, dx=3), K("bunter", 5, 8, dx=6)]},
+    # bunt plays: charging in, the barehand pickup, the throw on the run (off balance)
+    "barehand_throw": {"loop": False, "keys": [
+        K("fieldin", 1, 3), K("fieldin", 2, 2, **SQ), K("fieldin", 2, 3), K("fieldin", 3, 2, **STH, fx={"shake": [5, 3]}),
+        K("fieldin", 3, 8, dx=2)]},
+    "charge": {"loop": True, "keys": [K("fieldin", 1, 4, sx=1.04, sy=0.96), K("fielder", 3, 4, dy=-1)]},
+    # outfield: running it down with a look back over the shoulder; the glove comes up late
+    "run_look": {"loop": True, "keys": [
+        K("runner_seq", 1, 3, sx=1.05, sy=0.95), K("runner_seq", 2, 4, sx=0.96, sy=1.05, dy=-1),
+        K("fieldx", 2, 4, dy=-1), K("runner_seq", 4, 4, sx=0.96, sy=1.05, dy=-1)]},
+    "run_glove": {"loop": True, "keys": [K("fieldx", 1, 4, dy=-1), K("runner_seq", 3, 3, sx=1.05, sy=0.95)]},
+    # catches: the reach key held up to the ball, a squash + shake on the pop, then the settle
+    "basket": {"loop": False, "keys": [K("fieldx", 3, 6), K("fieldx", 4, 2, **SQ, fx={"shake": [3, 3]}), K("fieldx", 4, 12)]},
+    "stab_high": {"loop": False, "keys": [
+        K("fieldx", 5, 5, **ST, dy=-2), K("fieldx", 5, 2, **SQ, fx={"shake": [4, 3]}), K("fieldx", 11, 12)]},
+    "reach_side": {"loop": False, "keys": [
+        K("fieldx", 6, 5, **STH), K("fieldx", 6, 2, **SQ, fx={"shake": [4, 3]}), K("fieldx", 11, 12)]},
+    "backhand": {"loop": False, "keys": [
+        K("fieldx", 7, 5, **STH), K("fieldx", 7, 2, **SQ, fx={"shake": [4, 3]}), K("fieldx", 11, 12)]},
+    "shoestring": {"loop": False, "keys": [
+        K("runner_seq", 2, 2), K("fieldx", 8, 4, **STH, dx=2), K("fieldx", 8, 3, **SQ2, dx=3, fx={"shake": [5, 4]}),
+        K("fieldx", 11, 4, **ST, dx=4, dy=-1), K("fieldx", 11, 10, dx=4)]},
+    # the layout: launch, fly flat out (the runtime lifts him on z), belly-flop squash + shake as
+    # he hits the grass, slide on, pop up with the glove raised
+    "dive_layout": {"loop": False, "keys": [
+        K("runner_seq", 2, 2, sx=0.95, sy=1.06), K("fieldx", 9, 3, **STH, rot=-8), K("fieldx", 9, 3, sx=1.18, sy=0.9),
+        K("fieldx", 9, 2, **SQ2, dx=2, fx={"shake": [6, 4]}), K("fieldx", 9, 6, dx=5), K("fieldx", 11, 3, **ST, dx=7, dy=-2),
+        K("fieldx", 11, 12, dx=7)]},
+    "slide_catch": {"loop": False, "keys": [
+        K("runner_seq", 2, 2), K("fieldx", 10, 3, **STH, dx=2), K("fieldx", 10, 5, sx=1.12, sy=0.9, dx=5),
+        K("fieldx", 10, 2, **SQ, dx=6, fx={"shake": [3, 3]}), K("fieldx", 11, 3, **ST, dx=7, dy=-1), K("fieldx", 11, 10, dx=7)]},
+    # at the wall: crouch, leap with the glove over the wall (runtime lifts him), the catch, the
+    # crash into the padding (big shake + vibrate), drop, show the glove
+    "leap_wall": {"loop": False, "keys": [
+        K("fielder", 1, 3, **SQ), K("fieldx", 12, 3, **ST, dy=-2), K("fieldx", 12, 3, sx=0.92, sy=1.1),
+        K("fieldx", 12, 2, **SQ, fx={"shake": [4, 3]}), K("fieldx", 13, 3, **SQ2, fx={"shake": [8, 6], "vibrate": [1, 8]}),
+        K("fieldx", 13, 6), K("fieldx", 11, 4, **ST, dy=-1), K("fieldx", 11, 12)]},
+    # a juggle: it pops out of the glove, he grabs it again on the way down
+    "juggle": {"loop": False, "keys": [
+        K("fieldx", 5, 4, **ST, dy=-2), K("fieldx", 5, 2, **SQ, fx={"shake": [5, 4]}), K("fielder", 4, 6, **ST, dy=-3),
+        K("fielder", 4, 2, **SQ, fx={"shake": [3, 3]}), K("fieldx", 11, 12)]},
+    "crash": {"loop": False, "keys": [
+        K("fieldx", 13, 3, **SQ2, fx={"shake": [8, 6], "vibrate": [1, 10]}), K("fieldx", 13, 10), K("fielder", 1, 8)]},
+    # a ball off the glove: the stab, it pops loose (shake), a lunge after it
+    "bobble": {"loop": False, "keys": [
+        K("fieldx", 5, 4, **ST, dy=-2), K("fieldx", 5, 2, **SQ, fx={"shake": [6, 4]}), K("fielder", 4, 4, **ST, dy=-2),
+        K("fieldx", 8, 4, **STH), K("fieldx", 8, 10)]},
 }
 META = {"fps": 30, "anchor_1x": [14, 42], "center_1x": [14, 22],
         "shake_decay": 0.55, "boil": {"every": [6, 14], "len": [1, 2], "px": 1},
@@ -242,6 +301,12 @@ def build(verbose=True):
     cr = meta["tables"].get("catcher_reach")
     if cr:
         doc["catcherReach"] = {"labels": [f["label"] for f in cr["frames"]], "glove": [f.get("glove") for f in cr["frames"]]}
+    # fielders' glove anchors per frame (figure frame, game feet: x = his right, y = forward, z = up)
+    doc["reach"] = {}
+    for name in ("fieldx", "fieldin"):
+        tm = meta["tables"].get(name)
+        if tm:
+            doc["reach"][name] = {"labels": [f["label"] for f in tm["frames"]], "glove": [f.get("glove") for f in tm["frames"]]}
     with open(p, "w") as f:
         f.write("{\n" + ",\n".join(f"{json.dumps(k)}: {json.dumps(v, separators=(',', ':'))}"
                                    for k, v in doc.items()) + "\n}\n")

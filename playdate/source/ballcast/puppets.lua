@@ -241,9 +241,10 @@ end
 -- a new chunk starts when the next row would pass CHUNK_CAP cells.
 local VIEW_SETS <const> = { { "pitcher_seq", 6, true }, { "batter_seq", 6, true }, { "catcher", 3, true },
   { "umpire", 3, false }, { "fielder", 6, true }, { "runner", 7, true }, { "runner_seq", 4, true },
-  { "catcher_reach", 14, true, { 0, 2, 4, 6 } }, { "walker", 6, true } }      -- [4] = view subset (else all 8)
+  { "catcher_reach", 14, true, { 0, 2, 4, 6 } }, { "walker", 6, true },
+  { "bunter", 5, true }, { "fieldx", 13, true, { 0, 2, 4, 6 }, { 2, 6, 0, 4 } }, { "fieldin", 3, true } }      -- [4] = view subset (else all 8)
 local CLOSE_2X <const> = { pitcher_seq = true, batter_seq = true, catcher = true, umpire = true, fielder = true,
-  catcher_reach = true, walker = true }
+  catcher_reach = true, walker = true, bunter = true, fieldx = true, fieldin = true }
 local LEGACY_ROWS <const> = { { "accent", 4 }, { "accent_away", 4 }, { "fan", 4 }, { "mascot", 2 }, { "streaker", 2 } }
 local CHUNK_CAP <const> = { 112, 46 }
 local NVIEWS <const> = 8
@@ -254,15 +255,17 @@ local LEGACY_VIEW <const> = {
   batter = { "batter_seq", 1, { 1, 4, 6 } }, batter_seq = { "batter_seq", 1 },
   catcher = { "catcher", 0 }, umpire = { "umpire", 0 }, fielder = { "fielder", 6 },
   runner = { "runner", 6 }, runner_seq = { "runner_seq", 6 }, catcher_reach = { "catcher_reach", 0 },
-  walker = { "walker", 6 } }
+  walker = { "walker", 6 }, bunter = { "bunter", 1 }, fieldx = { "fieldx", 6 }, fieldin = { "fieldin", 6 } }
 -- sets with a view subset: k (0..7) -> nearest shipped view
 local VIEWMAP = {}
 for _, vs in ipairs(VIEW_SETS) do
   if vs[4] then
     local m = {}
+    -- (ties between two shipped views go to the first in vs[5]: the catches read best side-on)
+    local order = vs[5] or vs[4]
     for k = 0, 7 do
-      local best, bd = vs[4][1], 99
-      for _, v in ipairs(vs[4]) do
+      local best, bd = order[1], 99
+      for _, v in ipairs(order) do
         local d = math.abs(((k - v + 4) % 8) - 4)
         if d < bd then best, bd = v, d end
       end
@@ -491,9 +494,17 @@ local function loadLandmarks()
   local path = "images/puppets/landmarks.json"
   local doc = playdate.file.exists(path) and json.decodeFile(path) or nil
   if doc and doc.cells then LM = doc.cells end
+  P.gloves = doc and doc.glove or {}
   return LM
 end
 P.loadLandmarks = loadLandmarks
+--- the glove of catch-set frame f in the side view: 1x cell px (anchor 14, 42), or nil
+function P.gloveCell(set, f)
+  if not LM then loadLandmarks() end
+  local g = P.gloves and P.gloves[set]
+  g = g and g[f]
+  if g then return g[1], g[2] end
+end
 local function landmarksFor(tname, f)
   local L = LM or loadLandmarks()
   local key

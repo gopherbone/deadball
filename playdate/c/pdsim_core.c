@@ -1371,6 +1371,8 @@ static void strikeOut(PdGame* g, PdBatLine* bl, PdPitLine* pl)
 }
 
 // a taken pitch: wild pitch chance, the umpire's call
+// log flags for the next take: 2 = the batter showed bunt and pulled the bat back (BallCast draws it)
+static int takeFlags = 0;
 static void takePitch(PdGame* g, PdBatLine* bl, PdPitLine* pl, int batter, int pitcher, float control)
 {
 	PdSide* def = DEFS(g);
@@ -1395,11 +1397,11 @@ static void takePitch(PdGame* g, PdBatLine* bl, PdPitLine* pl, int batter, int p
 	else strike = chance(&g->rng, maxf(0, lean * 0.3f));
 	if ( strike ) {
 		g->strikes++;
-		logPitch(g, 'C', 0);
+		logPitch(g, 'C', takeFlags);
 		if ( g->strikes >= 3 ) strikeOut(g, bl, pl);   // SEAM: maybeEject (HOTHEAD on a borderline K)
 	} else {
 		g->balls++;
-		logPitch(g, 'B', 0);
+		logPitch(g, 'B', takeFlags);
 		if ( g->balls >= 4 ) {
 			bl->bb++; pl->bb++;
 			walkBatter(g, batter, pitcher);
@@ -1443,7 +1445,9 @@ static void resolvePitch(PdGame* g)
 	if ( bunting ) {
 		int attempt = squeeze || zone <= 1 || (zone == 2 && chance(R, 0.5f));
 		if ( !attempt ) {
+			takeFlags = 2;      // squared around, pulled it back (log only: no effect on the play)
 			takePitch(g, bl, pl, batter, def->pitcher, control);
+			takeFlags = 0;
 		} else {
 			float cP = (zone == 0 ? 0.86f : zone == 1 ? 0.78f : zone == 2 ? 0.6f : 0.35f) + 0.04f * rr(contact) - 0.03f * rr(stuff);
 			cP = clampf(cP, 0.1f, 0.97f);

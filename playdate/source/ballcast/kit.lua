@@ -221,6 +221,11 @@ local routes = {
   -- "dev" game id: always the ballcast agent's own fixture (incidents, a brawl, HRs)
   { "^/games/dev/log%?.*fmt=c", { DEV .. "game-logc.json" } },
   { "^/games/ultra/log%?.*fmt=c", { DEV .. "game-logc-ultra.json" } },
+  -- "bunts": a Pennant (pdsim) game with sac bunts, squeezes, drag bunts and fakes (tools/make_bunts_fixture.py)
+  { "^/games/bunts/log%?.*fmt=c", { DEV .. "game-logc-bunts.json" } },
+  { "^/games/bunts/log", { DEV .. "game-log-bunts.json" } },
+  { "^/games/bunts%?", { DEV .. "game.json" } },
+  { "^/games/bunts$", { DEV .. "game.json" } },
   { "^/games/[^/]+/log%?.*fmt=c", { "fixtures/game-logc.json", DEV .. "game-logc.json" } },
   { "^/games/dev%?", { DEV .. "game.json" } },
   { "^/games/ultra%?", { DEV .. "game.json" } },

@@ -760,12 +760,16 @@ elseif only == "camaudit" then
       -- (two games: this one and the dev fixture's, back to back in one timeline)
       local tl = BallCast.Timeline.new({ people = BC.meta.people, park = park, home = BC.meta.home, away = BC.meta.away })
       BallCast.Timeline.append(tl, BC.tl.log)
-      local dev = BCKit.readJson("fixtures_dev/ballcast/game-log.json")
-      if dev and dev.log then
-        local people = tl.meta.people
-        for id, p in pairs(dev.people or {}) do people[id] = people[id] or p end
-        BallCast.Timeline.append(tl, dev.log)
+      for _, fx in ipairs({ "fixtures_dev/ballcast/game-log.json", "fixtures_dev/ballcast/game-log-bunts.json" }) do
+        -- (+ the Pennant bunts game: sac bunts, squeezes, the bunt angle)
+        local dev = BCKit.readJson(fx)
+        if dev and dev.log then
+          local people = tl.meta.people
+          for id, p in pairs(dev.people or {}) do people[id] = people[id] or p end
+          BallCast.Timeline.append(tl, dev.log)
+        end
       end
+      if Play.playCamPrepare then Play.playCamPrepare(park, 1); Play.playCamPrepare(park, -1) end
       G.tl = tl
       local printed = 0
       local function audit(name, label, cam, pts, keep)
@@ -846,7 +850,7 @@ elseif only == "camaudit" then
               local cc = Play.camAt(b.plan, tau)
               if cc.name ~= "bleacher" then
                 local cam = R3.shot(r, b, tau, cc)
-                audit(cc.name .. (cc.opt and cc.opt.establish and "/est" or ""), "b" .. i .. " t" .. string.format("%.1f", tau) .. " h" .. bs,
+                audit(cc.name .. (cc.opt and cc.opt.establish and "/est" or "") .. (cc.opt and cc.opt.play and ("/" .. cc.opt.play) or ""), "b" .. i .. " t" .. string.format("%.1f", tau) .. " h" .. bs,
                   cam, actionAt(b, tau, bs), cc.name == "blimp" and k == 1 and bs == 1)
               end
             end

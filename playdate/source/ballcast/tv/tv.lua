@@ -261,7 +261,11 @@ function TV.prepare(scene, step)
     for _, top in ipairs({ true, false }) do
       for k = 1, 2 do step("tv changeover cam " .. (top and "top" or "bot") .. " " .. k, function() BallCast.Play.changeoverPrepare(m.park, top, k) end) end
     end
-    -- a local game (Pennant): the decision angles the scene cuts to while the player decides
+    -- a local game (Pennant): the bunt angle from each side of the plate, and the decision angles
+    -- the scene cuts to while the player decides
+    if scene.src and BallCast.Play.playCamPrepare then
+      for _, sd in ipairs({ 1, -1 }) do step("tv bunt cam " .. sd, function() BallCast.Play.playCamPrepare(m.park, sd) end) end
+    end
     if scene.src and BallCast.Render.decisionPrepare then
       for _, c in ipairs(BallCast.Render.decisionCombos()) do
         step("tv decision cam " .. c[1] .. " " .. c[2] .. " " .. c[3], function() BallCast.Render.decisionPrepare(m.park, c[1], c[2], c[3]) end)

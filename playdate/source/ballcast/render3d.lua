@@ -524,6 +524,11 @@ function R3.shot(r, b, tau, cc, out)
   end
   local opt = cc.opt or {}
   -- the half-inning changeover's own angles (play.lua Play.changeoverShot)
+  -- the bunt / chase / dive angles (play.lua Play.playShot; nil = fall through to the named shot)
+  if opt.play and Play.playShot then
+    local e, t, fov = Play.playShot(r, b, tau, cc)
+    if e then return set(e, t, fov) end
+  end
   if opt.changeover and Play.changeoverShot then
     local e, t, fov = Play.changeoverShot(r, b, tau, opt.changeover)
     return set(e, t, fov)
