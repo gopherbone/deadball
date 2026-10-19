@@ -10,7 +10,7 @@ Sites = Sites or {}
 local Upgrade = Page.define({ style = "browser", noToolbar = true })
 Sites.Upgrade = Upgrade
 
-Upgrade.REPO = "github.com/gopherbone/deadball"
+Upgrade.ITCH = "gopherbonegames.itch.io/deadball"
 
 function Upgrade:url() return "http://www.continentalleague.org/upgrade.html" end
 function Upgrade:statusText() return "Document: Done. (Your copy is out of date.)" end
@@ -54,7 +54,7 @@ function Upgrade:layout(L)
   Text.draw(tostring(have) .. " (old)", bx + 76, by + 3, UI.fonts.bold)
   Text.draw("Needed:", bx + 6, by + 17, UI.fonts.body)
   Text.draw(need and (tostring(need) .. " or newer") or "the latest", bx + 76, by + 17, UI.fonts.bold)
-  L:para("Rebuild from the latest source (" .. Upgrade.REPO .. ") or grab the newest build on itch.io.", bx + bw + 10, by - 2, iw - bw - 26, UI.fonts.body, 3)
+  L:para("Get the newest build at " .. Upgrade.ITCH .. " (or rebuild it from the source).", bx + bw + 10, by - 2, iw - bw - 26, UI.fonts.body, 3)
   L:para("Pennant '96 needs no modem and works on any build.", ix + 8, iy + 120, iw - 16, UI.fonts.body, 1)
   local y = iy + 140
   L:button("Play Pennant '96 (offline)", ix + 8, y, 186, 20, function() Upgrade.pennant() end,
