@@ -13,3 +13,4 @@ tools/assets/humanoid/cache/
 *.blend1
 packages/server/.admin-token.prod
 docs/itch/video/
+docs/itch/release/

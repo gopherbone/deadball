@@ -25,30 +25,43 @@ end
 
 local built = setmetatable({}, { __mode = "k" })   -- opts.items table -> { items, letters }
 
+--- The normalized list and its letter index. With `slice`, yields every `slice` items, so a
+--- coroutine can spread a long list (the composer's ~1,000 players) over several frames.
+local function build(src, slice)
+  local items = {}
+  for i, it in ipairs(src) do
+    if type(it) ~= "table" then it = { label = tostring(it), value = it } end
+    items[i] = it
+    if slice and i % slice == 0 then coroutine.yield() end
+  end
+  local letters, seen = {}, {}
+  for i, it in ipairs(items) do
+    -- first letter or digit, skipping leading punctuation/space
+    local p = it.label:find("[^%p%s]")
+    local c = p and it.label:sub(p, p):upper() or ""
+    if c ~= "" and not seen[c] then
+      seen[c] = true
+      letters[#letters + 1] = { c = c, i = i }
+    end
+    if slice and i % slice == 0 then coroutine.yield() end
+  end
+  return { items = items, letters = letters }
+end
+
+--- Builds a list's index ahead of time, from inside a coroutine (see Composer:loaded).
+function Picker.prewarm(src, slice)
+  if not built[src] then
+    local b = build(src, slice)
+    built[src] = built[src] or b
+  end
+end
+
 function Picker:enter()
   -- the normalized list and its letter index are built once per items table (callers that
   -- reuse their list, like the composer's ~1,000 players, open the picker without a hitch)
   local src = self.opts.items or {}
-  local b = built[src]
-  if not b then
-    local items = {}
-    for i, it in ipairs(src) do
-      if type(it) ~= "table" then it = { label = tostring(it), value = it } end
-      items[i] = it
-    end
-    local letters, seen = {}, {}
-    for i, it in ipairs(items) do
-      -- first letter or digit, skipping leading punctuation/space
-      local p = it.label:find("[^%p%s]")
-      local c = p and it.label:sub(p, p):upper() or ""
-      if c ~= "" and not seen[c] then
-        seen[c] = true
-        letters[#letters + 1] = { c = c, i = i }
-      end
-    end
-    b = { items = items, letters = letters }
-    built[src] = b
-  end
+  local b = built[src] or build(src)
+  built[src] = b
   local items = b.items
   self.items = items
   self.letters = b.letters

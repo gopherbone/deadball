@@ -28,9 +28,73 @@ end
 
 function Composer:sources() return { words = "/words" } end
 
+--- The sorted word list and the picker's items for one slot kind, built once per word list.
+--- With `slice`, yields every `slice` words so a coroutine can spread the work over frames.
+local function wordItems(w, kind, slice)
+  local list = (w.slots and w.slots[kind]) or {}
+  -- sorted once per word list (lowercasing inside the comparator made opening the
+  -- ~1,000-player list hitch for half a second on the device)
+  w.sortedSlots = w.sortedSlots or {}
+  local sorted = w.sortedSlots[kind]
+  if not sorted then
+    -- the server sends lists sorted; only sort if this one isn't (old servers, fixtures)
+    local prev, inOrder = "", true
+    for i, s in ipairs(list) do
+      local l = s:lower()
+      if l < prev then inOrder = false break end
+      prev = l
+      if slice and i % slice == 0 then coroutine.yield() end
+    end
+    if inOrder then
+      sorted = list
+    else
+      local keyed = {}
+      for i, s in ipairs(list) do keyed[i] = { s:lower(), s } end
+      table.sort(keyed, function(a, b) return a[1] < b[1] end)
+      sorted = {}
+      for i, k in ipairs(keyed) do sorted[i] = k[2] end
+    end
+    w.sortedSlots[kind] = w.sortedSlots[kind] or sorted
+    sorted = w.sortedSlots[kind]
+  end
+  -- one items list per word list, kept with it: the picker caches its letter index on it
+  w.slotItems = w.slotItems or {}
+  local items = w.slotItems[kind]
+  if not items then
+    items = {}
+    for i, s in ipairs(sorted) do
+      items[i] = { label = s, value = s }
+      if slice and i % slice == 0 then coroutine.yield() end
+    end
+    w.slotItems[kind] = w.slotItems[kind] or items
+    items = w.slotItems[kind]
+  end
+  return sorted, items
+end
+
+--- Builds every slot list and its picker index in the background, ~100 words a frame, so
+--- the first word pick doesn't stall while the ~1,000-player list is indexed.
+local function prewarm(w)
+  if not w or not w.slots or w.prewarming then return end
+  w.prewarming = true
+  local co = coroutine.create(function()
+    for kind in pairs(w.slots) do
+      local _, items = wordItems(w, kind, 100)
+      Picker.prewarm(items, 100)
+    end
+  end)
+  local function step()
+    local ok, err = coroutine.resume(co)
+    if not ok then print("[composer] prewarm: " .. tostring(err)) return end
+    if coroutine.status(co) ~= "dead" then playdate.frameTimer.performAfterDelay(1, step) end
+  end
+  step()
+end
+
 function Composer:loaded()
   local w = self.data.words
   if w then Game.words = w end
+  prewarm(w)
   -- jump straight into template choice the first time
   if not self.tpl and w and w.templates and #w.templates > 0 then
     self.tpl = w.templates[1]
@@ -87,38 +151,7 @@ end
 
 function Composer:chooseWord(slotIndex, kind)
   local w = self.data.words
-  local list = (w.slots and w.slots[kind]) or {}
-  -- sorted once per word list (lowercasing inside the comparator made opening the
-  -- ~1,000-player list hitch for half a second on the device)
-  w.sortedSlots = w.sortedSlots or {}
-  local sorted = w.sortedSlots[kind]
-  if not sorted then
-    -- the server sends lists sorted; only sort if this one isn't (old servers, fixtures)
-    local prev, inOrder = "", true
-    for _, s in ipairs(list) do
-      local l = s:lower()
-      if l < prev then inOrder = false break end
-      prev = l
-    end
-    if inOrder then
-      sorted = list
-    else
-      local keyed = {}
-      for i, s in ipairs(list) do keyed[i] = { s:lower(), s } end
-      table.sort(keyed, function(a, b) return a[1] < b[1] end)
-      sorted = {}
-      for i, k in ipairs(keyed) do sorted[i] = k[2] end
-    end
-    w.sortedSlots[kind] = sorted
-  end
-  -- one items list per word list, kept with it: the picker caches its letter index on it
-  w.slotItems = w.slotItems or {}
-  local items = w.slotItems[kind]
-  if not items then
-    items = {}
-    for i, s in ipairs(sorted) do items[i] = { label = s, value = s } end
-    w.slotItems[kind] = items
-  end
+  local sorted, items = wordItems(w, kind)
   local sel = 1
   local cur = self.words[slotIndex]
   if cur then
