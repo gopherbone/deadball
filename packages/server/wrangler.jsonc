@@ -19,7 +19,10 @@
   "r2_buckets": [{ "binding": "LOGS", "bucket_name": "deadball-logs" }],
   "vars": {
     "GAME_DAY_MS": "1800000",
-    "WORLD_SEED": "deadball-1"
+    "WORLD_SEED": "deadball-1",
+    // oldest Playdate build (pdxinfo buildNumber, sent as X-Build) allowed online; older builds
+    // get 426 upgrade_required. Bump together with playdate/source/pdxinfo every release.
+    "MIN_BUILD": "2"
   },
   // safety net: makes sure the League DO is awake and its alarm is armed
   "triggers": { "crons": ["*/10 * * * *"] },

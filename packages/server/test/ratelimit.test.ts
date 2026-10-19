@@ -1,8 +1,9 @@
 import { exports } from "cloudflare:workers";
 import { describe, expect, it } from "vitest";
+import { clientHeaders } from "./helpers.ts";
 
 const reg = async (name: string, ip?: string) => {
-  const headers: Record<string, string> = { "content-type": "application/json" };
+  const headers = clientHeaders({ "content-type": "application/json" });
   if (ip) headers["cf-connecting-ip"] = ip;
   const res = await (exports as any).default.fetch(new Request("https://deadball.test/v1/register", { method: "POST", headers, body: JSON.stringify({ name }) }));
   return { status: res.status, retry: res.headers.get("retry-after"), body: (await res.json()) as { error?: string; message?: string } };

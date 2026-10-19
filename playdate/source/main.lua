@@ -53,6 +53,7 @@ import "sites/digest"
 import "sites/extra"
 import "sites/settings"
 import "sites/credits"
+import "sites/upgrade"
 
 -- Pennant '96: the offline season game (its own league on the device; no network)
 import "pennant/main"

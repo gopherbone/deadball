@@ -112,7 +112,7 @@ local function rawGet(host, port, ssl, path, done)
   end
   conn:setRequestCompleteCallback(fin)
   conn:setConnectionClosedCallback(fin)
-  local ok, err = conn:get("/v1" .. path, { Accept = "application/json" })
+  local ok, err = conn:get("/v1" .. path, { Accept = "application/json", ["X-Build"] = tostring(Api.BUILD) })
   if not ok then print("[nettest] raw get failed: " .. tostring(err)) finished = true done() end
 end
 
@@ -258,6 +258,75 @@ if playdate.file.exists("livetest.flag") then
       step += 1
       local ok, e = pcall(s[2])
       if not ok then print("[livetest] error: " .. tostring(e)) end
+    end
+  end
+end
+
+-- Build-gate check (Simulator + a dev server, dev only). With "gatetest.flag" in the Data
+-- folder (first line: an absolute directory for PNGs), the client picks ONLINE on the mode
+-- select by itself, then: on the desktop it takes "gate_online_desktop" and keeps refreshing
+-- /me (a server restarted with a higher MIN_BUILD, or the netshim raising its own, then shows the
+-- page mid-session); on the "update required" page it takes "gate_upgrade", presses A (Play
+-- Pennant) and takes "gate_pennant" once Pennant's title is up. Prints "[gatetest] done".
+if playdate.file.exists("gatetest.flag") then
+  Debug.showFps = false   -- (debug.flag turns it on; keep it out of the shots)
+  local dir = nil
+  local f = playdate.file.open("gatetest.flag")
+  if f then dir = f:readline() f:close() end
+  local function shot(name)
+    if not dir or dir == "" then return end
+    local ok, e = pcall(playdate.simulator.writeToFile, playdate.graphics.getDisplayImage(), dir .. "/" .. name .. ".png")
+    print("[gatetest] shot " .. name .. (ok and "" or (" FAILED " .. tostring(e))))
+  end
+  local st = { phase = "mode", n = 0, desk = false, upTop = nil, poll = 0 }
+  local prev = Debug.update
+  Debug.update = function()
+    if prev then prev() end
+    st.n += 1
+    local t = App.top()
+    if st.phase == "mode" then
+      if t == Boot.Splash then
+        -- a dev run (netshim.flag etc.) boots straight into the dial-up
+        print("[gatetest] dev run: splash without the mode select (build " .. tostring(Api.BUILD) .. ")")
+        st.phase = "online"
+        st.n = 0
+      elseif t == Boot.ModeSelect and st.n > 20 then
+        print("[gatetest] mode select: choosing ONLINE (build " .. tostring(Api.BUILD) .. ")")
+        t.sel = 1
+        t:AButtonDown()
+        st.phase = "online"
+        st.n = 0
+      end
+    elseif st.phase == "online" then
+      if t and getmetatable(t) == Sites.Upgrade then
+        st.upAt = st.upAt or st.n
+        if st.n - st.upAt == 30 then
+          print("[gatetest] update page up: " .. tostring(Api.blocked and Api.blocked.message))
+          shot(st.desk and "gate_upgrade_midsession" or "gate_upgrade")
+          t.focus = t:initialFocus()
+          t:AButtonDown()
+          st.phase = "pennant"
+          st.n = 0
+        end
+      elseif Nav.ready then   -- the desktop (or something opened over it at boot)
+        if not st.desk and st.n > 0 then st.desk = st.n end
+        if st.desk and st.n - st.desk == 90 then
+          shot("gate_online_desktop")
+          print("[gatetest] desktop reached online, transport: " .. Api.transport())
+          -- the shim's league "releases" a new build: the next request gets 426 mid-session
+          if NetShim then NetShim.minBuild = Api.BUILD + 1 print("[gatetest] shim minBuild now " .. NetShim.minBuild) end
+        end
+        -- keep asking: a server restarted with a higher MIN_BUILD answers 426 mid-session
+        if st.n - st.desk > 90 and st.n % 150 == 0 then Game.refreshMe() end
+      end
+    elseif st.phase == "pennant" then
+      if st.n == 60 then
+        local name = t and (t.title or (getmetatable(t) == PennantUI.Title and "Pennant title")) or "?"
+        print("[gatetest] after Play Pennant: top=" .. tostring(name) .. " offline=" .. tostring(Nav.offline) .. " busy=" .. Api.busy())
+        shot("gate_pennant")
+        print("[gatetest] done")
+        st.phase = "done"
+      end
     end
   end
 end

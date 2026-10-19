@@ -4,6 +4,9 @@
 # public: players build their own .pdx. Review the diff, then push with:
 #   git push github public:main
 # Usage: zsh tools/publish_public.sh "commit message"
+# Releasing a client change? Bump playdate/source/pdxinfo `buildNumber` and MIN_BUILD in
+# packages/server/wrangler.jsonc together (same number; npm test checks), and deploy the server
+# when you publish: older builds then get "update required" online (offline still works).
 set -euo pipefail
 ROOT="${0:A:h:h}"
 MSG="${1:-Update from development}"

@@ -107,7 +107,7 @@ function Settings:layout(L)
   end, { id = "cache", hint = "Drop cached pages and photos" })
   L:button("Credits", 224, y, 80, 18, function() Sites.Credits.open() end, { id = "credits", hint = "About this site / webmaster credits" })
   y += 28
-  Text.draw("Diamond Navigator Gold 3.0  \u{2022}  DEADBALL " .. (playdate.metadata and playdate.metadata.version or ""), ix + 6, y, UI.fonts.body)
+  Text.draw("Diamond Navigator Gold 3.0  \u{2022}  DEADBALL " .. (playdate.metadata and playdate.metadata.version or "") .. " (build " .. tostring(Api.BUILD) .. ")", ix + 6, y, UI.fonts.body)
   y += 16
   L:mark(y + 10)
 end

@@ -20,17 +20,19 @@ export interface Env {
   BATCH_MAX_BYTES?: string;
   /** Multiplier on Bobby's regulars' (house NPC) money, default 1; 0 = off. POST /v1/admin/house overrides it. */
   HOUSE_SCALE?: string;
+  /** Oldest client build (X-Build, pdxinfo buildNumber) allowed online; older ones get 426. Unset = no gate. */
+  MIN_BUILD?: string;
 }
 
 export type ErrorCode =
   | "bad_request" | "unauthorized" | "not_found" | "name_taken" | "name_rejected" | "insufficient_funds"
   | "window_closed" | "rate_limited" | "invalid_comment" | "forbidden" | "too_large" | "internal"
-  | "bad_signature" | "replayed" | "https_required";
+  | "bad_signature" | "replayed" | "https_required" | "upgrade_required";
 
 const STATUS: Record<ErrorCode, number> = {
   bad_request: 400, unauthorized: 401, not_found: 404, name_taken: 409, name_rejected: 400, insufficient_funds: 402,
   window_closed: 409, rate_limited: 429, invalid_comment: 400, forbidden: 403, too_large: 413, internal: 500,
-  bad_signature: 401, replayed: 401, https_required: 403,
+  bad_signature: 401, replayed: 401, https_required: 403, upgrade_required: 426,
 };
 
 export class HttpError extends Error {

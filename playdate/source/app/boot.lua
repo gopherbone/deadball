@@ -26,6 +26,8 @@ function Splash:enter()
   local snd = Sfx.modem()
   if snd and snd > 0 then self.dur = math.floor(snd * 30) end
   if Game.settings.reduceMotion then self.dur = 20 end
+  -- already refused this session (build gate): no point dialing for long
+  if Api.isBlocked() then self.dur = 20 end
   Game.syncClock(function(err)
     self.clockErr = err
     self.clockDone = true
@@ -56,7 +58,11 @@ function Splash:proceed()
   if self.left then return end
   self.left = true
   Sfx.stopModem()
-  if self.result == "desktop" then
+  if Api.isBlocked() then
+    -- the league refused this build (426): the "update required" page, never the desktop
+    Sfx.error()
+    Sites.Upgrade.replace({})
+  elseif self.result == "desktop" then
     Sfx.chime()
     Sites.Desktop.replace({ fromBoot = true })
   elseif self.result == "register" then
@@ -102,7 +108,7 @@ Splash.rightButtonDown = Splash.AButtonDown
 
 function Splash:update()
   self.t += 1
-  if self.t == 2 then Api.requestAccess() end
+  if self.t == 2 and not Api.isBlocked() then Api.requestAccess() end
   local frac = math.min(1, self.t / self.dur)
   gfx.clear(gfx.kColorWhite)
   local splash = UI.image("images/ui/splash-navigator")

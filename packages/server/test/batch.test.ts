@@ -4,7 +4,7 @@ import { BATCH_MAX_ITEMS } from "../src/router.ts";
 
 /** vitest.config.ts sets BATCH_MAX_BYTES=65536 so a couple of replay logs overflow it */
 const BATCH_MAX_BYTES = 65536;
-import { advance, api, register } from "./helpers.ts";
+import { advance, api, clientHeaders, register } from "./helpers.ts";
 
 const q = (paths: string[]) => "/batch?" + paths.map(p => "p=" + encodeURIComponent(p)).join("&");
 
@@ -96,7 +96,7 @@ describe("GET /v1/batch", () => {
   });
 
   it("the raw response is one JSON object with results keyed by the requested path", async () => {
-    const res = await (exports as any).default.fetch(new Request("https://deadball.test/v1" + q(["/clock"])));
+    const res = await (exports as any).default.fetch(new Request("https://deadball.test/v1" + q(["/clock"]), { headers: clientHeaders() }));
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("application/json");
     const j = await res.json();

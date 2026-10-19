@@ -40,6 +40,8 @@ make run        # build and open in the Simulator
 make device     # device build; sideload build/deadball.pdx via play.date/account/sideload
 ```
 
+Online play needs a build from the latest source; offline (Pennant '96) works with any build.
+
 ## Run the server locally
 
 Node 22+.

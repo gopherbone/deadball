@@ -50,6 +50,13 @@
   goes plain HTTP to the configured port, signed when a key is held.
   Api.transport() -> "https" | "signed http" | "fixtures" ... for the Settings page.
 
+  BUILD GATE. Every request carries `X-Build: <pdxinfo buildNumber>` (Api.BUILD). The server
+  answers 426 `upgrade_required` (body has minBuild) to builds older than its MIN_BUILD. The
+  first 426 sets Api.blocked = { build, minBuild, message }: everything queued fails with that
+  error, new requests fail at once without touching the network (no polling, no prefetch) until
+  the game is relaunched or pointed at another server, and Api.onUpgradeRequired(info) runs
+  once (app/upgrade.lua shows the "update required" page). Fixture mode is never gated.
+
   FIXTURE MODE is the default when no server host is configured (Settings > Server).
   Paths map to JSON files (see net/fixtures.lua) with 120-500 ms of simulated latency.
 ]]
@@ -77,6 +84,10 @@ local deferred = {}     -- callbacks to run next frame
 local clockOffset = 0   -- server ms - local ms
 
 Api.config = { host = "", port = 443, ssl = true, forceHttps = false }
+--- This build's number (pdxinfo buildNumber), sent as X-Build on every request.
+Api.BUILD = tonumber(playdate.metadata and playdate.metadata.buildNumber) or 0
+Api.blocked = nil       -- set by a 426 upgrade_required: { build, minBuild, message }
+Api.onUpgradeRequired = nil -- function(info), called (next frame) when the server first says 426
 Api.batching = true     -- coalesce same-frame GETs into /v1/batch (live server only)
 Api.batchOff = false    -- set when the server answered 404 to /batch (reset by configure)
 Api.holdBackground = nil -- optional function() -> true to keep bg (prefetch) GETs queued
@@ -141,6 +152,9 @@ end
 local keyState = { req = nil, retryAt = 0 }
 
 function Api.configure(cfg)
+  -- a different server may take this build: the gate is per host
+  local port = tonumber(cfg.port) or (cfg.ssl == false and 80 or 443)
+  if Api.blocked and ((cfg.host or "") ~= Api.config.host or port ~= Api.config.port) then Api.blocked = nil end
   Api.config.host = cfg.host or ""
   Api.config.port = tonumber(cfg.port) or (cfg.ssl == false and 80 or 443)
   Api.config.ssl = cfg.ssl ~= false
@@ -237,9 +251,21 @@ function Api.observe(path, fn)
   l[#l + 1] = fn
 end
 
+--- The error every request gets once the server has refused this build.
+local function blockedErr()
+  local b = Api.blocked or {}
+  return { status = 426, code = "upgrade_required", message = b.message or "This build is out of date.", minBuild = b.minBuild }
+end
+
+--- True while live requests are refused (a 426 from this server). Fixtures never are.
+function Api.isBlocked()
+  return Api.blocked ~= nil and not Api.isFixtureMode()
+end
+
 local function enqueue(method, path, body, cb, opts)
   opts = opts or {}
   cb = cb or function() end
+  if Api.isBlocked() then later(cb, blockedErr()) return end
   if method == "GET" and not opts.fresh then
     local c = cache[path]
     if c and playdate.getCurrentTimeMilliseconds() - c.at < (c.ttl or DEFAULT_TTL) then
@@ -359,7 +385,7 @@ local function startHttp(req)
   conn:setRequestCompleteCallback(complete)
   conn:setConnectionClosedCallback(complete)
 
-  local headers = { ["Content-Type"] = "application/json", ["Accept"] = "application/json" }
+  local headers = { ["Content-Type"] = "application/json", ["Accept"] = "application/json", ["X-Build"] = tostring(Api.BUILD) }
   local full = "/v1" .. req.path
   local bodyText = req.method == "POST" and json.encode(req.body or {}) or ""
   if auth == "bearer" and Api.token then
@@ -486,6 +512,15 @@ local function pollHttp(req)
       req.timing.total, req.timing.ttfb, req.timing.xfer, req.timing.wait, req.timing.decode, req.timing.bytes))
     pcall(function() req.conn:close() end)
     req.conn = nil
+    if status == 426 then
+      Api.upgradeRequired(type(data) == "table" and data or {})
+      if req.batch then
+        for _, it in ipairs(req.batch) do finish(it, blockedErr()) end
+      else
+        finish(req, blockedErr())
+      end
+      return true
+    end
     -- the server didn't accept our signature (key rotated elsewhere, counter lost): get a new
     -- key over HTTPS and send this again, once
     if status == 401 and req.auth == "signed" and data and (data.error == "bad_signature" or data.error == "replayed") then
@@ -535,6 +570,25 @@ local function pollHttp(req)
   return false
 end
 
+--- The server refused this build (426): stop talking to it until relaunch. Fails every
+--- queued request (no retries, no polling) and tells the UI once.
+function Api.upgradeRequired(d)
+  local first = Api.blocked == nil
+  Api.blocked = {
+    build = Api.BUILD,
+    minBuild = tonumber(d.minBuild),
+    message = type(d.message) == "string" and d.message or nil,
+  }
+  if first then print(string.format("[api] server needs build %s, this is build %d: online requests stopped", tostring(Api.blocked.minBuild), Api.BUILD)) end
+  local q = queue
+  queue = {}
+  for _, r in ipairs(q) do
+    if r.batch then for _, it in ipairs(r.batch) do finish(it, blockedErr()) end else finish(r, blockedErr()) end
+  end
+  if keyState.req then keyState.req = nil end
+  if first and Api.onUpgradeRequired then later(Api.onUpgradeRequired, Api.blocked) end
+end
+
 -- Fixture network --------------------------------------------------------------
 
 local function startFixture(req)
@@ -558,6 +612,7 @@ end
 
 --- Starts POST /auth/key (HTTPS + bearer) when we have a token but no signing key.
 local function ensureKey(nowMs)
+  if Api.blocked then return end
   if keyState.req or not Api.token or not canSign() or Signer.has(Api.token) then return end
   if nowMs < keyState.retryAt or not Api.config.host or Api.config.host == "" then return end
   local token = Api.token
@@ -632,6 +687,8 @@ function Api.update()
   end
   local fixture = Api.isFixtureMode()
   local nowMs = playdate.getCurrentTimeMilliseconds()
+  -- refused build: anything that got back in the queue (a retry) fails instead of going out
+  if not fixture and Api.blocked and #queue > 0 then Api.upgradeRequired(Api.blocked) end
   if not fixture and #queue > 0 then ensureKey(nowMs) end
   -- everything GET queued since last frame goes out as one /batch (live server only)
   if not fixture and Api.batching and not Api.batchOff and #queue > 1 then
@@ -670,6 +727,7 @@ local FRIENDLY = {
   offline = "Can't reach the server. Check Wi-Fi or Settings.",
   timeout = "The server took too long to answer.",
   not_found = "404: That page has moved or never existed.",
+  upgrade_required = "This build is out of date. Online play needs the latest build.",
 }
 function Api.errorText(err)
   if not err then return "" end

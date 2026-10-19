@@ -44,7 +44,7 @@ end
 Api.holdBackground = Prefetch.replayOpen
 
 function Prefetch.enabled()
-  return not Api.isFixtureMode() and Api.token ~= nil and Api.batching and not Api.batchOff
+  return not Api.isFixtureMode() and Api.token ~= nil and Api.batching and not Api.batchOff and not Api.isBlocked()
 end
 
 --- Starts one background prefetch of Prefetch.PATHS (plus extra paths). Returns the count queued.

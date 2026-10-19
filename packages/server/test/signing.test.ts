@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { exports } from "cloudflare:workers";
 import { hmacHex, signingString, SEQ_WINDOW } from "../src/auth.ts";
-import { api, register } from "./helpers.ts";
+import { api, clientHeaders, register } from "./helpers.ts";
 
 const fetchW = (r: Request) => (exports as any).default.fetch(r) as Promise<Response>;
 
@@ -17,7 +17,7 @@ async function signed(method: string, target: string, acct: { id: string; key: s
   const sig = opts.sig ?? await hmacHex(acct.key, `${method}\n${full}\n${seq}\n${await sha256hex(text)}`);
   const res = await fetchW(new Request(`${opts.scheme ?? "http"}://deadball.test${full}`, {
     method, body: text || undefined,
-    headers: { "content-type": "application/json", "x-acct": acct.id, "x-seq": String(seq), "x-sig": sig },
+    headers: clientHeaders({ "content-type": "application/json", "x-acct": acct.id, "x-seq": String(seq), "x-sig": sig }),
   }));
   const t = await res.text();
   return { status: res.status, body: t ? JSON.parse(t) : undefined };
@@ -81,16 +81,16 @@ describe("signed plain-HTTP requests", () => {
 
   it("never accepts a bearer token over plain HTTP (URL scheme or CF-Visitor)", async () => {
     const a = await newAcct("Bearer Plain");
-    const viaHttp = await fetchW(new Request("http://deadball.test/v1/me", { headers: { authorization: `Bearer ${a.token}` } }));
+    const viaHttp = await fetchW(new Request("http://deadball.test/v1/me", { headers: clientHeaders({ authorization: `Bearer ${a.token}` }) }));
     expect(viaHttp.status).toBe(403);
     expect((await viaHttp.json() as any).error).toBe("https_required");
-    const viaVisitor = await fetchW(new Request("https://deadball.test/v1/me", { headers: { authorization: `Bearer ${a.token}`, "cf-visitor": '{"scheme":"http"}' } }));
+    const viaVisitor = await fetchW(new Request("https://deadball.test/v1/me", { headers: clientHeaders({ authorization: `Bearer ${a.token}`, "cf-visitor": '{"scheme":"http"}' }) }));
     expect(viaVisitor.status).toBe(403);
     // HTTPS is fine, and public paths still work over HTTP unauthenticated
     expect((await api("GET", "/me", undefined, a.token)).status).toBe(200);
-    expect((await fetchW(new Request("http://deadball.test/v1/clock"))).status).toBe(200);
+    expect((await fetchW(new Request("http://deadball.test/v1/clock", { headers: clientHeaders() }))).status).toBe(200);
     // registration and key issue are HTTPS-only
-    const reg = await fetchW(new Request("http://deadball.test/v1/register", { method: "POST", body: JSON.stringify({ name: "Plain Joe" }) }));
+    const reg = await fetchW(new Request("http://deadball.test/v1/register", { method: "POST", headers: clientHeaders(), body: JSON.stringify({ name: "Plain Joe" }) }));
     expect(reg.status).toBe(403);
   });
 
@@ -109,7 +109,7 @@ describe("signed plain-HTTP requests", () => {
     const bySig = await signed("POST", "/auth/key", { ...a, key: k.body.key }, 2, {}, { scheme: "https" });
     expect(bySig.status).toBe(401);
     expect((await api("POST", "/auth/key", {})).status).toBe(401);
-    const plain = await fetchW(new Request("http://deadball.test/v1/auth/key", { method: "POST", headers: { authorization: `Bearer ${a.token}` } }));
+    const plain = await fetchW(new Request("http://deadball.test/v1/auth/key", { method: "POST", headers: clientHeaders({ authorization: `Bearer ${a.token}` }) }));
     expect(plain.status).toBe(403);
   });
 

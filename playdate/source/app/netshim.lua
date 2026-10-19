@@ -6,10 +6,17 @@
 -- replay rejection + re-key, /batch fan-out, the disk cache, stale-while-revalidate and
 -- prefetch. "netshim-replay.flag" starts the replay window high so the first signed
 -- request is rejected as replayed (tests the re-key path). Latency: HTTPS 900 ms, HTTP 90 ms.
+-- Build gate: "netshim-minbuild.flag" (first line a number) sets NetShim.minBuild; like the
+-- server's MIN_BUILD, requests whose X-Build is missing or lower get 426 upgrade_required
+-- (except GET /v1/version). Dev drivers may raise NetShim.minBuild at run time.
 
 if not playdate.file.exists("netshim.flag") then return end
 
-NetShim = { log = {}, conns = 0, https = 0, http = 0, violations = 0 }
+NetShim = { log = {}, conns = 0, https = 0, http = 0, violations = 0, minBuild = 0 }
+if playdate.file.exists("netshim-minbuild.flag") then
+  local f = playdate.file.open("netshim-minbuild.flag")
+  if f then NetShim.minBuild = tonumber(f:readline() or "") or 0 f:close() end
+end
 local SHIM_HOST <const> = "shim.local"
 local TOKEN <const> = "shimtoken0123456789abcdef"
 local ACCT <const> = "ashim"
@@ -34,6 +41,13 @@ end
 local function shimRoute(ssl, method, target, headers, bodyText)
   local path = target:gsub("^/v1", "")
   local base = path:match("^[^?]*")
+  -- the build gate runs first, before auth (packages/server/src/version.ts)
+  if base == "/version" and method == "GET" then return respond(200, { minBuild = NetShim.minBuild }) end
+  local build = tonumber(headers["X-Build"] or "")
+  if NetShim.minBuild > 0 and (not build or build < NetShim.minBuild) then
+    return respond(426, { error = "upgrade_required", minBuild = NetShim.minBuild, build = build,
+      message = "This copy of DEADBALL is out of date (" .. (build and ("build " .. build) or "an unknown build") .. "; the league needs build " .. NetShim.minBuild .. " or newer). Rebuild it from the latest source or download the newest release. Pennant '96 still works offline." })
+  end
   local bearer = headers["Authorization"]
   if bearer and not ssl then
     NetShim.violations += 1
