@@ -24,6 +24,15 @@ function Mail:statusText()
   return (a and a.unreadMail or 0) .. " unread message(s)"
 end
 
+--- Shorter forms of a sender for the FROM column ("The Haldane Organization Front Office" ->
+--- "Haldane Organization" -> "Haldane Org."), longest first; Text.fit takes the first that fits.
+local function shortFrom(from)
+  local a = from:gsub("^The ", "")
+  local b = a:gsub(" Front Office$", "")
+  local c = b:gsub("Organization", "Org."):gsub("Commissioner's Office", "Commissioner"):gsub("Brotherhood", "Bros.")
+  return { a, b, c }
+end
+
 local function envelopeIcon(x, y, unread)
   if unread then
     gfx.fillRect(x, y, 14, 10)
@@ -100,7 +109,7 @@ function Mail:layout(L)
     local unread = not m.read
     envelopeIcon(6, y + 2, unread)
     local f = unread and UI.fonts.bold or UI.fonts.body
-    Text.draw(Text.ellipsize(m.from or "?", f, 98), 26, y, f)
+    Text.draw(Text.fit(m.from or "?", 98, f, { short = shortFrom(m.from or "?"), fonts = {} }), 26, y, f)
     local kind = KIND_LABEL[m.kind] or ""
     local kx = 130
     if kind ~= "" then
@@ -184,7 +193,8 @@ function Letter:layout(L)
   Text.draw(Fmt.ago(m.at) .. "  \u{2022}  " .. ((KIND_LABEL[m.kind] or "MAIL")), hx, y + 36, UI.fonts.body)
   if photo then
     Archive.draw(m.photo, px + pw - 106, y + 8, 96)
-    if m.photoCaption then Text.draw(Text.ellipsize(m.photoCaption, UI.fonts.body, 96), px + pw - 106, y + 82, UI.fonts.body) end
+    -- archive captions end in a year ("On the telephone, 1910"): drop it before cutting words
+    if m.photoCaption then Text.draw(Text.fit(m.photoCaption, 96, UI.fonts.body, { short = (m.photoCaption:gsub(",%s*%d%d%d%d$", "")), fonts = {} }), px + pw - 106, y + 82, UI.fonts.body) end
   end
   local by = y + headerH
   gfx.drawLine(px + 6, by, px + pw - 6, by)

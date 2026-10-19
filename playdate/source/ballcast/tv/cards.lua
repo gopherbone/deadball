@@ -792,9 +792,13 @@ function C.final(G)
     local logo = A.clubLogo(team, 32)
     if logo then logo:draw(x + 8, 52) end
     txt(K.fonts.bold, team.abbr or "?", x + 48, 52, nil, white)
-    txt(K.fonts.tiny, K.fit(K.fonts.tiny, string.upper(team.name or ""), 70), x + 48, 70, nil, white)
     local sc = A.text("waBig", tostring(ls.R[side]), "wa")
     local sw = sc:getSize()
+    -- the nickname gets whatever the (2x) score leaves: "LAMPLIGHTE" was cut at a fixed 70 px;
+    -- too long for the tiny caps, it drops to the narrower Bitmore before it's cut
+    local nmW = math.max(30, (x + 160 - sw * 2) - (x + 48) - 4)
+    local nm, nf = K.fitChain({ K.fonts.tiny, K.fonts.bitmore }, string.upper(team.name or ""), nmW)
+    txt(nf, nm, x + 48, 70, nil, white)
     sc:drawScaled(x + 160 - sw * 2, 54, 2)
     if white then txt(K.fonts.tiny, "WINNER", x + 8, 112, nil, true) end
     row(card, x - 4, 40, 182, 96, 0.2 + (k - 1) * 0.15, k == 1 and "l" or "r")

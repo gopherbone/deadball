@@ -148,11 +148,13 @@ function H.bugName(full)
   if img then return img end
   local t0 = playdate.getElapsedTime()
   local t = K.fonts.bold
-  local s = K.fit(t, K.lastName(full or ""), BUG_W - 168)
+  -- the surname in the bug's face; a long one ("Stottlemyre", "Shaughnessy") steps down to the
+  -- narrower Nontendo faces before it's cut
+  local s, f = K.fitChain({ t, K.fonts.nb, K.fonts.nl }, K.lastName(full or ""), BUG_W - 168)
   img = gfx.image.new(BUG_W - 166, t:getHeight(), gfx.kColorClear)
   gfx.pushContext(img)
   gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
-  t:drawText(s, 0, 0)
+  f:drawText(s, 0, (t:getHeight() - f:getHeight()) // 2)
   gfx.setImageDrawMode(gfx.kDrawModeCopy)
   gfx.popContext()
   bugNames[full or "?"] = img

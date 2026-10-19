@@ -155,7 +155,7 @@ function Dialog:update(covered)
     -- classic alert icon
     gfx.setColor(bbs and gfx.kColorWhite or gfx.kColorBlack)
     gfx.fillCircleAtPoint(cx + 11, cy + 11, 12)
-    Text.draw(o.icon, cx + 11, cy + 4, UI.fonts.head, bbs and nil or "white", "center")
+    Text.draw(o.icon, cx + 11, cy + 4, UI.fonts.head, (not bbs) and "white" or nil, "center")
     gfx.setColor(gfx.kColorBlack)
     cx += 34
   end

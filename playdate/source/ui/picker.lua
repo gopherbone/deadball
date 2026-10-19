@@ -173,7 +173,7 @@ function Picker:update()
       if l == cur then
         gfx.setColor(bbs and gfx.kColorWhite or gfx.kColorBlack)
         gfx.fillRect(sx - 1, ly, 13, 11)
-        Text.draw(l.c, sx + 5, ly - 1, UI.fonts.bold, bbs and nil or "white", "center")
+        Text.draw(l.c, sx + 5, ly - 1, UI.fonts.bold, (not bbs) and "white" or nil, "center")
         gfx.setColor(gfx.kColorBlack)
       else
         Text.draw(l.c, sx + 5, ly - 1, UI.fonts.body, fg, "center")

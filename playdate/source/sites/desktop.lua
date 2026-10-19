@@ -442,7 +442,9 @@ function Desktop:layoutIcons(L, a)
     local cx, y = iconCell(i)
     Icons.draw(ic[1], cx - 16, y)
     local f = UI.fonts.body
-    local lw = f:getTextWidth(ic[2]) + 6
+    -- (2 px of backing a side: with 3 px the white boxes of "Bobby's", "SportsWire" and
+    -- "Scores" met and read as one label)
+    local lw = f:getTextWidth(ic[2]) + 4
     gfx.setColor(gfx.kColorWhite)
     gfx.fillRect(cx - lw // 2, y + 33, lw, 12)
     gfx.setColor(gfx.kColorBlack)

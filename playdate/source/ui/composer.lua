@@ -278,7 +278,7 @@ function Composer:layout(L)
   local ready = self:complete()
   local by = math.max(y, h - 26)
   L:button(ready and "Post it!" or "Post", w - 170, by, 78, 20, function() self:post() end,
-    { id = "post", hint = ready and "Send it to the world" or "Fill every blank first", state = ready and nil or "disabled" })
+    { id = "post", hint = ready and "Send it to the world" or "Fill every blank first", state = (not ready) and "disabled" or nil })
   L:button("Cancel", w - 86, by, 72, 20, function() self:goBack() end, { id = "cancel", hint = "Throw it away" })
   L:mark(by + 24)
 end

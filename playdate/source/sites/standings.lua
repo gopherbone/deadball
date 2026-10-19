@@ -77,7 +77,7 @@ function Standings:layout(L)
     Draw.dotted(4, W - 6, y + 13)
     local t = r.team or { id = r.teamId, name = r.teamId, city = "" }
     Text.draw(tostring(i), cols[1], y, UI.fonts.body)
-    L:textLink(Text.ellipsize(t.city .. " " .. t.name, UI.fonts.body, 140), cols[1] + 14, y, function() Nav.team(t.id) end,
+    L:textLink(Text.fitTeam(t, 140), cols[1] + 14, y, function() Nav.team(t.id) end,
       { id = "team:" .. t.id, hint = "Org page \u{2022} " .. (r.rs or 0) .. " runs scored, " .. (r.ra or 0) .. " allowed" })
     local vals = { r.w, r.l, (r.gb == 0 or not r.gb) and "-" or (r.gb % 1 == 0 and string.format("%d", r.gb) or string.format("%.1f", r.gb)), r.streak, r.last10, r.rs, r.ra }
     for k, v in ipairs(vals) do

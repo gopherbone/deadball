@@ -176,7 +176,9 @@ end
 function A.bug(live)
   if bugImg and bugLive == live then return bugImg end
   bugLive = live
-  local w, h = 50, 18
+  -- as wide as its words: a fixed 50 px clipped "DBN LIVE" to "DBN L"
+  local label = live and "DBN LIVE" or "DBN"
+  local w, h = math.max(50, 18 + K.fonts.tiny:getTextWidth(label) + 4), 18
   bugImg = gfx.image.new(w, h, gfx.kColorClear)
   gfx.pushContext(bugImg)
   gfx.setColor(gfx.kColorBlack)
@@ -186,7 +188,7 @@ function A.bug(live)
   gfx.setColor(gfx.kColorBlack)
   gfx.fillRect(14, 3, w - 15, 12)
   gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
-  K.fonts.tiny:drawText(live and "DBN LIVE" or "DBN", 18, 5)
+  K.fonts.tiny:drawText(label, 18, 5)
   gfx.setImageDrawMode(gfx.kDrawModeCopy)
   gfx.popContext()
   return bugImg

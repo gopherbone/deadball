@@ -63,7 +63,8 @@ function Team:layout(L)
     end
     local name = c.city .. " " .. c.name
     if Logos.draw(c, indent, y - 1, 16) then indent += 18 end
-    local nm = Text.ellipsize(name, i == 1 and UI.fonts.bold or UI.fonts.body, 122 - (i - 1) * 8 - 18)
+    -- "Harbor City Lampl..." read badly: the nickname alone when the full name won't fit
+    local nm = Text.fit(name, 122 - (i - 1) * 8 - 18, i == 1 and UI.fonts.bold or UI.fonts.body, { short = c.name, fonts = {} })
     if c.id == team.id then
       Text.draw(nm, indent, y, UI.fonts.bold)
     else
@@ -172,7 +173,7 @@ function Teams:layout(L)
       gfx.fillRect(x + 3, cy + 3, 28, 28)
       Text.draw(t.abbr or "?", x + 17, cy + 10, UI.fonts.bold, "white", "center")
     end
-    Text.draw(Text.ellipsize(t.city .. " " .. t.name, UI.fonts.bold, cw - 40), x + 36, cy + 4, UI.fonts.bold)
+    Text.drawFit(t.city .. " " .. t.name, x + 36, cy + 4, cw - 40, UI.fonts.bold, nil, nil, { short = t.name })
     Text.draw(r.w .. "-" .. r.l .. "  \u{2022}  " .. (r.gb == 0 and "1st" or (r.gb .. " GB")), x + 36, cy + 18, UI.fonts.body)
     L:link(x, cy, cw, 34, function() Nav.team(t.id) end, { id = "club:" .. t.id, hint = "Org page: " .. t.city .. " " .. t.name })
   end

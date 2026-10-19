@@ -246,6 +246,14 @@ end
 function Draw.wordart(text, cx, y, font, opts)
   local img = Draw.wordartImage(text, font, opts)
   local w, h = img:getSize()
+  -- a long name (a 19-letter player, a 16-letter syndicate) is squeezed to the screen
+  -- rather than running off both edges
+  local maxW = (opts and opts.maxW) or (UI.W - 4)
+  if w > maxW then
+    local sc = maxW / w
+    img = img:scaledImage(sc, 1)
+    w = img:getSize()
+  end
   local x = (opts and opts.align == "left") and cx or (cx - w // 2)
   img:draw(x, y)
   return w, h

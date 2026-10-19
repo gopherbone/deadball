@@ -278,11 +278,12 @@ end
 
 local function bug(live, t)
   local img = A.bug(live)
-  local x, y = 346, 204
+  local bw = img:getSize()
+  local x, y = 396 - bw, 204
   img:draw(x, y)
   -- glint every 20 s
   local u = (t % 20) / 0.7
-  if u < 1 then A.glint(x, y, 50, 18, u) end
+  if u < 1 then A.glint(x, y, bw, 18, u) end
 end
 
 ---------------------------------------------------------------------------
@@ -318,7 +319,9 @@ function O.draw(G, scene, bi, b, tau, camName, slo, R)
   end
   if b.kind == "p" and b.k and plan.kT then kStamp(G, tl, bi, b, tau) end
   -- the bug: not on the wide action shots (they're the frames with no time to spare)
-  if not slo and not WIDE[camName] and not O.pipActive then bug(scene.live and true or false, now) end
+  -- (not while the controls strip is up: the bug sat on its "L/R SPEED")
+  local hinting = scene.hintUntil and playdate.getCurrentTimeMilliseconds() < scene.hintUntil
+  if not slo and not WIDE[camName] and not O.pipActive and not hinting then bug(scene.live and true or false, now) end
 end
 
 --- loader: everything the overlays would otherwise render on the frame they first show

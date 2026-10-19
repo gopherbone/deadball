@@ -74,6 +74,6 @@ function Amount:update(covered)
   Text.draw(Fmt.money(math.floor(self.shown + 0.5)), ax, iy + 22, UI.fonts.big, fg, "center")
   Text.draw("\u{25c0} min", ix + 10, iy + 28, UI.fonts.body, fg)
   Text.draw("max \u{25b6}", ix + iw - 10, iy + 28, UI.fonts.body, fg, "right")
-  Draw.progress(ix + 20, iy + 54, iw - 40, 8, (self.value - self.min) / math.max(1, self.max - self.min), bbs and nil or "gray")
+  Draw.progress(ix + 20, iy + 54, iw - 40, 8, (self.value - self.min) / math.max(1, self.max - self.min), (not bbs) and "gray" or nil)
   Text.draw("Crank or Up/Down to adjust  \u{2022}  A: OK  B: cancel", ix + iw // 2, iy + 70, UI.fonts.body, fg, "center")
 end

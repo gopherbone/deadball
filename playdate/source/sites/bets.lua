@@ -217,6 +217,10 @@ function Bets:layoutRow(L, g, y)
   gfx.drawRect(4, y, W - 8, ROW_H)
   local pays = g.pool and g.pool.pays or {}
   local sc = g.score or {}
+  -- the YOU $n badge (bottom right) eats into the home pitcher's line: measure it first
+  local you = g.myBet and ("YOU " .. Fmt.money(g.myBet.amount))
+  local yw = you and (UI.fonts.bold:getTextWidth(you) + 6) or 0
+  local homeR = you and math.min(HX + HW - 2, W - 7 - yw - 4) or (HX + HW - 2)
   for _, side in ipairs({ "away", "home" }) do
     local t = g[side]
     local p = g.probables and g.probables[side]
@@ -228,13 +232,13 @@ function Bets:layoutRow(L, g, y)
     local pl = p and ((p.name:match("(%S+)$") or p.name) .. " " .. ((p.line or ""):match("^(%S+),") or "")) or ""
     local big
     if live or final then big = tostring(sc[side] or 0)
-    else big = (pays[side] or 0) > 0 and (Fmt.pays(pays[side]) .. "x") or "--x" end
+    else big = (pays[side] or 0) > 0 and (Fmt.pays(pays[side]) .. "x") or "--" end
     local bf = (live or final) and UI.fonts.head or UI.fonts.bold
     if left then
       Text.draw(Text.ellipsize(pl, UI.fonts.body, HW - 50), bx + 2, y + 18, UI.fonts.body)
       Text.draw(big, bx + HW - 2, y + 17, bf, nil, "right")
     else
-      Text.draw(Text.ellipsize(pl, UI.fonts.body, HW - 50), bx + HW - 2, y + 18, UI.fonts.body, nil, "right")
+      Text.draw(Text.ellipsize(pl, UI.fonts.body, homeR - (bx + 48)), homeR, y + 18, UI.fonts.body, nil, "right")
       Text.draw(big, bx + 2, y + 17, bf)
     end
   end
@@ -250,9 +254,7 @@ function Bets:layoutRow(L, g, y)
   else
     Text.draw(Fmt.money(pool), W - 8, y + 3, UI.fonts.bold, nil, "right")
   end
-  if g.myBet then
-    local you = "YOU " .. Fmt.money(g.myBet.amount)
-    local yw = UI.fonts.bold:getTextWidth(you) + 6
+  if you then
     gfx.fillRect(W - 7 - yw, y + 18, yw, 13)
     Text.draw(you, W - 10, y + 18, UI.fonts.bold, "white", "right")
   elseif open then

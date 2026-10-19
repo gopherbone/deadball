@@ -369,12 +369,13 @@ function Punch:paint()
   -- the holes: punched ones are cut out of the card (the dimmed desktop shows through)
   Bonus.drawHoles(card, HOLES_X, HOLES_Y, HOLES_W, HOLE_R, { labels = true, punching = self.punching, mode = "card" })
   -- footer: the streak and the fine print
-  gfx.drawLine(sx + 8, CH - 30, CW - 10, CH - 30)
+  -- (inside the inner rule at CH - 4: the fine print's last line ends at CH - 6)
+  gfx.drawLine(sx + 8, CH - 34, CW - 10, CH - 34)
   local streak = card.streak or 0
-  Text.draw("STREAK: " .. streak .. " DAY" .. (streak == 1 and "" or "S"), sx + 10, CH - 26, UI.fonts.bold)
+  Text.draw("STREAK: " .. streak .. " DAY" .. (streak == 1 and "" or "S"), sx + 10, CH - 32, UI.fonts.bold)
   local fine = card.lapsed and "Your old card went through the wash."
     or (card.graceLeft and "Miss a day: Bobby looks the other way. Once." or "Bobby already looked the other way once.")
-  Text.draw(Text.ellipsize(fine, UI.fonts.body, CW - sx - 20), sx + 10, CH - 14, UI.fonts.body)
+  Text.drawFit(fine, sx + 10, CH - 19, CW - sx - 20, UI.fonts.body, nil, nil, { short = card.graceLeft and "Miss a day: Bobby looks away. Once." or "Bobby already looked away once." })
   gfx.popContext()
   self.img = img
 end
@@ -572,8 +573,15 @@ function Punch:update()
     self.msgText = msg
     self.msgImg = gfx.image.new(CW - 8, 28, gfx.kColorClear)
     gfx.pushContext(self.msgImg)
-    Text.draw(Text.ellipsize(msg, UI.fonts.bold, CW - 12), 0, 1, UI.fonts.bold, "white")
     local keys = (self.state == "show" and not (self.card and self.card.punchedToday)) and "A: Punch it!   B: later" or (self.state == "done" and "A: OK" or "")
+    local kw = keys ~= "" and (UI.fonts.body:getTextWidth(keys) + 10) or 0
+    -- Bobby's line wraps onto the second row, beside the keys (never cut mid-sentence on row one)
+    local lines = Text.wrap(msg, UI.fonts.bold, CW - 12)
+    Text.draw(lines[1] or "", 0, 1, UI.fonts.bold, "white")
+    if lines[2] then
+      local rest = table.concat(lines, " ", 2)
+      Text.drawFit(rest, 0, 14, CW - 12 - kw, UI.fonts.bold, "white")
+    end
     Text.draw(keys, CW - 12, 14, UI.fonts.body, "white", "right")
     gfx.popContext()
   end
@@ -757,7 +765,9 @@ function Odd:layout(L)
     px += 13
   end
   local refill = pc.refillAt and (pc.refillAt - Api.now()) or nil
-  Text.draw(left .. " of " .. max .. " jobs left today \u{2022} refills at midnight UTC (" .. countdown(refill) .. ")", px + 4, y, UI.fonts.body)
+  local cd = countdown(refill)
+  Text.drawFit(left .. " of " .. max .. " jobs left today \u{2022} refills at midnight UTC (" .. cd .. ")", px + 4, y, W - 10 - (px + 4), UI.fonts.body, nil, nil,
+    { short = { left .. " of " .. max .. " left today \u{2022} refills 00:00 UTC (" .. cd .. ")", left .. " of " .. max .. " left \u{2022} refills in " .. cd } })
   y += 18
   Text.block("Daily jobs change with the game day; finish one before the bell and you can still collect after it. The big one runs Monday to Sunday (UTC) and doesn't touch the drawer.", 8, y, W - 16, UI.fonts.body, nil, 3)
   y += 46

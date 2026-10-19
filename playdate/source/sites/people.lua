@@ -117,7 +117,10 @@ function Person:layout(L)
   iy += 14
   if pg.team then
     Text.draw("CLUB", rx + 6, iy, UI.fonts.bold)
-    L:textLink(pg.team.city .. " " .. pg.team.name .. " (" .. Fmt.levelName(pg.team.level) .. ")", rx + 46, iy, function() Nav.team(pg.team.id) end, { id = "team", hint = "Org page" })
+    local t, lv = pg.team, " (" .. Fmt.levelName(pg.team.level) .. ")"
+    local club = Text.fit(t.city .. " " .. t.name .. lv, rw - 52, UI.fonts.body,
+      { short = { t.city .. " " .. t.name, t.name .. lv, t.name }, fonts = {} })
+    L:textLink(club, rx + 46, iy, function() Nav.team(t.id) end, { id = "team", hint = "Org page: " .. t.city .. " " .. t.name .. lv })
     iy += 15
   end
   Text.draw("TRAITS", rx + 6, iy + 1, UI.fonts.bold)

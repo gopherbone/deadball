@@ -35,16 +35,26 @@ local fontPaths = {
   slabr = "ballcast/fonts/Sasser-Slab",
   wordart = "ballcast/fonts/Deadball-WordArt",
 }
+-- faces with no "\u{2026}" glyph (it draws as nothing): K.fit cuts them with "..." instead
+K.NO_ELLIPSIS = { tiny = true, mono = true, nb = true, nl = true, big = true, caps = true, bitmore = true, wordart = true }
+K.noEllipsis = setmetatable({}, { __mode = "k" })
 K.fonts = setmetatable({}, { __index = function(t, k)
   local p = fontPaths[k]
   local f = nil
-  if p then
+  -- the plain SDK Nontendo faces lack glyphs we print: Light has no apostrophe ("can't" drew as
+  -- "cant"), Bold no "+" ("CASHED +$99" drew as "CASHED$99"). In the shell, use its composites
+  -- (ui/theme.lua: the same faces plus the missing glyphs).
+  local shell = UI and UI.fonts
+  if k == "nl" and shell and shell.body and shell.body.base then f = shell.body end
+  if k == "nb" and shell and shell.bold and shell.bold.base then f = shell.bold end
+  if p and not f then
     -- prefer the shared copy in fonts/ (assets agent) when it exists
     local shared = "fonts/" .. p:match("([^/]+)$")
     if playdate.file.exists(shared .. ".pft") or playdate.file.exists(shared .. ".fnt") then f = gfx.font.new(shared) end
     if not f then f = gfx.font.new(p) end
   end
   if not f then f = gfx.getSystemFont() end
+  if K.NO_ELLIPSIS[k] and not f.base then K.noEllipsis[f] = true end
   rawset(t, k, f)
   return f
 end })
@@ -121,11 +131,30 @@ function K.wrap(font, s, width)
   return lines
 end
 
---- Fit a string into width by trimming with an ellipsis.
+--- Fit a string into width by trimming with an ellipsis ("..." in faces without the glyph).
 function K.fit(font, s, width)
   if font:getTextWidth(s) <= width then return s end
-  while #s > 1 and font:getTextWidth(s .. "…") > width do s = s:sub(1, -2) end
-  return s .. "…"
+  local ell = K.noEllipsis[font] and "..." or "…"
+  while #s > 1 and font:getTextWidth(s .. ell) > width do s = s:sub(1, -2) end
+  -- (never end on half a UTF-8 sequence or a dangling space)
+  while #s > 1 and (s:byte(#s) or 0) >= 0x80 and (s:byte(#s) or 0) < 0xC0 do s = s:sub(1, -2) end
+  if #s > 1 and (s:byte(#s) or 0) >= 0xC0 then s = s:sub(1, -2) end
+  return (s:gsub("%s+$", "")) .. ell
+end
+
+--- Fit-or-shorten for nameplates: `s` in the first of `fonts` it fits (largest first), else
+--- each of `shorts` (e.g. the surname alone) the same way, else cut with an ellipsis in the
+--- last font. Returns the text and its font.
+function K.fitChain(fonts, s, width, shorts)
+  local cands = { s }
+  for _, c in ipairs(shorts or {}) do cands[#cands + 1] = c end
+  for _, c in ipairs(cands) do
+    for _, f in ipairs(fonts) do
+      if f:getTextWidth(c) <= width then return c, f end
+    end
+  end
+  local f = fonts[#fonts]
+  return K.fit(f, cands[#cands], width), f
 end
 
 function K.money(n)
@@ -163,7 +192,10 @@ end
 local DEV = "fixtures_dev/ballcast/"
 
 local function readJson(path)
-  return Packs.json(path)  -- loose file or the build's packed fixtures (ui/packs.lua)
+  local d = Packs.json(path)  -- loose file or the build's packed fixtures (ui/packs.lua)
+  -- dev: worst-case strings for layout QA (net/stress.lua; only with stress.flag in the Simulator)
+  if d and Stress and Stress.on then Stress.apply(path, d) end
+  return d
 end
 K.readJson = readJson
 

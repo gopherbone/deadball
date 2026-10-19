@@ -20,7 +20,7 @@ function Gossip:sources() return { g = "/gossip" } end
 
 function Gossip:statusText()
   local n = self.openCount or 0
-  return n > 0 and (n .. " open market(s). Bobby hears everything.") or "Transferring data from betsbybobby.com... done."
+  return n > 0 and (n .. (n == 1 and " open market" or " open markets") .. ". Bobby hears everything.") or "Transferring data from betsbybobby.com... done."
 end
 
 function Gossip:onResult(r)
@@ -89,7 +89,7 @@ local function optButton(L, x, y, w, label, mine, enabled, action, opts)
     gfx.fillRoundRect(x, y, w, h, 3)
     Text.draw(label, x + w // 2, y + 1, UI.fonts.bold, "white", "center")
   else
-    Draw.button(x, y, w, h, label, enabled and nil or "disabled", UI.fonts.body)
+    Draw.button(x, y, w, h, label, (not enabled) and "disabled" or nil, UI.fonts.body)
   end
   if enabled then
     opts.style = "ring"
@@ -157,9 +157,17 @@ function Gossip:layout(L)
 
   -- rumour mill (the BBS)
   y = self:layoutChatter(L, y, g.chatter or {})
-  y += Text.block("Bobby pays at the end of the day the story breaks. House keeps 10%. Bobby's regulars cover every answer. Story goes cold? Everybody gets their money back.", BX, y, BW, UI.fonts.body) + 1
-  Text.draw("(not a real bookie, this is entertainment)", BX, y, UI.fonts.body)
-  y += 18
+  -- the house rules: on a white card (light text straight on the dotted wallpaper was hard to read)
+  local rules = "Bobby pays at the end of the day the story breaks. House keeps 10%. Bobby's regulars cover every answer. Story goes cold? Everybody gets their money back."
+  local rh = #Text.wrap(rules, UI.fonts.body, BW - 8) * Text.lineHeight(UI.fonts.body) + 16
+  gfx.setColor(gfx.kColorWhite)
+  gfx.fillRect(BX, y, BW, rh + 2)
+  gfx.setColor(gfx.kColorBlack)
+  gfx.drawRect(BX, y, BW, rh + 2)
+  y += 2
+  y += Text.block(rules, BX + 4, y, BW - 8, UI.fonts.body) + 1
+  Text.draw("(not a real bookie, this is entertainment)", BX + 4, y, UI.fonts.body)
+  y += 20
   Draw.stripes(BX, y, BW, 12, "UNDER CONSTRUCTION")
   L:mark(y + 16)
 end

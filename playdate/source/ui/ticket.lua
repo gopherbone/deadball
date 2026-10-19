@@ -286,7 +286,7 @@ function Ticket:update(covered)
       local s = o.sides[si]
       local who = s and s.label or ""
       local line = (mult and mult < 1) and ("Returns ~" .. Fmt.money(win) .. ": nobody on the other side yet")
-        or ("Win ~" .. Fmt.money(win) .. " if " .. (o.winWord and o.winWord(self.side) or who) .. (mult and (" (" .. string.format("%.2f", mult) .. "x)") or ""))
+        or ("Pays ~" .. Fmt.money(win) .. " if " .. (o.winWord and o.winWord(self.side) or who) .. (mult and (" (" .. string.format("%.2f", mult) .. "x)") or ""))
       self.line = Text.ellipsize(line, UI.fonts.bold, W - 16)
     end
     Text.draw(self.line, cx, cy, UI.fonts.bold, nil, "center")

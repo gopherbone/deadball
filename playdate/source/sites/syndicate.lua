@@ -47,17 +47,21 @@ function Syn:layout(L)
     y += 16
     for _, m in ipairs(s.members or {}) do
       local nm = m.name .. (m.founder and " *" or "")
+      -- name (rank) up to the CASH column: a 16-letter handle plus "(Made Man)" ran into the
+      -- money; the rank goes first, then the name is cut
+      local cash = Fmt.money(m.money)
+      local label = Text.fit(nm .. " (" .. (m.rank or "") .. ")", 236 - MONO:getTextWidth(cash) - 12, MONO, { short = nm, fonts = {} })
       if m.name == self:me() then
         gfx.setColor(gfx.kColorWhite)
         gfx.fillRect(2, y, 392, 16)
         gfx.setColor(gfx.kColorBlack)
-        Text.draw(nm .. " (" .. (m.rank or "") .. ")", 4, y, MONO)
-        Text.draw(Fmt.money(m.money), 236, y, MONO, nil, "right")
+        Text.draw(label, 4, y, MONO)
+        Text.draw(cash, 236, y, MONO, nil, "right")
         Text.draw(tostring(m.crewSize or 0), 286, y, MONO, nil, "right")
         Text.draw(tostring(m.heat or 0), 336, y, MONO, nil, "right")
       else
-        Text.draw(Text.ellipsize(nm .. " (" .. (m.rank or "") .. ")", MONO, 170), 4, y, MONO, "white")
-        Text.draw(Fmt.money(m.money), 236, y, MONO, "white", "right")
+        Text.draw(label, 4, y, MONO, "white")
+        Text.draw(cash, 236, y, MONO, "white", "right")
         Text.draw(tostring(m.crewSize or 0), 286, y, MONO, "white", "right")
         Text.draw(tostring(m.heat or 0), 336, y, MONO, "white", "right")
       end

@@ -66,7 +66,12 @@ end
 function UI.hints(s)
   gfx.setColor(gfx.kColorBlack)
   gfx.fillRect(0, 226, 400, 14)
-  K.textW(K.fonts.bitmore, s, 200, 227, "center")
+  -- Bitmore's space is 2 px: "A ZOOM   B BACK" read "AZOOM BBACK". Single spaces (inside a
+  -- hint) get doubled; the wider gaps between hints stay as they are.
+  local wide = s:gsub("(%S) (%S)", "%1  %2"):gsub("(%S) (%S)", "%1  %2")
+  local f = K.fonts.bitmore
+  if f:getTextWidth(wide) <= 396 then s = wide end
+  K.textW(f, s, 200, 227, "center")
 end
 
 --- Paper texture background (light, reads on the reflective screen).

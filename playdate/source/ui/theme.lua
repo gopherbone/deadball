@@ -88,8 +88,21 @@ local function runsFor(self, str)
   return v
 end
 
+-- Typographic punctuation most of the SDK fonts don't carry: Nontendo draws a missing glyph as
+-- nothing ("Morales\u{2013}Ruggles" read "MoralesRuggles"), the serif and slab fonts as a box.
+-- Swapped for the plain ASCII forms in every font but the Roobert faces, which have them
+-- (UI.richPunct, filled in below once the fonts exist).
+local PUNCT <const> = { ["\u{2013}"] = "-", ["\u{2018}"] = "'", ["\u{2019}"] = "'", ["\u{201C}"] = '"', ["\u{201D}"] = '"' }
+UI.richPunct = setmetatable({}, { __mode = "k" })
+local function plainPunct(font, str)
+  if not str:find("\226\128", 1, true) or UI.richPunct[font] then return str end
+  return (str:gsub("\226\128[\147\152\153\156\157]", PUNCT))
+end
+UI.plainPunct = plainPunct
+
 function Composite:getTextWidth(str)
   str = tostring(str or "")
+  str = plainPunct(self.base, str)
   local runs = runsFor(self, str)
   if not runs then return self.base:getTextWidth(str) end
   return runs.w
@@ -97,6 +110,7 @@ end
 
 function Composite:drawText(str, x, y)
   str = tostring(str or "")
+  str = plainPunct(self.base, str)
   local runs = runsFor(self, str)
   if not runs then return self.base:drawText(str, x, y) end
   for i = 1, #runs do
@@ -119,6 +133,8 @@ UI.fonts = {
   slab  = font("fonts/Sasser-Slab-Bold"),             -- WordArt source
   mono  = font("fonts/Roobert-11-Mono-Condensed"),    -- BBS terminal
 }
+UI.richPunct[UI.fonts.head] = true
+UI.richPunct[UI.fonts.big] = true
 -- The assets agent's WordArt faces (outlined, drop-shadowed, caps only).
 UI.fonts.wordart = gfx.font.new("fonts/Deadball-WordArt")
 UI.fonts.wordartBig = gfx.font.new("fonts/Deadball-WordArt-Big")
@@ -186,7 +202,7 @@ function Fmt.pays(x)
   return string.format("%.2f", x)
 end
 
---- "4m", "2h 5m", "now" from a millisecond delta.
+--- "4m", "2h 5m", "6d 19h", "now" from a millisecond delta.
 function Fmt.dur(ms)
   if ms <= 0 then return "now" end
   local s = math.floor(ms / 1000)
@@ -194,7 +210,8 @@ function Fmt.dur(ms)
   local m = math.floor(s / 60)
   if m < 60 then return m .. "m" end
   local h = math.floor(m / 60)
-  return h .. "h " .. (m % 60) .. "m"
+  if h < 48 then return h .. "h " .. (m % 60) .. "m" end
+  return (h // 24) .. "d " .. (h % 24) .. "h"
 end
 
 --- "5m ago" style relative time against the server clock.

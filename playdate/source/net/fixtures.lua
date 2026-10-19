@@ -10,6 +10,7 @@
 -- The build packs each dir into <dir>/pack.json (tools/assets/pack.py); Packs.json reads either.
 
 import "ui/packs"
+import "net/stress"   -- dev only: worst-case strings (stress.flag, Simulator)
 
 Fixtures = Fixtures or {}
 
@@ -74,6 +75,7 @@ local function load(name)
     local data = Packs.json(d .. name .. ".json")  -- loose or packed (ui/packs.lua)
     if data then
       retime(name, data)
+      Stress.apply(name, data)
       db[name] = data
       return data
     end

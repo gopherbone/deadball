@@ -133,7 +133,7 @@ tour: sim
 	@rm -f "$(DATA)/tour.done" "$(DATA)/auth.json"
 	@echo '{"fixtures":"dev-token-123"}' > "$(DATA)/auth.json"
 	@"$(SIM_BIN)" $(abspath $(PDX)) >/dev/null 2>&1 & echo $$! > build/sim.pid; \
-	for i in $$(seq 1 720); do [ -f "$(DATA)/tour.done" ] && break; sleep 1; done; \
+	for i in $$(seq 1 1800); do [ -f "$(DATA)/tour.done" ] && break; sleep 1; done; \
 	kill $$(cat build/sim.pid) 2>/dev/null; rm -f build/sim.pid "$(DATA)/tour.flag" "$(DATA)/debug.flag"
 	@echo "screens in $(SCREENS)"; tail -n 40 "$(DATA)/debug.log" | grep -iE "error|tour\] step" || true
 

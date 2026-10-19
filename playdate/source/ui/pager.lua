@@ -55,9 +55,11 @@ local function pagerImage(l1, l2, l3)
   gfx.setColor(gfx.kColorWhite)
   gfx.fillRect(5, 5, W - 30, H - 10)
   gfx.setColor(gfx.kColorBlack)
-  Text.draw(Text.ellipsize(l1, UI.fonts.bold, W - 40), 9, 6, UI.fonts.bold)
-  Text.draw(Text.ellipsize(l2, UI.fonts.bold, W - 40), 9, 19, UI.fonts.bold)
-  Text.draw(Text.ellipsize(l3, UI.fonts.bold, W - 40), 9, 32, UI.fonts.bold)
+  -- a line too long for the bold LCD face drops to the light one before it's cut
+  -- ("Back an underdog. S..." lost the joke)
+  Text.drawFit(l1, 9, 6, W - 40, UI.fonts.bold)
+  Text.drawFit(l2, 9, 19, W - 40, UI.fonts.bold)
+  Text.drawFit(l3, 9, 32, W - 40, UI.fonts.bold)
   -- the buttons on the side
   gfx.setColor(gfx.kColorWhite)
   for i = 0, 2 do gfx.drawRoundRect(W - 21, 7 + i * 13, 15, 10, 3) end

@@ -336,7 +336,7 @@ function ModeSelect:card(i, on)
     gfx.fillRect(ex - 22, ey - 18, 2, 30)
     gfx.fillTriangle(ex - 20, ey - 18, ex + 26, ey - 10, ex - 20, ey - 2)
     gfx.setColor(on and gfx.kColorBlack or gfx.kColorWhite)
-    Text.draw("96", ex - 12, ey - 17, UI.fonts.bold, on and nil or "white")
+    Text.draw("96", ex - 12, ey - 17, UI.fonts.bold, (not on) and "white" or nil)
   end
   gfx.setColor(gfx.kColorBlack)
   Text.draw(m.title, w // 2, 46, UI.fonts.big, col, "center")

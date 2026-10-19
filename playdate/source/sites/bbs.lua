@@ -730,8 +730,10 @@ function Ops:layoutKinds(L)
   local y = header3(L, 2, "PICK THE JOB", "")
   if g then
     -- the target: left/right anywhere in the list switches it
-    local tl = "TARGET \u{25c0} " .. (t and (t.city .. " " .. t.name) or "?") .. " \u{25b6}"
-    Text.draw(Text.ellipsize(tl, UI.fonts.bold, LIST_W - 50), 6, y, UI.fonts.bold, "white")
+    local function arrows(n) return "TARGET \u{25c0} " .. n .. " \u{25b6}" end
+    local tl = arrows(t and (t.city .. " " .. t.name) or "?")
+    -- keep the right arrow: "Cold Spring Rustlers" fits, a longer club drops its city
+    Text.draw(Text.fit(tl, LIST_W - 50, UI.fonts.bold, { short = t and arrows(t.name) or nil, fonts = {} }), 6, y, UI.fonts.bold, "white")
     Text.draw(g.away.abbr .. "@" .. g.home.abbr, LIST_W - 4, y, UI.fonts.body, "white", "right")
     y += 15
   else
@@ -742,8 +744,9 @@ function Ops:layoutKinds(L)
     local banned = k.blocked and g and not (k.storyline and k.storyline.required)
     local storyless = not g and not k.storyline
     local sel = i == self.kindIdx
-    Text.draw(Text.ellipsize(k.name, UI.fonts.bold, 142), 6, y + 1, UI.fonts.bold, "white")
-    Text.draw(Fmt.money(k.cost), 186, y, MONO, "white", "right")
+    local cost = Fmt.money(k.cost)
+    Text.drawFit(k.name, 6, y + 1, 186 - MONO:getTextWidth(cost) - 12, UI.fonts.bold, "white")
+    Text.draw(cost, 186, y, MONO, "white", "right")
     local pct = banned and "BANNED" or (storyless and "--" or ((k.successPct or 0) .. "%"))
     Text.draw(pct, LIST_W - 4, y, MONO, "white", "right")
     if banned or storyless then
@@ -781,7 +784,7 @@ function Ops:layoutCrew(L)
     if on then gfx.fillRect(6, y + 4, 9, 9) else gfx.drawRect(6, y + 4, 9, 9) end
     gfx.setColor(gfx.kColorBlack)
     local tag = e.ally and ("(" .. e.ally .. ")") or (not available(c) and statusLabel(c.status):lower() .. "!" or skillsText(c))
-    local nw = Text.draw(Text.ellipsize(c.person.name, MONO, 120), 20, y, MONO, "white")
+    local nw = Text.draw(Text.fit(c.person.name, 120, MONO, { short = Text.initialName(c.person.name), fonts = {} }), 20, y, MONO, "white")
     Text.draw(Text.ellipsize(tag, UI.fonts.body, LIST_W - 26 - nw), 26 + nw, y + 2, UI.fonts.body, "white")
     L:link(4, y, LIST_W - 4, 16, function() self:toggleCrew(e) self.panelKey = nil end,
       { id = "crew:" .. c.id, hint = (e.ally and ("Borrowed from " .. e.ally .. ": ") or "") .. c.person.name .. " \u{2022} " .. (c.role or "") .. " \u{2022} " .. skillsText(c), style = "invert" })
