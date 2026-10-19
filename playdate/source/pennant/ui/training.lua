@@ -62,16 +62,25 @@ function Training:layout(Lb)
   Text.draw("Everyone:", 4, y + 2, UI.fonts.bold)
   gfx.drawRect(72, y, 104, 17)
   Text.draw("\u{25c0} " .. PL.FOCUS_NAME[gk] .. " \u{25b6}", 124, y + 2, UI.fonts.body, nil, "center")
-  Lb:link(72, y, 104, 17, function() end, PUI.opts("gf", "Left/right: focus for the whole group (pitchers get their own list on the farm)", function(d)
+  local gy = y
+  local gfl = Lb:link(72, y, 104, 17, function() end, PUI.opts("gf", "Left/right: focus for the whole group (pitchers get their own list on the farm)", function(d)
     self.gf[self.tab] = (self.gf[self.tab] - 1 + d) % #gl + 1 end))
+  gfl.data.repaint = function() PUI.repaint(self, 72, gy, 105, 18, function()
+    gfx.drawRect(72, gy, 104, 17)
+    Text.draw("\u{25c0} " .. PL.FOCUS_NAME[gl[self.gf[self.tab]] or gl[1]] .. " \u{25b6}", 124, gy + 2, UI.fonts.body, nil, "center")
+  end) end
   gfx.drawRect(180, y, 86, 17)
   Text.draw("\u{25c0} " .. PL.INTENSITY[self.gi + 1] .. " \u{25b6}", 223, y + 2, UI.fonts.body, nil, "center")
-  Lb:link(180, y, 86, 17, function() end, PUI.opts("gi", "Left/right: intensity for the whole group", function(d) self.gi = (self.gi + d) % 4 end))
+  local gil = Lb:link(180, y, 86, 17, function() end, PUI.opts("gi", "Left/right: intensity for the whole group", function(d) self.gi = (self.gi + d) % 4 end))
+  gil.data.repaint = function() PUI.repaint(self, 180, gy, 87, 18, function()
+    gfx.drawRect(180, gy, 86, 17)
+    Text.draw("\u{25c0} " .. PL.INTENSITY[self.gi + 1] .. " \u{25b6}", 223, gy + 2, UI.fonts.body, nil, "center")
+  end) end
   Lb:button("Apply to all", 272, y, 90, 17, function()
     for _, p in ipairs(self:players()) do
       p.plan = p.plan or {}
       local list = fociFor(p)
-      local want = gk
+      local want = gl[self.gf[self.tab]] or gl[1]
       local ok = false
       for _, k in ipairs(list) do if k == want then ok = true end end
       if not ok then want = (p.pos == "P") and PL.FOCI_PIT[self.gf.pit or 2] or list[1] end
@@ -79,7 +88,7 @@ function Training:layout(Lb)
       p.plan.i = self.gi
     end
     Sfx.select()
-    self:render(true)
+    for _, l in ipairs(self.links) do if l.data and l.data.repaint and l.id and l.id:sub(1, 1) == "t" then l.data.repaint() end end
   end, { id = "apply", hint = "Set every player on this tab to that plan" })
   y = y + 22
   -- column heads
@@ -91,36 +100,55 @@ function Training:layout(Lb)
   Text.draw("/WK", 390, y, UI.fonts.body, nil, "right")
   gfx.drawLine(4, y + 13, 392, y + 13)
   y = y + 16
-  local INT_GLYPH = { "Rest", "Light", "Normal", "HARD" }
   for _, p in ipairs(self:players()) do
-    local plan = p.plan or { i = 2 }
-    local img = Faces.get("face:" .. p.face, 24)
-    PUI.srcRect = PUI.srcRect or playdate.geometry.rect.new(0, 4, 24, 16)
-    if img then img:draw(4, y, gfx.kImageUnflipped, PUI.srcRect) end
-    Text.draw((p.pos == "P" and (p.role or "P") or p.pos) .. " " .. Text.ellipsize(PM.short(p), UI.fonts.body, 96), 30, y + 1, UI.fonts.body)
-    if p.inj then PUI.cross(162, y + 2) else PUI.arrow(162, y + 2, p.cond) end
-    PUI.fatigue(180, y + 5, p.fat, 30)
-    local f = plan.f
-    local key = f == "pit" and "stf" or f
-    local fl = PL.FOCUS_NAME[f or ""] or "-"
-    if f == "pit" then fl = "Pitch: " .. (PL.devPitch(p) or "?") end
-    Text.draw(fl, 216, y + 1, UI.fonts.bold)
-    local i = plan.i or 2
-    -- intensity as 3 pips
-    for k = 1, 3 do
-      if k <= i then gfx.fillRect(300 + (k - 1) * 9, y + 4, 7, 7) else gfx.drawRect(300 + (k - 1) * 9, y + 4, 7, 7) end
+    local ry = y
+    PUI.lazy(Lb, 2, ry - 1, 391, 17, function() PennantUI.trainingRow(p, ry) end)
+    local link
+    local function repaint()
+      PUI.repaint(self, 2, ry - 1, 391, 17, function() PennantUI.trainingRow(p, ry) end)
+      link.hint = PennantUI.trainingHint(p)
     end
-    Text.draw(INT_GLYPH[i + 1], 330, y + 1, i == 3 and UI.fonts.bold or UI.fonts.body)
-    local g = p.inj and 0 or PL.weekly(p, f or "con", i)
-    local room = key and ((p.cap[key] or 80) - (p.r[key] or 0)) or 1
-    Text.draw(room <= 0 and "max" or string.format("+%.1f", g), 390, y + 1, UI.fonts.body, nil, "right")
-    local hint = PM.name(p) .. ": " .. (PM.LABEL[key] or fl) .. " " .. math.floor(p.r[key] or 0) .. " (cap " .. (p.cap[key] or "?") .. ")"
-      .. (i == 3 and ". Hard: faster, but tiring, injury risk" or (i == 0 and ". Rest: recovers fatigue, lifts condition" or ""))
-    Lb:link(2, y - 1, 391, 17, function() cycleInt(p) Sfx.tick() self:render(true) end,
-      { id = "t" .. p.id, style = "invert", hint = hint, data = { adj = function(d) cycleFocus(p, d) end } })
+    link = Lb:link(2, ry - 1, 391, 17, function() cycleInt(p) Sfx.tick() repaint() end,
+      { id = "t" .. p.id, style = "invert", hint = PennantUI.trainingHint(p), data = { adj = function(d) cycleFocus(p, d) end, repaint = repaint } })
     y = y + 17
   end
   Lb:mark(y + 4)
+end
+
+local INT_GLYPH <const> = { "Rest", "Light", "Normal", "HARD" }
+
+--- One player's training row (also repainted alone when it changes).
+function PennantUI.trainingRow(p, y)
+  local plan = p.plan or { i = 2 }
+  local img = Faces.get("face:" .. p.face, 24)
+  PUI.srcRect = PUI.srcRect or playdate.geometry.rect.new(0, 4, 24, 16)
+  if img then img:draw(4, y, gfx.kImageUnflipped, PUI.srcRect) end
+  Text.draw((p.pos == "P" and (p.role or "P") or p.pos) .. " " .. Text.ellipsize(PM.short(p), UI.fonts.body, 96), 30, y + 1, UI.fonts.body)
+  if p.inj then PUI.cross(162, y + 2) else PUI.arrow(162, y + 2, p.cond) end
+  PUI.fatigue(180, y + 5, p.fat, 30)
+  local f = plan.f
+  local key = f == "pit" and "stf" or f
+  local fl = PL.FOCUS_NAME[f or ""] or "-"
+  if f == "pit" then fl = "Pitch: " .. (PL.devPitch(p) or "?") end
+  Text.draw(fl, 216, y + 1, UI.fonts.bold)
+  local i = plan.i or 2
+  -- intensity as 3 pips
+  for k = 1, 3 do
+    if k <= i then gfx.fillRect(300 + (k - 1) * 9, y + 4, 7, 7) else gfx.drawRect(300 + (k - 1) * 9, y + 4, 7, 7) end
+  end
+  Text.draw(INT_GLYPH[i + 1], 330, y + 1, i == 3 and UI.fonts.bold or UI.fonts.body)
+  local g = p.inj and 0 or PL.weekly(p, f or "con", i)
+  local room = key and ((p.cap[key] or 80) - (p.r[key] or 0)) or 1
+  Text.draw(room <= 0 and "max" or string.format("+%.1f", g), 390, y + 1, UI.fonts.body, nil, "right")
+end
+
+function PennantUI.trainingHint(p)
+  local plan = p.plan or { i = 2 }
+  local f = plan.f
+  local key = f == "pit" and "stf" or f
+  local i = plan.i or 2
+  return PM.name(p) .. ": " .. (PM.LABEL[key] or PL.FOCUS_NAME[f or ""] or "-") .. " " .. math.floor(p.r[key] or 0) .. " (cap " .. (p.cap[key] or "?") .. ")"
+    .. (i == 3 and ". Hard: faster, but tiring, injury risk" or (i == 0 and ". Rest: recovers fatigue, lifts condition" or ""))
 end
 
 function Training:initialFocus()

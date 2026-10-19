@@ -36,13 +36,15 @@ local function form(p)
   return b
 end
 
-function PEng.player(p, norm)
+function PEng.player(p, norm, slim)
   local r = p.r
   local b = form(p)
   local nb, np = norm and norm.bat or 0, norm and norm.pit or 0
   local function R(v, off) return clamp(floor(v + b - (off or 0) + 0.5), 15, 85) end
-  local t = { id = pid(p.id), name = PM.name(p), face = "face:" .. p.face, bats = p.bats, throws = p.throws, pos = p.pos,
-    mood = (p.mood or 0) * 2, traits = {}, recentPitches = p.rp or { 0, 0, 0, 0, 0 } }
+  -- (slim: background games; names and faces only matter to BallCast)
+  local t = { id = pid(p.id), bats = p.bats, throws = p.throws, pos = p.pos, mood = (p.mood or 0) * 2 }
+  if not slim then t.name, t.face, t.traits = PM.name(p), "face:" .. p.face, {} end
+  if p.pos == "P" or not slim then t.recentPitches = p.rp or { 0, 0, 0, 0, 0 } end
   if p.inj then t.injury = { daysLeft = p.inj.d } end
   if p.pos == "P" then
     t.batting = { contact = 22, power = 20, eye = 25, gap = 20, lift = 40, pull = 50, speed = 30, baserunning = 30, vsL = 0 }
@@ -67,7 +69,8 @@ function PEng.player(p, norm)
   return t
 end
 
-function PEng.team(L, abbr, ctrl)
+--- noPlayers: list the active roster's ids in team.playerIds instead of building player tables
+function PEng.team(L, abbr, ctrl, noPlayers)
   local T = L.teams[abbr]
   local notes = PRoster.validate(L, T)
   if abbr == L.user and #notes > 0 then L.lineupNotes = notes end
@@ -75,9 +78,12 @@ function PEng.team(L, abbr, ctrl)
   local sp, idx = PRoster.starter(L, T)
   T.todaySp, T.todaySpIdx = sp, idx
   local t = { id = abbr, abbr = abbr, city = c.city, teamName = c.name, players = {}, lineup = {}, bench = {}, bullpen = {} }
+  if noPlayers then t.playerIds = {} t.players = nil end
   for _, id in ipairs(T.ml) do
     local p = L.players[id]
-    if p and not p.inj and (p.late or 0) <= 0 then t.players[#t.players + 1] = PEng.player(p, L.norm) end
+    if p and not p.inj and (p.late or 0) <= 0 then
+      if noPlayers then t.playerIds[#t.playerIds + 1] = id else t.players[#t.players + 1] = PEng.player(p, L.norm) end
+    end
   end
   for _, id in ipairs(T.order) do t.lineup[#t.lineup + 1] = { id = pid(id), pos = T.field[id] or "DH" } end
   for _, id in ipairs(PRoster.bench(L, T)) do t.bench[#t.bench + 1] = pid(id) end
@@ -96,7 +102,7 @@ end
 
 --- Weather by date and park: warmer in summer, a breeze from any direction (deterministic).
 function PEng.weather(L, g)
-  local m = PL.calendar(L.day)
+  local m = PL.calendar(L.day, L)
   local h = ((L.seed or 1) * 31 + L.day * 17 + (PennantClubs.byAbbr[g.h].idx or 1) * 7) % 997
   return { tempF = 52 + math.min(9, m) * 3 + h % 9, windDir = (h * 37) % 360 - 180, windMph = h % 12 }
 end
@@ -180,27 +186,66 @@ end
 --- more than the game).
 function PEng.encoded(L, abbr)
   local c = PEng.cache
-  if not c or c.day ~= L.day or c.season ~= L.season then c = { day = L.day, season = L.season, t = {} } PEng.cache = c end
-  if not c.t[abbr] then c.t[abbr] = pdsim.encodeTeam(PEng.team(L, abbr, nil)) end
+  if not c or c.day ~= L.day or c.season ~= L.season then c = { day = L.day, season = L.season, t = {}, w = {} } PEng.cache = c end
+  if not c.t[abbr] then
+    while not PEng.encodeStep(L, abbr, 1000) do end
+  end
   return c.t[abbr]
+end
+
+--- The same string pdsim.encodeTeam(team) makes, built a player at a time (json.encode of a
+--- whole roster is one 30+ ms call on the device). Returns true when cache.t[abbr] is ready.
+function PEng.encodeStep(L, abbr, ms)
+  local c = PEng.cache
+  if not c or c.day ~= L.day or c.season ~= L.season then c = { day = L.day, season = L.season, t = {}, w = {} } PEng.cache = c end
+  if c.t[abbr] then return true end
+  local t0 = playdate.getCurrentTimeMilliseconds()
+  local w = c.w[abbr]
+  if not w then
+    -- step 1: the club's lineup / staff (no player tables yet)
+    local team = PEng.team(L, abbr, nil, true)
+    local ids = team.playerIds
+    team.playerIds = nil
+    w = { rest = json.encode(team), ids = ids, i = 1, out = {} }
+    c.w[abbr] = w
+    return false
+  end
+  -- then one player at a time: build his engine table and encode it
+  while w.i <= #w.ids do
+    w.out[#w.out + 1] = json.encode(PEng.player(L.players[w.ids[w.i]], L.norm, true))
+    w.i = w.i + 1
+    if playdate.getCurrentTimeMilliseconds() - t0 >= (ms or 6) then return false end
+  end
+  c.t[abbr] = '{"players":[' .. table.concat(w.out, ",") .. "]," .. w.rest:sub(2)
+  c.w[abbr] = nil
+  return true
 end
 function PEng.invalidate() PEng.cache = nil end
 
 function PEng.simJob(L, g)
-  local job = {}
+  local job = { what = "sim " .. g.a .. "@" .. g.h }
   local cj, gm
   function job.step(ms)
     if g.done then return true end
     if PEng.C() then
       if not cj then
+        -- one roster encode per step (each costs a few ms of json.encode on the device)
+        if not PEng.encodeStep(L, g.h, ms) then return false end
+        if not PEng.encodeStep(L, g.a, ms) then return false end
         local spec = { seed = "pennant-" .. L.seed .. "-" .. L.season .. "-" .. L.day .. "-" .. g.h,
           home = PEng.encoded(L, g.h), away = PEng.encoded(L, g.a), park = PL.park(g.h) }
         spec.weather = PEng.weather(L, g)
         cj = pdsim.simulateStart(spec)
         return false
       end
-      local done, box = pdsim.simulateSlice(cj, math.max(2, ms or 6))
-      if done then PL.apply(L, g, PEng.resFromBox(box)) return true end
+      if job.box then
+        -- the result in two more steps: convert, then apply
+        if not job.res then job.res = PEng.resFromBox(job.box) return false end
+        PL.apply(L, g, job.res)
+        return true
+      end
+      local done, box = pdsim.simulateSlice(cj, math.max(2, math.min(ms or 6, 8)))
+      if done then job.box = box end
       return false
     end
     if not gm then

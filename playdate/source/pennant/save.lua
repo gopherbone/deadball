@@ -3,31 +3,55 @@
   Slot k is a set of datastore files:
     pennant-slots            index: { [k] = { team, year, date, w, l, rank, phase, gen, at } }
     pennant-s<k>-g<n>-m      the league without players (schedule, standings, history, news...)
-    pennant-s<k>-g<n>-p<i>   players, 40 per file, each a positional array (PM.pack)
+    pennant-s<k>-g<n>-p      every player, each a positional array (PM.pack)
+  (saves from the first version split players over -p1..-p9; still read)
   Writes alternate between generation 0 and 1, and the index is written last, so a save that's
-  cut off half way leaves the previous one intact. Saving is sliced: one file per frame
-  (PSave.begin returns a job for PJobs), so autosave never stalls the UI.
+  cut off half way leaves the previous one intact. Saving is sliced by time (PSave.begin returns
+  a job for PJobs): encoding one player / schedule day / box at a time, then the text streamed to
+  the files a few KB per call, so an autosave never stalls the UI.
 ]]
 
 PSave = PSave or {}
-local CHUNK <const> = 40
 PSave.SLOTS = 3
+-- save format version: older slots are wiped cleanly (no migration; the season model changed)
+PSave.VERSION = 2
 
 local function ds() return playdate.datastore end
+
+local function deleteFiles(slot)
+  for g = 0, 1 do
+    local base = "pennant-s" .. slot .. "-g" .. g
+    ds().delete(base .. "-m")
+    ds().delete(base .. "-p")
+    for i = 1, 20 do ds().delete(base .. "-p" .. i) end
+  end
+end
 
 function PSave.index()
   local t = ds().read("pennant-slots")
   if type(t) ~= "table" then t = {} end
   -- json turns sparse integer keys into strings
-  local out = {}
-  for k, v in pairs(t) do out[tonumber(k) or k] = v end
+  local out, stale = {}, false
+  for k, v in pairs(t) do
+    local slot = tonumber(k) or k
+    if type(v) == "table" and (v.v or 1) == PSave.VERSION then out[slot] = v
+    else deleteFiles(slot) stale = true end
+  end
+  if stale then
+    local w = {}
+    for k, v in pairs(out) do w[tostring(k)] = v end
+    ds().write(w, "pennant-slots", false)
+    PSave.wiped = true
+  end
   return out
 end
 
 local function writeIndex(idx)
   local t = {}
   for k, v in pairs(idx) do t[tostring(k)] = v end
-  ds().write(t, "pennant-slots", false)
+  -- (the same file datastore.read reads; one small plain write is much quicker on the device)
+  local f = playdate.file.open("pennant-slots.json", playdate.file.kFileWrite)
+  if f then f:write(json.encode(t)) f:close() else ds().write(t, "pennant-slots", false) end
 end
 
 -- maps keyed by player id -> lists of pairs (JSON object keys are strings)
@@ -69,39 +93,124 @@ function PSave.pruneBoxes(L)
   for i = 13, #mine do L.boxes[mine[i][1]] = nil end
 end
 
---- A sliced save job: step() writes one file per call, returns true when finished.
+--- A sliced save job. step(ms) does at most ~ms of work: json.encode one player (or one
+--- schedule day / box / team) at a time, then stream the text to the files a few KB per call.
+--- The device spends ~10x the Simulator's time here, so nothing is done in one big piece.
 function PSave.begin(L, slot)
   PSave.pruneBoxes(L)
   local idx = PSave.index()
   local prev = idx[slot]
   local gen = prev and (1 - (prev.gen or 0)) or 0
   local base = "pennant-s" .. slot .. "-g" .. gen
+  local enc = json.encode
   local ids = {}
   for id in pairs(L.players) do ids[#ids + 1] = id end
   table.sort(ids)
-  local chunks = (#ids + CHUNK - 1) // CHUNK
-  local i = 0
-  local job = { done = false }
-  function job.step()
-    i = i + 1
-    if i <= chunks then
-      local arr = {}
-      for j = (i - 1) * CHUNK + 1, math.min(#ids, i * CHUNK) do arr[#arr + 1] = PM.pack(L.players[ids[j]]) end
-      ds().write(arr, base .. "-p" .. i, false)
-      return false
-    elseif i == chunks + 1 then
-      local m = metaOf(L)
-      m.nChunks = chunks
-      ds().write(m, base .. "-m", false)
-      return false
+  -- work list: { kind, ... } items that each produce one piece of text
+  local m = metaOf(L)
+  m.nChunks = nil
+  m.pfile = 1
+  local mparts = {}            -- { key, value, how } ; how: "arr" (element by element), "obj", "whole"
+  for k, v in pairs(m) do
+    local how = "whole"
+    if type(v) == "table" and (k == "sched" or k == "news" or k == "history") then how = "arr"
+    elseif type(v) == "table" and (k == "boxes" or k == "teams") then how = "obj" end
+    mparts[#mparts + 1] = { k, v, how }
+  end
+  local pPieces, mPieces = { "[" }, { "{" }
+  local phase, i, mi, inner, innerKeys = "players", 1, 1, nil, nil
+  local writer
+  local job = { done = false, slot = slot, what = "save" }
+  local function now() return playdate.getCurrentTimeMilliseconds() end
+
+  --- encode the next meta item (a whole value, or one element of a big one)
+  local function metaStep()
+    local part = mparts[mi]
+    if not part then return true end
+    local k, v, how = part[1], part[2], part[3]
+    local key = enc(tostring(k)) .. ":"
+    if how == "whole" then
+      mPieces[#mPieces + 1] = (mi > 1 and "," or "") .. key .. enc(v)
+      mi = mi + 1
+    elseif not inner then
+      mPieces[#mPieces + 1] = (mi > 1 and "," or "") .. key .. (how == "arr" and "[" or "{")
+      inner = 1
+      if how == "obj" then innerKeys = {} for kk in pairs(v) do innerKeys[#innerKeys + 1] = kk end end
     else
-      local T = L.teams[L.user]
-      idx[slot] = { team = L.user, year = L.year, date = PL.date(L), w = T.w, l = T.l, rank = PL.rank(L, L.user),
-        phase = L.phase, gen = gen, at = playdate.getSecondsSinceEpoch(), season = L.season }
-      writeIndex(idx)
-      job.done = true
-      return true
+      local n = how == "arr" and #v or #innerKeys
+      if inner > n then
+        mPieces[#mPieces + 1] = how == "arr" and "]" or "}"
+        inner, innerKeys = nil, nil
+        mi = mi + 1
+      elseif how == "arr" then
+        mPieces[#mPieces + 1] = (inner > 1 and "," or "") .. enc(v[inner])
+        inner = inner + 1
+      else
+        local kk = innerKeys[inner]
+        mPieces[#mPieces + 1] = (inner > 1 and "," or "") .. enc(tostring(kk)) .. ":" .. enc(v[kk])
+        inner = inner + 1
+      end
     end
+    return false
+  end
+
+  --- stream pieces into a file, ~6 KB per write
+  local function openWriter(name, pieces)
+    return { f = playdate.file.open(name .. ".json", playdate.file.kFileWrite), pieces = pieces, j = 1 }
+  end
+  local function writeSome(w)
+    if not w.f then return true end
+    local buf, n = {}, 0
+    while w.j <= #w.pieces and n < 2000 do
+      local s = w.pieces[w.j]
+      buf[#buf + 1] = s
+      n = n + #s
+      w.pieces[w.j] = nil
+      w.j = w.j + 1
+    end
+    if #buf > 0 then w.f:write(table.concat(buf)) end
+    if w.j > #w.pieces then w.f:close() w.f = nil return true end
+    return false
+  end
+
+  function job.phase() return phase end
+
+  function job.cancel()
+    if writer and writer.f then writer.f:close() writer.f = nil end
+    job.done = true
+  end
+
+  function job.step(ms)
+    local t0 = now()
+    local budget = math.max(2, math.min(ms or 8, 12))
+    repeat
+      if phase == "players" then
+        if i <= #ids then
+          pPieces[#pPieces + 1] = (i > 1 and "," or "") .. enc(PM.pack(L.players[ids[i]]))
+          i = i + 1
+        else
+          pPieces[#pPieces + 1] = "]"
+          phase = "meta"
+        end
+      elseif phase == "meta" then
+        if metaStep() then mPieces[#mPieces + 1] = "}" phase = "writeP" writer = openWriter(base .. "-p", pPieces) end
+      elseif phase == "writeP" then
+        if writeSome(writer) then phase = "writeM" writer = openWriter(base .. "-m", mPieces) end
+        -- (one flash write per call: they're slow and uneven on the device)
+        return false
+      elseif phase == "writeM" then
+        if writeSome(writer) then phase = "index" end
+        return false
+      else
+        local T = L.teams[L.user]
+        idx[slot] = { v = PSave.VERSION, team = L.user, year = L.year, date = PL.date(L, math.min(L.day, #L.sched)), w = T.w, l = T.l, rank = PL.rank(L, L.user),
+          phase = L.phase, gen = gen, at = playdate.getSecondsSinceEpoch(), season = L.season }
+        writeIndex(idx)
+        job.done = true
+        return true
+      end
+    until now() - t0 >= budget
+    return false
   end
   return job
 end
@@ -109,7 +218,7 @@ end
 --- Save now, all at once (quit / explicit save while a dialog is up).
 function PSave.saveNow(L, slot)
   local j = PSave.begin(L, slot)
-  while not j.step() do end
+  while not j.step(1000) do end
 end
 
 function PSave.load(slot)
@@ -121,13 +230,16 @@ function PSave.load(slot)
   if type(m) ~= "table" then return nil, "save file missing" end
   local L = m
   L.players = {}
-  for i = 1, m.nChunks or 0 do
-    local arr = ds().read(base .. "-p" .. i)
+  local files = {}
+  if m.pfile then files[1] = base .. "-p" else for i = 1, m.nChunks or 0 do files[#files + 1] = base .. "-p" .. i end end
+  for _, name in ipairs(files) do
+    local arr = ds().read(name)
     for _, a in ipairs(arr or {}) do
       local p = PM.unpack(a)
       L.players[p.id] = p
     end
   end
+  L.pfile, L.nChunks = nil, nil
   for abbr, T in pairs(L.teams) do
     T.field = mapOf(T.field)
     T.pen = mapOf(T.pen)
@@ -146,13 +258,7 @@ end
 function PSave.delete(slot)
   local idx = PSave.index()
   local e = idx[slot]
-  if e then
-    for g = 0, 1 do
-      local base = "pennant-s" .. slot .. "-g" .. g
-      ds().delete(base .. "-m")
-      for i = 1, 20 do ds().delete(base .. "-p" .. i) end
-    end
-  end
+  if e then deleteFiles(slot) end
   idx[slot] = nil
   writeIndex(idx)
 end

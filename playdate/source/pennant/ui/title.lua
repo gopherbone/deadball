@@ -11,6 +11,10 @@ PennantUI.Title = Title
 
 function Title:init()
   self.idx = PSave.index()
+  if PSave.wiped then
+    PSave.wiped = false
+    Toast.show("Old Pennant saves were cleared: careers now run April to October.", nil)
+  end
   Sfx.music("take_me_out_organ", { loop = true, fade = 1 })
 end
 
@@ -104,7 +108,10 @@ function NewGame:init(args)
   self.pick = nil
   self.seed = (playdate.getSecondsSinceEpoch() * 7 + math.random(1, 99999)) & 0x7FFFFFFF
   self.gen = coroutine.create(function()
-    return PGen.league(self.seed, "HCL", 84, function(f) self.prog = f coroutine.yield() end)
+    return PGen.league(self.seed, "HCL", 84, function(f)
+      self.prog = f
+      if playdate.getCurrentTimeMilliseconds() - (self.sliceT0 or 0) > 15 then coroutine.yield() end
+    end)
   end)
   self.prog = 0
   self.generating = true
@@ -113,7 +120,8 @@ end
 function NewGame:onTick()
   if self.generating then
     local t0 = playdate.getCurrentTimeMilliseconds()
-    while self.generating and playdate.getCurrentTimeMilliseconds() - t0 < 20 do
+    self.sliceT0 = t0
+    while self.generating and playdate.getCurrentTimeMilliseconds() - t0 < 15 do
       local ok, L = coroutine.resume(self.gen)
       if not ok then print("[pennant] gen failed " .. tostring(L)) self.generating = false break end
       if coroutine.status(self.gen) == "dead" then
@@ -123,7 +131,6 @@ function NewGame:onTick()
         self:render(true)
       end
     end
-    self.dirty = true
   end
 end
 
@@ -155,14 +162,15 @@ end
 function NewGame:layout(L)
   if self.generating then
     Text.draw("Scouting a new league...", 200, 80, UI.fonts.head, nil, "center")
-    Draw.progress(100, 104, 200, 10, self.prog or 0, "gray")
+    -- (the bar is a live area: the page itself isn't re-rendered while it fills)
+    L:live(100, 104, 200, 10, function(_, x, y) Draw.progress(x, y, 200, 10, self.prog or 0, "gray") end)
     Text.draw("Eight clubs, 320 players, all brand new.", 200, 124, UI.fonts.body, nil, "center")
     L:mark(PUI.VIEW_H - 2)
     return
   end
   Text.draw("Pick your club", 6, 3, UI.fonts.head)
   Text.draw("Same clubs as the online league; every player is new.", 120, 4, UI.fonts.body)
-  local cw, ch = 96, 74
+  local cw, ch = 96, 70
   for i, c in ipairs(PennantClubs) do
     local col, row = (i - 1) % 4, (i - 1) // 4
     local x, y = 4 + col * (cw + 2), 22 + row * (ch + 3)
@@ -184,14 +192,22 @@ function NewGame:layout(L)
     L:link(x, y, cw, ch, function() self.pick = c.abbr self:render(true) end,
       { id = "club:" .. c.abbr, style = "ring", hint = "B bats, P pitching, F farm. Best: " .. PM.name(star) .. " (" .. (star.pos == "P" and star.role or star.pos) .. ", " .. PM.ovr(star) .. ")" })
   end
-  local y = 22 + 2 * (ch + 3) + 2
-  Text.draw("Season:", 6, y + 3, UI.fonts.bold)
+  local y = 22 + 2 * (ch + 3) + 1
+  Text.draw("Season", 6, y + 3, UI.fonts.bold)
   local lab = LENGTHS[self.lenIdx][2]
-  gfx.drawRect(66, y, 150, 18)
-  Text.draw("\u{25c0} " .. lab .. " \u{25b6}", 141, y + 2, UI.fonts.body, nil, "center")
-  L:link(66, y, 150, 18, function() self.lenIdx = self.lenIdx % #LENGTHS + 1 self:render(true) end,
+  gfx.drawRect(56, y, 140, 18)
+  Text.draw("\u{25c0} " .. lab .. " \u{25b6}", 126, y + 2, UI.fonts.body, nil, "center")
+  L:link(56, y, 140, 18, function() self.lenIdx = self.lenIdx % #LENGTHS + 1 self:render(true) end,
     PUI.opts("len", "Left/right: season length (3-game series, an off day each week)", function(d) self.lenIdx = (self.lenIdx - 1 + d) % #LENGTHS + 1 end))
-  L:button(self.pick and ("Play ball with " .. self.pick .. "!") or "Pick a club first", 226, y - 1, 166, 20, function() self:go() end, { id = "go", hint = "Start the career" })
+  -- controls: you manage by default; batting / pitching yourself is one press away, any time
+  self.scheme = self.scheme or "arcade"
+  Text.draw("Controls", 204, y + 3, UI.fonts.bold)
+  gfx.drawRect(268, y, 124, 18)
+  Text.draw("\u{25c0} " .. PScheme.NAME[self.scheme] .. " \u{25b6}", 330, y + 2, UI.fonts.body, nil, "center")
+  L:link(268, y, 124, 18, function() self.scheme = self.scheme == "arcade" and "scout" or "arcade" self:render(true) end,
+    PUI.opts("scheme", "For batting/pitching yourself: " .. PScheme.BLURB[self.scheme] .. " Change any time (Options, time out)", function(d) self.scheme = self.scheme == "arcade" and "scout" or "arcade" end))
+  y = y + 20
+  L:button(self.pick and ("Play ball with " .. self.pick .. "!") or "Pick a club first", 100, y, 200, 18, function() self:go() end, { id = "go", hint = "You manage; take the bat or the ball yourself whenever you like" })
   L:mark(PUI.VIEW_H - 2)
 end
 
@@ -202,6 +218,8 @@ function NewGame:go()
   local L = self.L
   L.user = self.pick
   L.games = LENGTHS[self.lenIdx][1]
+  L.settings.batScheme = self.scheme or "arcade"
+  L.settings.pitchScheme = self.scheme or "arcade"
   PGen.schedule(L, PRng.new(self.seed + 5), L.games)
   PL.init(L)
   L.slot = self.slot

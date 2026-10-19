@@ -118,7 +118,7 @@ end
 local ML_BATS <const> = { "C", "C", "1B", "2B", "SS", "3B", "LF", "CF", "RF", "SS", "CF", "DH", "3B" }
 local FARM_BATS <const> = { "C", "SS", "2B", "CF", "RF", "3B", "1B" }
 
-function PGen.team(L, rng, club)
+function PGen.team(L, rng, club, tick)
   local T = { abbr = club.abbr, ml = {}, farm = {}, w = 0, l = 0, rs = 0, ra = 0, streak = 0, l10 = {}, pen = {} }
   local q = rng:normal(0, 1.3)
   for _, pos in ipairs(ML_BATS) do
@@ -126,12 +126,14 @@ function PGen.team(L, rng, club)
     p.team, p.lvl = club.abbr, "ML"
     p.mlYrs = math.max(0, p.age - 22 - rng:int(2))
     T.ml[#T.ml + 1] = p.id
+    if tick then tick() end
   end
   for i = 1, 13 do
     local p = PGen.player(L, rng, { pos = "P", role = i <= 5 and "SP" or "RP", mean = 49 + q, age = 22 + rng:int(14) - 1 })
     p.team, p.lvl = club.abbr, "ML"
     p.mlYrs = math.max(0, p.age - 22 - rng:int(2))
     T.ml[#T.ml + 1] = p.id
+    if tick then tick() end
   end
   for _, pos in ipairs(FARM_BATS) do
     local p = PGen.player(L, rng, { pos = pos, mean = 40 + q * 0.5, age = 18 + rng:int(6) - 1 })
@@ -218,6 +220,7 @@ function PGen.schedule(L, rng, games)
     if ri % 2 == 0 and ri < #rounds then days[#days + 1] = { games = {}, off = true, round = ri } end
   end
   L.sched = days
+  L.regDays = #days
   L.rounds = #rounds
 end
 
@@ -228,7 +231,8 @@ function PGen.league(seed, userAbbr, games, yield)
     players = {}, teams = {}, nextId = 0, news = {}, history = {}, phase = "season", boxes = {},
     week = 1, settings = { landmarks = true } }
   for _, club in ipairs(PennantClubs) do
-    L.teams[club.abbr] = PGen.team(L, rng:fork(club.idx), club)
+    -- (yield is called often; the caller decides by the clock when to give up the frame)
+    L.teams[club.abbr] = PGen.team(L, rng:fork(club.idx), club, yield and function() yield((club.idx - 0.5) / (#PennantClubs + 1)) end)
     if yield then yield(club.idx / (#PennantClubs + 1)) end
   end
   PGen.schedule(L, rng:fork(99), games)

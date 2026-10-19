@@ -104,12 +104,31 @@ end
 
 local function has(list, id) for i, x in ipairs(list) do if x == id then return i end end end
 
-function TT:toggle(list, id)
+function TT:toggle(list, id, row)
   local i = has(list, id)
   if i then table.remove(list, i) Sfx.back()
   elseif #list < 3 then list[#list + 1] = id Sfx.select()
-  else Toast.show("Three players a side, tops.", "bad") end
-  self:render(true)
+  else Toast.show("Three players a side, tops.", "bad") return end
+  -- just that row and the offer strip (a full render of 80 rows is slow on the device)
+  if row then
+    PUI.repaint(self, row.x - 1, row.y - 1, row.w + 2, 15, function() self:paintRow(row) end)
+    row.link.style = has(list, id) and "ring" or "invert"
+    self:repaintHeader()
+  else
+    self:render(true)
+  end
+end
+
+function TT:paintRow(row)
+  local p, list, x, y, w = row.p, row.list, row.x, row.y, row.w
+  local on = has(list, p.id)
+  if on then gfx.fillRect(x - 1, y - 1, w + 2, 15) end
+  local col = on and "white" or nil
+  Text.draw(p.pos == "P" and (p.role or "P") or p.pos, x + 2, y, UI.fonts.bold, col)
+  Text.draw(Text.ellipsize(PM.short(p), UI.fonts.body, 84), x + 26, y, UI.fonts.body, col)
+  Text.draw(tostring(PM.ovr(p)), x + 134, y, UI.fonts.bold, col, "right")
+  Text.draw(p.age .. (p.lvl == "F" and "f" or ""), x + 160, y, UI.fonts.body, col, "right")
+  Text.draw(PM.potStars(p) .. "\u{2605}", x + w - 2, y, UI.fonts.body, col, "right")
 end
 
 function TT:column(Lb, T, list, x, y, w)
@@ -119,33 +138,42 @@ function TT:column(Lb, T, list, x, y, w)
   for _, id in ipairs(T.farm) do ps[#ps + 1] = L.players[id] end
   table.sort(ps, function(a, b) return PRoster.value(a) > PRoster.value(b) end)
   for _, p in ipairs(ps) do
-    local on = has(list, p.id)
-    if on then gfx.fillRect(x - 1, y - 1, w + 2, 15) end
-    local col = on and "white" or nil
-    Text.draw(p.pos == "P" and (p.role or "P") or p.pos, x + 2, y, UI.fonts.bold, col)
-    Text.draw(Text.ellipsize(PM.short(p), UI.fonts.body, 84), x + 26, y, UI.fonts.body, col)
-    Text.draw(tostring(PM.ovr(p)), x + 134, y, UI.fonts.bold, col, "right")
-    Text.draw(p.age .. (p.lvl == "F" and "f" or ""), x + 160, y, UI.fonts.body, col, "right")
-    Text.draw(PM.potStars(p) .. "\u{2605}", x + w - 2, y, UI.fonts.body, col, "right")
-    Lb:link(x - 1, y - 1, w + 2, 15, function() self:toggle(list, p.id) end,
-      { id = (list == self.give and "g" or "t") .. p.id, style = on and "ring" or "invert",
+    local row = { p = p, list = list, x = x, y = y, w = w }
+    PUI.lazy(Lb, x - 1, y - 1, w + 2, 15, function() self:paintRow(row) end)
+    row.link = Lb:link(x - 1, y - 1, w + 2, 15, function() self:toggle(list, p.id, row) end,
+      { id = (list == self.give and "g" or "t") .. p.id, style = has(list, p.id) and "ring" or "invert",
         hint = PM.name(p) .. ", " .. p.age .. (p.lvl == "F" and " (farm)" or "") .. ". OVR " .. PM.ovr(p) .. ", potential " .. (p.pot or "?") .. (p.inj and (", hurt: " .. p.inj.k) or "") })
     y = y + 15
   end
   return y
 end
 
-function TT:layout(Lb)
+--- The offer strip: counts, the interest meter, the Offer button.
+function TT:paintHeader()
   local L = Pennant.L
   local mine, theirs = L.teams[L.user], L.teams[self.other]
-  -- the offer, up top so it's always in reach
   local ok, ratio, note = PRoster.evaluate(L, mine, theirs, self.give, self.get)
   local y = 2
   Text.draw("You give " .. #self.give .. ", get " .. #self.get, 4, y + 2, UI.fonts.bold)
   Text.draw("Their interest", 150, y + 2, UI.fonts.body)
   Draw.progress(236, y + 4, 70, 9, (#self.give > 0 and #self.get > 0) and math.min(1, ratio) or 0, "gray")
-  Lb:button("Offer", 314, y, 76, 17, function() self:offer() end, { id = "offer", hint = (#self.give > 0 and #self.get > 0) and ("They say: " .. note) or "Pick players on both sides first" })
-  y = y + 22
+  Draw.button(314, y, 76, 17, "Offer")
+  return (#self.give > 0 and #self.get > 0) and ("They say: " .. note) or "Pick players on both sides first"
+end
+
+function TT:repaintHeader()
+  local hint
+  PUI.repaint(self, 0, 0, 395, 20, function() hint = self:paintHeader() end)
+  if self.offerLink then self.offerLink.hint = hint end
+end
+
+function TT:layout(Lb)
+  local L = Pennant.L
+  local mine, theirs = L.teams[L.user], L.teams[self.other]
+  -- the offer, up top so it's always in reach
+  local hint = self:paintHeader()
+  self.offerLink = Lb:link(314, 2, 76, 17, function() self:offer() end, { id = "offer", style = "ring", hint = hint })
+  local y = 24
   PUI.logo(L.user, 4, y, 16)
   Text.draw("You give", 24, y + 1, UI.fonts.head)
   PUI.logo(self.other, 202, y, 16)

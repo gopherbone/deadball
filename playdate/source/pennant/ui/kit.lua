@@ -13,6 +13,9 @@
 local gfx <const> = playdate.graphics
 
 PUI = PUI or {}
+-- dev timing logs (slow frames, renders, job steps) with debug.flag in the Data folder
+PUI.PROF = playdate.file.exists("debug.flag")
+local function nowMs() return playdate.getCurrentTimeMilliseconds() end
 PUI.TOP = 18
 PUI.BOT = 226
 PUI.VIEW_H = PUI.BOT - PUI.TOP
@@ -119,7 +122,9 @@ end
 
 function Base:tick()
   -- background sims / autosave run while menus are idle (well inside the frame budget)
+  local t0 = nowMs()
   PJobs.tick(self.jobMs or 12)
+  self.profJobs = nowMs() - t0
   if self.dirty then self.dirty = false self:render(true) end
   if self.onTick then self:onTick() end
 end
@@ -129,10 +134,62 @@ local function adjust(self, dir)
   if l and l.data and l.data.adj then
     l.data.adj(dir)
     Sfx.tick()
-    self:render(true)
+    if l.data.repaint then l.data.repaint() else self:render(true) end
     return true
   end
   return false
+end
+
+--- Repaint one region of a page's canvas in place (a row that changed), instead of the whole
+--- page: a full render of a long list costs 100+ ms on the device.
+function PUI.repaint(page, x, y, w, h, paint)
+  if not page.canvas then page:render(true) return end
+  gfx.pushContext(page.canvas)
+  gfx.setClipRect(x, y, w, h)
+  gfx.setColor(gfx.kColorWhite)
+  gfx.fillRect(x, y, w, h)
+  gfx.setColor(gfx.kColorBlack)
+  paint()
+  gfx.clearClipRect()
+  gfx.setImageDrawMode(gfx.kDrawModeCopy)
+  gfx.popContext()
+end
+
+--- A list row painted lazily: only when it scrolls into view (a live area), and only a few ms
+--- of rows per frame, straight into the page canvas. Long lists (rosters, trade tables, the
+--- schedule) then cost a screenful to open instead of every row (text is slow on the device).
+--- paint() draws in canvas coordinates. Returns nothing; register links as usual.
+function PUI.lazy(Lb, x, y, w, h, paint)
+  local done = false
+  local page = Lb.page
+  Lb:live(x, y, w, h, function(pg)
+    if done or not pg.canvas then return end
+    local f = Game.frame or 0
+    if pg.lazyFrame ~= f then pg.lazyFrame, pg.lazySpent = f, 0 end
+    if pg.lazySpent > 10 then pg.dirtyLazy = true return end
+    local t0 = playdate.getCurrentTimeMilliseconds()
+    gfx.pushContext(pg.canvas)
+    gfx.clearClipRect()
+    gfx.setColor(gfx.kColorBlack)
+    paint()
+    gfx.setImageDrawMode(gfx.kDrawModeCopy)
+    gfx.popContext()
+    done = true
+    pg.lazySpent = pg.lazySpent + (playdate.getCurrentTimeMilliseconds() - t0)
+  end)
+  Lb:mark(y + h)
+end
+
+--- (dev: renders slower than 30 ms are logged with debug.flag)
+function Base:render(keep)
+  local t0 = playdate.getCurrentTimeMilliseconds()
+  Page.render(self, keep)
+  local d = playdate.getCurrentTimeMilliseconds() - t0
+  if d > 30 and PUI.PROF then
+    local t = self.title
+    if type(t) == "function" then t = t(self) end
+    print(string.format("[pnrender] %s %d ms", tostring(t), d))
+  end
 end
 
 function Base:leftButtonDown()
@@ -155,6 +212,18 @@ function Base:BButtonUp()
 end
 
 function Base:update(covered)
+  local t0 = nowMs()
+  self.profJobs = 0
+  self:updateInner(covered)
+  local d = nowMs() - t0
+  if d > 40 and PUI.PROF and not covered then
+    local t = self.title
+    if type(t) == "function" then t = t(self) end
+    print(string.format("[pnframe] %s %d ms (jobs %d, lazy %d)", tostring(t), d, self.profJobs or 0, self.lazySpent or 0))
+  end
+end
+
+function Base:updateInner(covered)
   if not covered and playdate.buttonIsPressed(playdate.kButtonB) and self.bDown then
     self.bHeld = (self.bHeld or 0) + 1
     if self.bHeld == 15 and Pennant.hub and App.top() == self and self ~= Pennant.hub then
@@ -338,6 +407,12 @@ function PUI.nick(abbr) local c = PennantClubs.byAbbr[abbr] return c and c.name 
 function PUI.playerRow(Lb, p, x, y, w, action, opts)
   opts = opts or {}
   local h = 16
+  PUI.lazy(Lb, x - 2, y - 1, w + 4, h + 1, function() PUI.paintPlayerRow(p, x, y, w, opts) end)
+  if action then Lb:link(x - 2, y - 1, w + 4, h + 1, action, { id = opts.id or ("p" .. p.id), style = "invert", hint = opts.hint, data = opts.data }) end
+  return h
+end
+
+function PUI.paintPlayerRow(p, x, y, w, opts)
   if opts.face ~= false then
     -- tiny face (24px thumb, cropped to the row)
     local img = Faces.get("face:" .. p.face, 24)
@@ -355,8 +430,6 @@ function PUI.playerRow(Lb, p, x, y, w, action, opts)
   PUI.grade(cx + 60, y + 1, ovr)
   Text.draw(tostring(ovr), cx + 92, y + 1, F().bold, nil, "right")
   if opts.extra then Text.draw(Text.ellipsize(opts.extra, F().body, x + w - cx - 98), cx + 98, y + 1, F().body) end
-  if action then Lb:link(x - 2, y - 1, w + 4, h + 1, action, { id = opts.id or ("p" .. p.id), style = "invert", hint = opts.hint, data = opts.data }) end
-  return h
 end
 
 --- Column header for playerRow.

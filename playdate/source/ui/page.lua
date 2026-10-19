@@ -778,7 +778,7 @@ function Page.collect()
   local now = Game.frame or 0
   for i = 1, #App.stack - 1 do
     local s = App.stack[i]
-    if s.canvas and s.lastDrawn and now - s.lastDrawn > 30 then
+    if s.canvas and s.lastDrawn and now - s.lastDrawn > 30 and not s.keepCanvas then
       s.canvas = nil
       s.canvasAllocH = nil
     end

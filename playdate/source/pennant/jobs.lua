@@ -23,8 +23,11 @@ function PJobs.tick(ms)
   while #q > 0 and now() - t0 < ms and guard < 400 do
     guard = guard + 1
     local j = q[1]
-    local ok, done = pcall(j.step, ms - (now() - t0))
+    local ts = now()
+    local ok, done = pcall(j.step, ms - (ts - t0))
     if not ok then print("[pjobs] job failed: " .. tostring(done)) done = true end
+    local d = now() - ts
+    if d > 20 and PUI and PUI.PROF then print(string.format("[pjobs] slow step %d ms (%s%s)", d, j.what or "?", j.phase and (" " .. j.phase()) or "")) end
     if done then table.remove(q, 1) if j.onDone then j.onDone() end end
   end
 end
@@ -52,9 +55,14 @@ function PJobs.simDay(L, skip)
   return n
 end
 
+function PJobs.remove(job)
+  for i = #q, 1, -1 do if q[i] == job then table.remove(q, i) end end
+end
+
 function PJobs.save(L, onDone)
   if not L.slot then return end
   local j = PSave.begin(L, L.slot)
-  local job = { step = j.step, onDone = onDone }
-  PJobs.add(job)
+  j.onDone = onDone
+  PJobs.add(j)
+  return j
 end

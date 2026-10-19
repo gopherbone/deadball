@@ -15,6 +15,7 @@ import "pennant/sim"
 import "pennant/roster"
 import "pennant/league"
 import "pennant/engine"
+import "pennant/schemes"
 import "pennant/landmarks"
 import "pennant/save"
 import "pennant/jobs"
@@ -29,6 +30,7 @@ import "pennant/ui/league"
 import "pennant/ui/gameday"
 import "pennant/ui/roadmap"
 import "pennant/live"
+import "pennant/control"
 import "pennant/test"
 
 Pennant = Pennant or {}
@@ -39,6 +41,9 @@ function Pennant.open(opts)
   Pennant.base = #App.stack
   -- the desktop's background polling stays quiet while Pennant is up (Nav.offline)
   Nav.offline = true
+  -- long sims leave the Lua GC no idle time; garbage then piles up until a full collection
+  -- stalls a frame for ~1 s on the device. A few ms of GC every frame keeps it incremental.
+  if playdate.setMinimumGCTime then playdate.setMinimumGCTime(4) end
   Sfx.stopMusic(0.5)
   PennantUI.Title.open({})
 end
@@ -49,6 +54,7 @@ function Pennant.quit()
   Pennant.L = nil
   Pennant.hub = nil
   Nav.offline = false
+  if playdate.setMinimumGCTime then playdate.setMinimumGCTime(1) end
   while #App.stack > (Pennant.base or 0) do App.pop() end
   if #App.stack == 0 then Boot.start() end
 end
@@ -67,7 +73,11 @@ function Pennant.start(L)
   Pennant.hub = hub
 end
 
+--- Queue a save; a save still pending is cancelled and replaced (one is enough).
 function Pennant.autosave()
   local L = Pennant.L
-  if L and L.slot then PJobs.save(L) end
+  if not (L and L.slot) then return end
+  local old = Pennant.saveJob
+  if old and not old.done then old.cancel() PJobs.remove(old) end
+  Pennant.saveJob = PJobs.save(L)
 end

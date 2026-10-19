@@ -9,13 +9,28 @@ PennantUI.Hub = Hub
 
 function Hub:init()
   self.jobMs = 14
+  -- the hub is home: keep its canvas while other screens are up, and re-render on return only
+  -- when something it shows has changed (a full hub render is ~100 ms on the device)
+  self.keepCanvas = true
+end
+
+function Hub:stamp()
+  local L = Pennant.L
+  local T = L.teams[L.user]
+  local inj = 0
+  for _, id in ipairs(T.ml) do if L.players[id].inj then inj = inj + 1 end end
+  return table.concat({ L.season, L.day, L.dayCount or 0, L.phase, #L.news, L.news[1] and L.news[1].t or "",
+    table.concat(T.rot or {}, ","), T.rotIdx or 0, inj, tostring(L.weekRep and L.weekRep.seen) }, "|")
 end
 
 function Hub:resume(r)
+  local t0 = playdate.getCurrentTimeMilliseconds()
   Page.resume(self, r)
-  self.ticker = nil
-  self:render(true)
+  local st = self:stamp()
+  if st ~= self.lastStamp or not self.canvas then self:render(true) end
+  local t1 = playdate.getCurrentTimeMilliseconds()
   if not Sfx.currentMusic() then Sfx.music("ragtime", { loop = true, fade = 1 }) end
+  if PUI.PROF then print(string.format("[pnhub] resume: render %d ms, music %d ms", t1 - t0, playdate.getCurrentTimeMilliseconds() - t1)) end
 end
 
 function Hub:goBack()
@@ -197,6 +212,13 @@ function Hub.optionsMenu()
     { label = "Landmarks: " .. onoff(s.landmarks ~= false), action = function() s.landmarks = not (s.landmarks ~= false) Toast.show("Road trip landmarks " .. onoff(s.landmarks), nil) end },
     { label = "Travel animation: " .. onoff(s.travel ~= false), action = function() s.travel = not (s.travel ~= false) Toast.show("Travel animation " .. onoff(s.travel), nil) end },
     { label = "Auto call-ups: " .. onoff(s.autoRoster ~= false), action = function() s.autoRoster = not (s.autoRoster ~= false) Toast.show("Assistant GM call-ups " .. onoff(s.autoRoster), nil) end },
+    { label = "Batting controls: " .. PScheme.NAME[s.batScheme or "arcade"], action = function()
+      s.batScheme = (s.batScheme or "arcade") == "arcade" and "scout" or "arcade"
+      Toast.show("Batting yourself: " .. PScheme.NAME[s.batScheme] .. ". " .. PScheme.BLURB[s.batScheme], nil) end },
+    { label = "Pitching controls: " .. PScheme.NAME[s.pitchScheme or "arcade"], action = function()
+      s.pitchScheme = (s.pitchScheme or "arcade") == "arcade" and "scout" or "arcade"
+      Toast.show("Pitching yourself: " .. PScheme.NAME[s.pitchScheme] .. ". " .. PScheme.BLURB[s.pitchScheme], nil) end },
+    { label = "Show the how-to cards again", action = function() s.seenHelp = {} Toast.show("The how-to cards will show again.", nil) end },
     "-",
     { label = "Save & quit", action = function() Pennant.hub:goBack() end },
   } })
@@ -228,6 +250,7 @@ end
 
 function Hub:layout(Lb)
   local L = L_()
+  self.lastStamp = self:stamp()
   local lx, lw = 4, 196
   local y = self:layoutToday(Lb, lx, 3, lw)
   local label = "PLAY BALL"

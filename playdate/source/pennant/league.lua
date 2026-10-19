@@ -20,20 +20,28 @@ end
 local MONTHS <const> = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" }
 local MDAYS <const> = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
 
---- Day index (1 = opening day, April 4) -> month, day.
-function PL.calendar(d)
-  local m, day = 4, 3 + d
+--- Schedule day index -> month, day. The regular season is stretched over April 4 - September 28
+--- whatever its length (a game day stands for a day or two of a real season); the playoffs run in
+--- October, a day each.
+local SPAN <const> = 177   -- April 4 .. September 28
+function PL.calendar(d, L)
+  local off
+  local reg = L and L.regDays
+  if not reg then off = d - 1
+  elseif d <= reg then off = math.floor((d - 1) * SPAN / math.max(1, reg - 1) + 0.5)
+  else off = 180 + (d - reg - 1) end      -- October 1 onward
+  local m, day = 4, 4 + off
   while day > MDAYS[m] do day = day - MDAYS[m] m = m + 1 if m > 12 then m = 1 end end
   return m, day
 end
 
 function PL.date(L, d)
-  local m, day = PL.calendar(d or L.day)
+  local m, day = PL.calendar(d or L.day, L)
   return MONTHS[m] .. " " .. day
 end
 
 function PL.dateLong(L, d)
-  local m, day = PL.calendar(d or L.day)
+  local m, day = PL.calendar(d or L.day, L)
   return MONTHS[m] .. " " .. day .. ", " .. L.year
 end
 
@@ -506,7 +514,8 @@ end
 
 --- After every game today: recovery, condition, mood, injuries healing, training, road trips,
 --- AI rosters, the week's training report. Then the calendar moves on. Returns a day report.
-function PL.finishDay(L)
+--- Y (optional): called between clubs, so a caller can spread the day's close over frames.
+function PL.finishDay(L, Y)
   local day = PL.today(L)
   local rng = PL.rng(L, 11)
   local report = { day = L.day, mine = PL.gameFor(L, L.user), changes = {} }
@@ -582,12 +591,16 @@ function PL.finishDay(L)
           if (p.sat or 0) >= 6 and PM.ovr(p) >= 50 and rng:chance(0.2) then p.mood = max(-2, (p.mood or 0) - 1) end
         end
         PL.trainDay(L, p, rng, off)
+        if Y then Y("player") end
       end
     end
     if abbr ~= L.user then
       PRoster.aiMaintain(L, T)
-      if (L.day % 7) == 1 then PL.aiPlan(L, T) end
-      PRoster.auto(L, T)
+      if Y then Y("aiMaintain") end
+      if (L.day % 7) == 1 then PL.aiPlan(L, T) if Y then Y("aiPlan") end end
+      PRoster.autoLineup(L, T)
+      if Y then Y("autoLineup") end
+      PRoster.autoPitching(L, T)
     elseif L.settings.autoRoster ~= false then
       -- the user's assistant GM covers injuries with call-ups (Settings can turn it off)
       local before = #T.farm
@@ -595,6 +608,7 @@ function PL.finishDay(L)
       if #T.farm ~= before then PL.news(L, "Roster move: the assistant GM covered an injury from the farm.", true) end
       PRoster.validate(L, T)
     end
+    if Y then Y("autoPitching/validate") end
   end
   -- the user's arrows that moved today
   for _, id in ipairs(L.teams[L.user].ml) do
@@ -608,7 +622,7 @@ function PL.finishDay(L)
   if L.phase == "season" and L.day > #L.sched then
     PL.startPlayoffs(L)
   elseif L.phase == "playoffs" then
-    PL.playoffAdvance(L)
+    PL.playoffAdvance(L, Y)
   end
   return report
 end
@@ -682,7 +696,7 @@ function PL.startPlayoffs(L)
 end
 
 --- After a playoff day: tally series, start the final, crown a champion.
-function PL.playoffAdvance(L)
+function PL.playoffAdvance(L, Y)
   local day = L.sched[L.day - 1]
   for _, g in ipairs(day and day.games or {}) do
     local s = g.si and g.rd == L.po.round and L.po.series[g.si]
@@ -717,7 +731,7 @@ function PL.playoffAdvance(L)
     L.runnerUp = s.winner == s.hi and s.lo or s.hi
     L.phase = "awards"
     PL.news(L, string.format("%s %s WIN THE %d PENNANT", PennantClubs.byAbbr[s.winner].city:upper(), PennantClubs.byAbbr[s.winner].name:upper(), L.year), true)
-    PL.awards(L)
+    PL.awards(L, Y)
   end
 end
 
@@ -726,7 +740,19 @@ end
 function PL.teamGames(L) local T = L.teams[L.user] return max(1, T.w + T.l) end
 
 --- Leaders: kind = "avg","hr","rbi","sb","h","obp" (hitters) | "era","w","k","sv","whip" (pitchers)
+-- leaders only change when games do: memo per day (not part of the save)
+local leaderMemo = setmetatable({}, { __mode = "k" })
 function PL.leaders(L, kind, n, abbr)
+  local m = leaderMemo[L]
+  local key = (L.season or 0) .. ":" .. (L.dayCount or 0) .. ":" .. L.day .. ":" .. kind .. ":" .. (n or 5) .. ":" .. (abbr or "")
+  if not m or m.stamp ~= L.season .. ":" .. (L.dayCount or 0) .. ":" .. L.day then m = { stamp = L.season .. ":" .. (L.dayCount or 0) .. ":" .. L.day } leaderMemo[L] = m end
+  if m[key] then return m[key] end
+  local r = PL.leadersRaw(L, kind, n, abbr)
+  m[key] = r
+  return r
+end
+
+function PL.leadersRaw(L, kind, n, abbr)
   local G = PL.teamGames(L)
   local out = {}
   local pit = kind == "era" or kind == "w" or kind == "k" or kind == "sv" or kind == "whip" or kind == "pk"
@@ -779,7 +805,7 @@ function PL.pitScore(p)
   return (4.4 - PM.era(s)) * outs / 27 + (s.w or 0) * 0.6 + (s.sv or 0) * 0.35 + (s.k or 0) * 0.02
 end
 
-function PL.awards(L)
+function PL.awards(L, Y)
   local function best(fn, filter)
     local b, bv = nil, -1e9
     for id, p in pairs(L.players) do
@@ -791,12 +817,16 @@ function PL.awards(L)
     return b
   end
   local mvp = best(PL.batScore, function(p) return p.pos ~= "P" end)
+  if Y then Y() end
   local cy = best(PL.pitScore, function(p) return p.pos == "P" end)
+  if Y then Y() end
   local roy = best(function(p) return p.pos == "P" and PL.pitScore(p) * 1.4 or PL.batScore(p) end, function(p) return p.rk end)
+  if Y then Y() end
   local A = { year = L.year, champ = L.champ, runnerUp = L.runnerUp, mvp = mvp and mvp.id, cy = cy and cy.id, roy = roy and roy.id, lead = {} }
   for _, k in ipairs({ "avg", "hr", "rbi", "sb", "w", "era", "pk", "sv" }) do
     local l = PL.leaders(L, k, 1)[1]
     if l then A.lead[k] = { id = l.id, v = l.v } end
+    if Y then Y() end
   end
   local function honor(p, what) if p then p.awards = (p.awards and (p.awards .. ";") or "") .. L.year .. " " .. what end end
   honor(mvp, "MVP") honor(cy, "Pitcher of the Year") honor(roy, "Rookie of the Year")
@@ -966,4 +996,35 @@ function PL.init(L)
   L.alerts = {}
   PL.computeNorm(L)
   PL.news(L, "Opening Day " .. L.year .. ". Every club is 0-0.", true)
+end
+
+-- The race --------------------------------------------------------------------------------------------
+
+--- Games each club plays in the regular season.
+function PL.seasonGames(L) return L.games or 84 end
+
+--- Playoff magic number for abbr (top 4 make it): wins by abbr plus losses by the first club outside
+--- the line that clinch a spot. nil when abbr is outside the line (see PL.elimination). <= 0: clinched.
+function PL.magic(L, abbr)
+  local st = PL.standings(L)
+  local G = PL.seasonGames(L)
+  local rank
+  for i, T in ipairs(st) do if T.abbr == abbr then rank = i end end
+  if not rank or rank > 4 then return nil end
+  local fifth = st[5]
+  local T = L.teams[abbr]
+  return G + 1 - T.w - fifth.l
+end
+
+--- Elimination number for a club outside the top 4: its losses plus the 4th club's wins that end it.
+--- <= 0: eliminated.
+function PL.elimination(L, abbr)
+  local st = PL.standings(L)
+  local G = PL.seasonGames(L)
+  local rank
+  for i, T in ipairs(st) do if T.abbr == abbr then rank = i end end
+  if not rank or rank <= 4 then return nil end
+  local fourth = st[4]
+  local T = L.teams[abbr]
+  return G + 1 - fourth.w - T.l
 end

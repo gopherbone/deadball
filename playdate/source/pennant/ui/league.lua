@@ -64,13 +64,15 @@ function League:schedule(Lb, y)
         local me, them = home and g.hs or g.as, home and g.as or g.hs
         res = (me > them and "W " or (me < them and "L " or "T ")) .. me .. "-" .. them .. ((g.inn or 9) > 9 and (" (" .. g.inn .. ")") or "")
       end
-      if day.round ~= lastRound and not day.po then
-        lastRound = day.round
-        gfx.setPattern(UI.pat.gray) gfx.drawLine(4, y - 1, 392, y - 1) gfx.setColor(gfx.kColorBlack)
-      end
+      local sep = day.round ~= lastRound and not day.po
+      if sep then lastRound = day.round end
       local f = (d == L.day) and UI.fonts.bold or UI.fonts.body
-      Text.draw(txt, 8, y, f)
-      Text.draw(res, 300, y, UI.fonts.bold)
+      local ry = y
+      PUI.lazy(Lb, 4, ry - 1, 388, 15, function()
+        if sep then gfx.setPattern(UI.pat.gray) gfx.drawLine(4, ry - 1, 392, ry - 1) gfx.setColor(gfx.kColorBlack) end
+        Text.draw(txt, 8, ry, f)
+        Text.draw(res, 300, ry, UI.fonts.bold)
+      end)
       if g.box and L.boxes[g.box] then
         Lb:link(4, y - 1, 388, 15, function() PennantUI.Box.open({ key = g.box }) end, { id = "d" .. d, style = "invert", hint = "A: box score" })
       elseif d >= L.day and not focusSet then
@@ -101,16 +103,20 @@ function League:leaders(Lb, y)
     local col = (i - 1) % 2
     local x = 6 + col * 196
     if col == 0 and i > 1 then y = y + 74 end
-    Text.draw(e[2], x, y, UI.fonts.bold)
-    local yy = y + 14
-    for r, l in ipairs(PL.leaders(L, e[1], 4)) do
-      local p = L.players[l.id]
-      local mine = p.team == L.user
-      Text.draw(r .. ". " .. Text.ellipsize(PM.short(p), UI.fonts.body, 100), x, yy, mine and UI.fonts.bold or UI.fonts.body)
-      Text.draw(p.team, x + 132, yy, UI.fonts.body)
-      Text.draw(PL.leaderText(e[1], l.v), x + 186, yy, UI.fonts.bold, nil, "right")
-      yy = yy + 13
-    end
+    local by = y
+    -- (each block scans every player: done when it scrolls into view)
+    PUI.lazy(Lb, x - 2, by - 1, 194, 70, function()
+      Text.draw(e[2], x, by, UI.fonts.bold)
+      local yy = by + 14
+      for r, l in ipairs(PL.leaders(L, e[1], 4)) do
+        local p = L.players[l.id]
+        local mine = p.team == L.user
+        Text.draw(r .. ". " .. Text.ellipsize(PM.short(p), UI.fonts.body, 100), x, yy, mine and UI.fonts.bold or UI.fonts.body)
+        Text.draw(p.team, x + 132, yy, UI.fonts.body)
+        Text.draw(PL.leaderText(e[1], l.v), x + 186, yy, UI.fonts.bold, nil, "right")
+        yy = yy + 13
+      end
+    end)
     if col == 1 or i == #LEAD then
       Lb:link(x - 2, y - 1, 192, 70, function() end, { id = "l" .. i, style = "ring", hint = "Qualified: 2.7 PA (hitters) or 1 IP (pitchers) per team game" })
     end
@@ -188,24 +194,30 @@ function PennantUI.lineScore(L, b, x, y)
 end
 
 function PennantUI.boxLines(Lb, L, b, y)
+  local hx = { 200, 226, 252, 278, 304, 330, 356, 386 }
   for _, side in ipairs({ { b.a, b.away }, { b.h, b.home } }) do
     y = PUI.head(Lb, PUI.teamName(side[1]), 4, y, 388)
-    local hx = { 200, 226, 252, 278, 304, 330, 356, 386 }
     for i, h in ipairs({ "AB", "R", "H", "RBI", "BB", "K", "HR" }) do Text.draw(h, hx[i], y, UI.fonts.body, nil, "right") end
     y = y + 14
     for _, ln in ipairs(side[2].bat) do
-      Text.draw(name(L, ln[1]), 8, y, UI.fonts.body)
-      for i = 2, 8 do Text.draw(tostring(ln[i]), hx[i - 1], y, UI.fonts.body, nil, "right") end
+      local ry = y
+      PUI.lazy(Lb, 4, ry, 390, 13, function()
+        Text.draw(name(L, ln[1]), 8, ry, UI.fonts.body)
+        for i = 2, 8 do Text.draw(tostring(ln[i]), hx[i - 1], ry, UI.fonts.body, nil, "right") end
+      end)
       y = y + 13
     end
     y = y + 4
     for i, h in ipairs({ "IP", "H", "R", "ER", "BB", "K", "NP" }) do Text.draw(h, hx[i], y, UI.fonts.body, nil, "right") end
     y = y + 14
     for _, ln in ipairs(side[2].pit) do
-      local dec = (ln[1] == b.W and " (W)") or (ln[1] == b.L and " (L)") or (ln[1] == b.S and " (S)") or ""
-      Text.draw(name(L, ln[1]) .. dec, 8, y, UI.fonts.body)
-      Text.draw(string.format("%d.%d", ln[2] // 3, ln[2] % 3), hx[1], y, UI.fonts.body, nil, "right")
-      for i = 3, 8 do Text.draw(tostring(ln[i]), hx[i - 1], y, UI.fonts.body, nil, "right") end
+      local ry = y
+      PUI.lazy(Lb, 4, ry, 390, 13, function()
+        local dec = (ln[1] == b.W and " (W)") or (ln[1] == b.L and " (L)") or (ln[1] == b.S and " (S)") or ""
+        Text.draw(name(L, ln[1]) .. dec, 8, ry, UI.fonts.body)
+        Text.draw(string.format("%d.%d", ln[2] // 3, ln[2] % 3), hx[1], ry, UI.fonts.body, nil, "right")
+        for i = 3, 8 do Text.draw(tostring(ln[i]), hx[i - 1], ry, UI.fonts.body, nil, "right") end
+      end)
       y = y + 13
     end
     y = y + 6

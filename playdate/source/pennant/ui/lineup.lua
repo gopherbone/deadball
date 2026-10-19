@@ -62,19 +62,7 @@ function Lineup:swapStaff(a, b)
   end
 end
 
-function Lineup:choose(item)
-  if not self.pick then
-    self.pick = item
-    Sfx.select()
-  else
-    local a = self.pick
-    self.pick = nil
-    if a.id == item.id then Sfx.back() self:render(true) return end
-    if self.tab == "bat" then self:swapOrder(a, item) else self:swapStaff(a, item) end
-    Sfx.coin()
-  end
-  self:render(true)
-end
+local RO <const> = { CL = 1, SU = 2, MR = 3, LR = 4 }
 
 local function ratingCols(p, x, y, keys)
   for i, k in ipairs(keys) do
@@ -84,9 +72,52 @@ local function ratingCols(p, x, y, keys)
   end
 end
 
-function Lineup:row(Lb, p, y, label, item, extra, adj)
-  local picked = self.pick and self.pick.id == p.id
-  if picked then
+--- What a row shows right now (rows are re-read from the club, so a repaint after a swap is right).
+function Lineup:content(row)
+  local L = Pennant.L
+  local T = L.teams[L.user]
+  local id, label, extra, adj
+  if row.kind == "order" then
+    id = T.order[row.slot]
+    local pos = T.field[id] or "DH"
+    label = row.slot .. "  " .. pos
+    extra = function(p, x, y) ratingCols(p, x, y, { "con", "pow", "eye", "spd", "fld" }) end
+    adj = function(d)
+      local cur = 9
+      for i, ps in ipairs(POS_CYCLE) do if ps == (T.field[id] or "DH") then cur = i end end
+      T.field[id] = POS_CYCLE[(cur - 1 + d) % #POS_CYCLE + 1]
+    end
+  elseif row.kind == "bench" then
+    id = row.id
+    label = L.players[id].pos
+    extra = function(p, x, y) ratingCols(p, x, y, { "con", "pow", "eye", "spd", "fld" }) end
+  elseif row.kind == "rot" then
+    id = T.rot[row.slot]
+    label = row.slot .. (row.slot == T.rotIdx and "\u{25b6}" or "")
+    extra = function(p, x, y)
+      ratingCols(p, x, y, { "velo", "ctl", "stf", "sta" })
+      Text.draw(string.format("%.2f", PM.era(p.st.p)), 392, y, UI.fonts.body, nil, "right")
+    end
+  else
+    id = row.id
+    label = T.pen[id] or "MR"
+    extra = function(p, x, y)
+      ratingCols(p, x, y, { "velo", "ctl", "stf", "sta" })
+      local s = p.st.p
+      Text.draw(string.format("%.2f", PM.era(s)) .. ((s.sv or 0) > 0 and (" " .. s.sv .. "sv") or ""), 392, y, UI.fonts.body, nil, "right")
+    end
+    adj = function(d)
+      local cur = RO[T.pen[id]] or 3
+      T.pen[id] = PRoster.ROLES[(cur - 1 + d) % 4 + 1]
+    end
+  end
+  return L.players[id], id, label, extra, adj
+end
+
+function Lineup:paintRow(row)
+  local p, id, label, extra = self:content(row)
+  local y = row.y
+  if self.pick and self.pick.id == id then
     -- picked: a heavy outline and a pointer
     gfx.setLineWidth(2)
     gfx.drawRect(2, y - 2, 391, 17)
@@ -99,14 +130,83 @@ function Lineup:row(Lb, p, y, label, item, extra, adj)
   if p.inj then PUI.cross(158, y + 1) else PUI.arrow(158, y + 1, p.cond) end
   PUI.fatigue(174, y + 4, p.fat, 20)
   if extra then extra(p, 200, y) end
-  Lb:link(2, y - 1, 391, 16, function() self:choose(item) end,
-    { id = "r" .. p.id, style = "invert", hint = PM.name(p) .. (picked and ": picked. A on another to swap" or ": A to pick" .. (adj and ", left/right to change" or "")),
-      data = adj and { adj = adj } or nil })
+end
+
+--- Point a row's link at what the row now holds.
+function Lineup:wire(row)
+  local p, id, label, extra, adj = self:content(row)
+  local item = { kind = row.kind, id = id, slot = row.slot }
+  local l = row.link
+  l.action = function() self:choose(item) end
+  l.id = "r" .. id
+  local picked = self.pick and self.pick.id == id
+  l.hint = PM.name(p) .. (picked and ": picked. A on another to swap" or (": A to pick" .. (adj and ", left/right to change" or "")))
+  l.data = adj and { adj = adj, repaint = function() self:afterAdjust(row) end } or nil
+end
+
+function Lineup:repaintRow(row)
+  if not row then return end
+  PUI.repaint(self, 2, row.y - 3, 393, 19, function() self:paintRow(row) end)
+  self:wire(row)
+end
+
+function Lineup:rowOf(id)
+  for _, r in ipairs(self.rows or {}) do
+    local _, rid = self:content(r)
+    if rid == id then return r end
+  end
+end
+
+--- After a position / role change: the row, and the problems banner if it only changed text.
+function Lineup:afterAdjust(row)
+  if self.tab == "bat" then
+    local L = Pennant.L
+    local probs = PennantUI.lineupProblems(L, L.teams[L.user])
+    if (#probs > 0) ~= (self.bannerY ~= nil) then self:render(true) return end
+    if self.bannerY then
+      PUI.repaint(self, 4, self.bannerY, 388, 14, function()
+        gfx.fillRect(4, self.bannerY, 388, 14)
+        Text.draw(Text.ellipsize("! " .. table.concat(probs, ", "), UI.fonts.bold, 380), 8, self.bannerY, UI.fonts.bold, "white")
+      end)
+    end
+  end
+  self:repaintRow(row)
+end
+
+function Lineup:choose(item)
+  if not self.pick then
+    self.pick = item
+    Sfx.select()
+    self:repaintRow(self:rowOf(item.id))
+    return
+  end
+  local a = self.pick
+  self.pick = nil
+  if a.id == item.id then Sfx.back() self:repaintRow(self:rowOf(item.id)) return end
+  local ra, rb = self:rowOf(a.id), self:rowOf(item.id)
+  if self.tab == "bat" then self:swapOrder(a, item) else self:swapStaff(a, item) end
+  Sfx.coin()
+  -- two slots of the same list traded places: repaint just those; anything else re-renders
+  if ra and rb and a.kind == item.kind and (a.kind == "order" or a.kind == "rot") then
+    self:repaintRow(ra)
+    self:repaintRow(rb)
+  else
+    self:render(true)
+  end
+end
+
+function Lineup:row(Lb, row)
+  self.rows[#self.rows + 1] = row
+  PUI.lazy(Lb, 2, row.y - 3, 393, 19, function() self:paintRow(row) end)
+  row.link = Lb:link(2, row.y - 1, 391, 16, function() end, { id = "r", style = "invert" })
+  self:wire(row)
 end
 
 function Lineup:layout(Lb)
   local L = Pennant.L
   local T = L.teams[L.user]
+  self.rows = {}
+  self.bannerY = nil
   local y = PUI.tabs(Lb, {
     { "bat", "Batting order", function() self.tab = "bat" self.pick = nil self:render() end },
     { "pit", "Pitching staff", function() self.tab = "pit" self.pick = nil self:render() end },
@@ -115,28 +215,21 @@ function Lineup:layout(Lb)
     Lb:button("Auto lineup", 300, 2, 90, 15, function() PRoster.autoLineup(L, T) self.pick = nil Sfx.coin() self:render(true) end, { id = "auto", hint = "Let the coaches pick positions and the order" })
     local probs = PennantUI.lineupProblems(L, T)
     if #probs > 0 then
+      self.bannerY = y
       gfx.fillRect(4, y, 388, 14)
-      Text.draw("! " .. table.concat(probs, ", "), 8, y, UI.fonts.bold, "white")
+      Text.draw(Text.ellipsize("! " .. table.concat(probs, ", "), UI.fonts.bold, 380), 8, y, UI.fonts.bold, "white")
       y = y + 16
     end
     Text.draw("#  POS", 6, y, UI.fonts.body) Text.draw("CON  POW  EYE  SPD  FLD", 200, y, UI.fonts.body)
     gfx.drawLine(4, y + 13, 392, y + 13)
     y = y + 16
-    for slot, id in ipairs(T.order or {}) do
-      local p = L.players[id]
-      local pos = T.field[id] or "DH"
-      self:row(Lb, p, y, slot .. "  " .. pos, { kind = "order", id = id, slot = slot }, function(pp, x, yy) ratingCols(pp, x, yy, { "con", "pow", "eye", "spd", "fld" }) end,
-        function(d)
-          local cur = 9
-          for i, ps in ipairs(POS_CYCLE) do if ps == pos then cur = i end end
-          T.field[id] = POS_CYCLE[(cur - 1 + d) % #POS_CYCLE + 1]
-        end)
+    for slot = 1, #(T.order or {}) do
+      self:row(Lb, { kind = "order", slot = slot, y = y })
       y = y + 16
     end
     y = PUI.head(Lb, "Bench", 4, y + 4, 388)
     for _, id in ipairs(PRoster.bench(L, T)) do
-      local p = L.players[id]
-      self:row(Lb, p, y, p.pos, { kind = "bench", id = id }, function(pp, x, yy) ratingCols(pp, x, yy, { "con", "pow", "eye", "spd", "fld" }) end)
+      self:row(Lb, { kind = "bench", id = id, y = y })
       y = y + 16
     end
     for _, p in ipairs(PRoster.hitters(L, T)) do
@@ -151,30 +244,16 @@ function Lineup:layout(Lb)
     Text.draw("VEL  CTL  STF  STA", 200, y + 2, UI.fonts.body)
     Text.draw("ERA", 392, y + 2, UI.fonts.body, nil, "right")
     y = y + 18
-    for slot, id in ipairs(T.rot or {}) do
-      local p = L.players[id]
-      local label = slot .. (slot == T.rotIdx and "\u{25b6}" or "")
-      self:row(Lb, p, y, label, { kind = "rot", id = id, slot = slot }, function(pp, x, yy)
-        ratingCols(pp, x, yy, { "velo", "ctl", "stf", "sta" })
-        Text.draw(string.format("%.2f", PM.era(pp.st.p)), 392, yy, UI.fonts.body, nil, "right")
-      end)
+    for slot = 1, #(T.rot or {}) do
+      self:row(Lb, { kind = "rot", slot = slot, y = y })
       y = y + 16
     end
     y = PUI.head(Lb, "BULLPEN", 4, y + 4, 388)
     local pen = {}
     for id, role in pairs(T.pen or {}) do if L.players[id] then pen[#pen + 1] = { id = id, role = role } end end
-    local RO = { CL = 1, SU = 2, MR = 3, LR = 4 }
     table.sort(pen, function(a, b) if a.role ~= b.role then return RO[a.role] < RO[b.role] end return a.id < b.id end)
     for _, e in ipairs(pen) do
-      local p = L.players[e.id]
-      self:row(Lb, p, y, e.role, { kind = "pen", id = e.id }, function(pp, x, yy)
-        ratingCols(pp, x, yy, { "velo", "ctl", "stf", "sta" })
-        local s = pp.st.p
-        Text.draw(string.format("%.2f", PM.era(s)) .. ((s.sv or 0) > 0 and (" " .. s.sv .. "sv") or ""), 392, yy, UI.fonts.body, nil, "right")
-      end, function(d)
-        local cur = RO[T.pen[e.id]] or 3
-        T.pen[e.id] = PRoster.ROLES[(cur - 1 + d) % 4 + 1]
-      end)
+      self:row(Lb, { kind = "pen", id = e.id, y = y })
       y = y + 16
     end
     Text.draw("CL closes leads of 1-3 in the 9th; SU the 8th; LR goes long early.", 6, y + 4, UI.fonts.body)
@@ -189,6 +268,12 @@ function Lineup:initialFocus()
 end
 
 function Lineup:goBack()
-  if self.pick then self.pick = nil Sfx.back() self:render(true) return end
+  if self.pick then
+    local id = self.pick.id
+    self.pick = nil
+    Sfx.back()
+    self:repaintRow(self:rowOf(id))
+    return
+  end
   Page.goBack(self)
 end

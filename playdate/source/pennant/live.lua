@@ -19,6 +19,7 @@ PennantLive = PennantLive or {}
 local Live = {}
 Live.__index = Live
 Live.finalCard = true
+PennantLive.Live = Live
 
 local function nid(s) return PEng.nid(s) end
 local function P(id) local L = Pennant.L return L.players[nid(id) or -1] end
@@ -67,9 +68,21 @@ end
 
 function Live:feed(scene, evs)
   if #evs > 0 and scene.tl then scene:feed(evs) end
+  -- each pitcher's mix this game (the Scout card)
+  self.mix = self.mix or {}
+  for _, e in ipairs(evs) do
+    if e.k == "pa" then self.curPit = e.pit
+    elseif e.k == "sub" and e.pos == "P" then self.curPit = e["in"]
+    elseif e.k == "p" and self.curPit and not e.ibb then
+      local m = self.mix[self.curPit] or {}
+      self.mix[self.curPit] = m
+      m[e.t] = (m[e.t] or 0) + 1
+    end
+  end
 end
 
---- Answer the current pause (or not: nil = the coaches do it), step on, publish.
+--- Answer the current pause (or not: nil = the coaches do it), step on, publish. Returns the
+--- new events.
 function Live:resume(scene, replaceProvisional)
   self.pause = nil
   self.ui = nil
@@ -79,7 +92,9 @@ function Live:resume(scene, replaceProvisional)
     self.prov = nil
   end
   self:feed(scene, evs)
+  return evs
 end
+Live.resumeEvs = Live.resume
 
 -- BallCast's requests -----------------------------------------------------------------------------------
 
@@ -112,6 +127,34 @@ function Live:get(path)
     return { id = self.id, status = "live", from = from, log = log, people = self.h.people, park = self.h.park }
   end
   return { id = self.id, status = "live", home = teamInfo(L, self.g.h), away = teamInfo(L, self.g.a) }
+end
+
+-- BallCast's lower third and "did you know" cards: plain baseball facts, not the online league's lore
+function Live:flavor(id)
+  local p = P(id)
+  if not p then return "" end
+  if p.pos == "P" then
+    local s = p.st.p
+    if (s.outs or 0) == 0 then return "HAS NOT PITCHED THIS SEASON." end
+    return string.format("%d-%d, %.2f ERA THIS SEASON.", s.w or 0, s.l or 0, PM.era(s))
+  end
+  local s = p.st.b
+  if (s.ab or 0) == 0 then return "FIRST AT-BAT OF THE SEASON." end
+  return string.format("BATTING %s WITH %d HR AND %d RBI.", PM.rate3(PM.avg(s)), s.hr or 0, s.rbi or 0)
+end
+
+function Live:didYouKnow(tl, meta, bi, n)
+  local L = self.L
+  local c = PennantClubs.byAbbr[self.g.h]
+  local facts = {
+    c.park:upper() .. ": " .. c.fences[1] .. " DOWN THE LEFT FIELD LINE, " .. c.fences[3] .. " TO CENTER.",
+    c.alt > 1000 and (c.park:upper() .. " SITS " .. c.alt .. " FEET UP. THE BALL CARRIES.") or (c.park:upper() .. " IS " .. c.alt .. " FEET ABOVE SEA LEVEL."),
+  }
+  for _, ab in ipairs({ self.g.a, self.g.h }) do
+    local T = L.teams[ab]
+    facts[#facts + 1] = string.format("THE %s ARE %d-%d, %s IN THE STANDINGS.", PUI.nick(ab):upper(), T.w, T.l, PUI.ord(PL.rank(L, ab)):upper())
+  end
+  return { text = facts[(n % #facts) + 1] }
 end
 
 -- Situations --------------------------------------------------------------------------------------------
@@ -205,8 +248,8 @@ local function held(btn) return playdate.buttonIsPressed(btn) end
 
 function Live:frame(scene, bi, b, tau, dt)
   local tl = scene.tl
-  -- the rest of the league: a sliver of each frame
-  PJobs.tick(2)
+  -- (the rest of the league waits: BallCast has the frame; the Advance screen after the game
+  -- plays the other games with a progress bar)
   if not tl then return nil end
   -- initial events BallCast already has: nothing to feed; later ones are fed directly
   if self.simming then return self:simFrame(scene) end
@@ -236,51 +279,11 @@ function Live:frame(scene, bi, b, tau, dt)
   end
   if p.reason == "bat" then
     if not self.directBat then self:resume(scene) return nil end
-    if not self.prov then
-      -- the pitch is on its way: show it now as a take, decide on the swing as it flies
-      local pt, i = p.pitch, p.info
-      local r = (pt.zone or 3) <= 1 and "C" or "B"
-      local e = { k = "p", t = pt.t, v = pt.v, z = pt.zone, r = r, b = i.balls + (r == "B" and 1 or 0), s = i.strikes + (r == "C" and 1 or 0), px = pt.px, pz = pt.pz }
-      scene:feed({ e })
-      self.prov = { beat = #tl.beats, pitch = pt }
-      self.ui = { kind = "bat", aim = self.lastAim or 0, power = false, t = 0 }
-    end
-    local pb = tl.beats[self.prov.beat]
-    if bi ~= self.prov.beat or not pb or not pb.plan.pitch then return nil end
-    local pp = pb.plan.pitch
-    self.ui.tau, self.ui.plan = tau, pb.plan
-    -- aim follows the d-pad while held
-    if held(playdate.kButtonUp) then self.ui.aim = min(1.6, self.ui.aim + 0.06) elseif held(playdate.kButtonDown) then self.ui.aim = max(-1.6, self.ui.aim - 0.06) end
-    if tau > pp.tPlate + 0.15 and not self.ui.swung then
-      -- took it
-      self.lastAim = self.ui.aim
-      self.h:bat({ swing = false })
-      self:resume(scene, true)
-      return nil
-    end
-    if tau > pp.tRel - 0.25 and tau < pp.tPlate + 0.2 then return 0.6 end
-    return nil
+    return self:batFrame(scene, bi, b, tau, p)
   end
   if p.reason == "pitchsel" then
     if not self.directPitch then self:resume(scene) return nil end
-    if not self:caughtUp(scene) then return nil end
-    if not self.ui then
-      local i = p.info
-      local ars = i.arsenal or {}
-      local k = 1
-      for n, a in ipairs(ars) do if a.kind == self.lastType then k = n end end
-      self.ui = { kind = "pitch", ars = ars, k = k, x = self.lastX or 0.7, z = self.lastZ or -0.5, stage = "aim", t = 0 }
-    end
-    local u = self.ui
-    u.t = u.t + 1
-    if u.stage == "aim" then
-      local step = 0.05
-      if held(playdate.kButtonLeft) then u.x = max(-1.8, u.x - step) elseif held(playdate.kButtonRight) then u.x = min(1.8, u.x + step) end
-      if held(playdate.kButtonUp) then u.z = min(1.8, u.z + step) elseif held(playdate.kButtonDown) then u.z = max(-1.8, u.z - step) end
-    else
-      u.m = (u.m or 0) + 1
-    end
-    return nil
+    return self:pitchFrame(scene, p)
   end
   return nil
 end
@@ -313,8 +316,9 @@ function Live:input(scene, btn, change)
     return true
   end
   if u and u.kind == "dugout" then return self:dugoutInput(scene, btn) end
-  if u and u.kind == "bat" and scene.tl and self.prov and scene:curBeatIndex() == self.prov.beat then return self:batInput(scene, btn, change) end
-  if u and u.kind == "pitch" then return self:pitchInput(scene, btn, change) end
+  if self.help or (u and u.kind ~= "dugout") then
+    if self:controlInput(scene, btn, change) then return true end
+  end
   if btn == "B" then self:openMenu() return true end
   return false
 end
@@ -371,62 +375,14 @@ function Live:dugoutInput(scene, btn)
   return true
 end
 
-function Live:batInput(scene, btn, change)
-  local u = self.ui
-  if btn == "left" or btn == "right" then u.power = not u.power Sfx.tick() return true end
-  if btn == "crank" then u.aim = max(-1.6, min(1.6, u.aim + (change or 0) / 180)) return true end
-  if btn == "up" or btn == "down" or btn == "AUp" then return true end
-  if btn == "B" then self:openMenu() return true end
-  if btn == "A" and not u.swung then
-    local pb = scene.tl.beats[self.prov.beat]
-    local pp = pb.plan.pitch
-    local tau = scene.t - pb.start
-    if tau < pp.tRel then return true end    -- not thrown yet
-    u.swung = true
-    local timing = max(-1, min(1, (tau - pp.tPlate) / 0.10))
-    self.lastAim = u.aim
-    self.h:bat({ swing = true, timing = timing, aim = u.aim, power = u.power })
-    self.lastSwing = { timing = timing }
-    self:resume(scene, true)
-    return true
-  end
-  return true
-end
-
-function Live:pitchInput(scene, btn, change)
-  local u = self.ui
-  if btn == "B" then self:openMenu() return true end
-  if u.stage == "aim" then
-    if btn == "crank" then
-      u.acc = (u.acc or 0) + (change or 0)
-      if abs(u.acc) > 40 then u.k = (u.k - 1 + (u.acc > 0 and 1 or -1)) % #u.ars + 1 u.acc = 0 Sfx.tick() end
-      return true
-    end
-    if btn == "A" then u.stage = "effort" u.m = 0 Sfx.select() return true end
-    return true
-  end
-  if btn == "A" then
-    -- the meter swings 0 -> 1 -> 0 once a second
-    local ph = ((u.m or 0) % 30) / 30
-    local eff = ph < 0.5 and ph * 2 or (1 - ph) * 2
-    local a = u.ars[u.k]
-    self.lastType, self.lastX, self.lastZ = a and a.kind, u.x, u.z
-    self.h:pitch({ type = a and a.kind, x = u.x, z = u.z, effort = eff })
-    Sfx.select()
-    self:resume(scene)
-    return true
-  end
-  return true
-end
-
 -- The dugout's own menu (B) -----------------------------------------------------------------------------
 
 function Live:openMenu()
   self.menu = { sel = 1, items = {
     { "Resume", function() end },
     { "Call time (next batter)", function() self.callTime = true Toast.show("The manager will come out for the next batter.", nil) end },
-    { "Batting: " .. (self.directBat and "you" or "coaches"), function() self.directBat = not self.directBat end },
-    { "Pitching: " .. (self.directPitch and "you" or "coaches"), function() self.directPitch = not self.directPitch end },
+    { self:controlLabel("bat"), function() self:cycleControl("bat") end },
+    { self:controlLabel("pitch"), function() self:cycleControl("pitch") end },
     { "Sim to end", function() self:simToEnd(false) end },
     { "Leave (sims the rest)", function() self:simToEnd(true) end },
   } }
@@ -533,130 +489,6 @@ function Live:drawDugout()
   end
 end
 
--- K-zone inset (normalised zone units: |x|, |z| <= 1 is a strike)
--- (on the right: BallCast's own K-zone history, spin cam and lower thirds live on the left)
-local KX, KY, KW, KH = 294, 48, 100, 100
-local SX, SZ = 20, 22
-local function kzx(x) return floor(KX + KW / 2 + x * SX + 0.5) end
-local function kzy(z) return floor(KY + 14 + KH / 2 - 7 - z * SZ + 0.5) end
-
-local function kzFrame(title)
-  gfx.setColor(gfx.kColorBlack)
-  gfx.fillRect(KX, KY, KW, KH)
-  gfx.setColor(gfx.kColorWhite)
-  gfx.fillRect(KX + 2, KY + 12, KW - 4, KH - 14)
-  Text.draw(title, KX + 4, KY - 1, F().bold, "white")
-  gfx.setColor(gfx.kColorBlack)
-  local x0, x1, y0, y1 = kzx(-1), kzx(1), kzy(1), kzy(-1)
-  gfx.drawRect(x0, y0, x1 - x0 + 1, y1 - y0 + 1)
-  gfx.setDitherPattern(0.5, gfx.image.kDitherTypeBayer2x2)
-  for k = 1, 2 do
-    local gx = x0 + floor((x1 - x0) * k / 3)
-    local gy = y0 + floor((y1 - y0) * k / 3)
-    gfx.drawLine(gx, y0, gx, y1)
-    gfx.drawLine(x0, gy, x1, gy)
-  end
-  gfx.setColor(gfx.kColorBlack)
-end
-
-function Live:drawBat(scene, b, tau)
-  local u = self.ui
-  local pp = u.plan and u.plan.pitch
-  kzFrame(u.power and "POWER SWING" or "AT BAT")
-  -- the bat's plane at the aim height
-  local ay = kzy(u.aim)
-  gfx.fillRect(KX + 6, ay - 1, KW - 12, 3)
-  gfx.fillCircleAtPoint(KX + 8, ay, 3)
-  -- the ball on its way (BallCast's own flight)
-  if pp and tau >= pp.tRel and tau <= pp.tPlate + 0.2 then
-    local bx, by, bz = BallCast.Play.ballAt(u.plan, math.min(tau, pp.tPlate))
-    if bx then
-      local nx, nz = bx / 0.83, bz - 2.5
-      local r = floor(2 + 4 * (1 - min(1, (by or 0) / 55)))
-      local cx, cy = max(KX + 4, min(KX + KW - 4, kzx(nx))), max(KY + 14, min(KY + KH - 4, kzy(nz)))
-      gfx.setColor(gfx.kColorWhite)
-      gfx.fillCircleAtPoint(cx, cy, r + 1)
-      gfx.setColor(gfx.kColorBlack)
-      gfx.drawCircleAtPoint(cx, cy, r + 1)
-      gfx.fillCircleAtPoint(cx, cy, max(1, r - 2))
-    end
-  end
-  -- timing strip: a tick moves toward the notch (the ball at the plate)
-  local ty = KY + KH + 3
-  gfx.setColor(gfx.kColorWhite)
-  gfx.fillRect(KX, ty, KW, 9)
-  gfx.setColor(gfx.kColorBlack)
-  gfx.drawRect(KX, ty, KW, 9)
-  if pp then
-    local span = pp.tPlate + 0.15 - (pp.tRel - 0.2)
-    local nxp = KX + floor((pp.tPlate - (pp.tRel - 0.2)) / span * KW)
-    gfx.fillRect(nxp - 1, ty, 3, 9)
-    if tau >= pp.tRel - 0.2 then
-      local mx = KX + floor(min(1, (tau - (pp.tRel - 0.2)) / span) * KW)
-      gfx.setDitherPattern(0.5, gfx.image.kDitherTypeBayer2x2)
-      gfx.fillRect(KX + 1, ty + 2, max(0, mx - KX - 1), 5)
-      gfx.setColor(gfx.kColorBlack)
-    end
-  end
-  gfx.setColor(gfx.kColorWhite)
-  gfx.fillRect(KX, ty + 10, KW, 13)
-  gfx.setColor(gfx.kColorBlack)
-  Text.draw(u.power and "\u{25c0}\u{25b6} normal swing" or "\u{25c0}\u{25b6} power swing", KX + 2, ty + 10, F().body, nil)
-end
-
-function Live:drawPitch()
-  local u = self.ui
-  local i = self.pause.info
-  kzFrame("PITCH")
-  -- target cursor
-  local cx, cy = kzx(u.x), kzy(u.z)
-  gfx.drawCircleAtPoint(cx, cy, 6)
-  gfx.drawLine(cx - 9, cy, cx - 3, cy) gfx.drawLine(cx + 3, cy, cx + 9, cy)
-  gfx.drawLine(cx, cy - 9, cx, cy - 3) gfx.drawLine(cx, cy + 3, cx, cy + 9)
-  -- the arsenal, two to a row under the zone (crank picks)
-  local rows = (#u.ars + 1) // 2
-  local px, py = KX, KY + KH
-  gfx.setColor(gfx.kColorWhite)
-  gfx.fillRect(px, py, KW, rows * 13 + 2)
-  gfx.setColor(gfx.kColorBlack)
-  gfx.drawRect(px, py, KW, rows * 13 + 2)
-  for k, a in ipairs(u.ars) do
-    local on = k == u.k
-    local cx, cy = px + 1 + ((k - 1) % 2) * 49, py + 1 + ((k - 1) // 2) * 13
-    if on then gfx.fillRect(cx, cy, 49, 13) end
-    Text.draw(a.kind .. " " .. (a.velo or ""), cx + 2, cy, on and F().bold or F().body, on and "white" or nil)
-  end
-  local ty = py + rows * 13 + 4
-  if u.stage == "effort" then
-    local ph = ((u.m or 0) % 30) / 30
-    local eff = ph < 0.5 and ph * 2 or (1 - ph) * 2
-    gfx.setColor(gfx.kColorWhite)
-    gfx.fillRect(KX, ty, KW, 11)
-    gfx.setColor(gfx.kColorBlack)
-    gfx.drawRect(KX, ty, KW, 11)
-    gfx.setPattern(UI.pat.gray)
-    gfx.fillRect(KX + floor(KW * 0.75), ty + 1, floor(KW * 0.2), 9)
-    gfx.setColor(gfx.kColorBlack)
-    gfx.fillRect(KX + 1, ty + 3, floor((KW - 2) * eff), 5)
-    gfx.setColor(gfx.kColorWhite)
-    gfx.fillRect(KX, ty + 12, KW, 13)
-    gfx.setColor(gfx.kColorBlack)
-    Text.draw("A: throw (effort)", KX + 2, ty + 12, F().body)
-  else
-    local bat = P(i.batter.id)
-    gfx.setColor(gfx.kColorWhite)
-    gfx.fillRect(KX, ty, KW, 26)
-    gfx.setColor(gfx.kColorBlack)
-    Text.draw(Text.ellipsize((bat and PM.short(bat) or "") .. " " .. i.balls .. "-" .. i.strikes, F().body, KW - 4), KX + 2, ty, F().body)
-    Text.draw("crank: pitch  A: set", KX + 2, ty + 12, F().body)
-  end
-  -- pitcher fatigue, in the title strip
-  gfx.setColor(gfx.kColorWhite)
-  gfx.fillRect(KX + KW - 36, KY + 1, 34, 9)
-  gfx.setColor(gfx.kColorBlack)
-  fatigueMeter(KX + KW - 35, KY + 2, i.pitcher.fatigue, 32)
-end
-
 function Live:drawMenu()
   local m = self.menu
   local x, w = 120, 160
@@ -713,9 +545,11 @@ function Live:draw(scene, bi, b, tau)
     local list = u.sub or u.items
     local h = 62 + #list * 15
     self:cached("d" .. tostring(u.sub ~= nil) .. (u.sub and u.subSel or u.sel) .. ":" .. tostring(self.pause), 226, math.max(20, 200 - h), 172, h + 2, function() self:drawDugout() end)
-  elseif u and u.kind == "bat" and self.prov and bi == self.prov.beat then self:drawBat(scene, b, tau)
-  elseif u and u.kind == "pitch" and self:caughtUp(scene) then self:drawPitch() end
-  if self.pause and self.pause.reason == "done" and b.kind == "end" and tau > 1.0 then self:drawFinal(scene) end
+  end
+  self:drawControl(scene, bi, b, tau)
+  if self.pause and self.pause.reason == "done" and b.kind == "end" and tau > 1.0 then
+    self:cached("final", 100, 150, 203, 73, function() self:drawFinal(scene) end)
+  end
   if self.menu then
     local m = self.menu
     local h = 18 + #m.items * 16

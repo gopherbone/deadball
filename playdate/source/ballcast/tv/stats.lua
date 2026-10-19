@@ -263,6 +263,11 @@ local FLAVOR = {
 
 --- a flavor fact for a person (stable per id)
 function St.flavor(id)
+  -- a local game's source (offline modes) says what goes under the name instead
+  if K.source and K.source.flavor then
+    local f = K.source:flavor(id)
+    if f then return f end
+  end
   local h = K.hash01(id or "?", 91)
   local i = math.floor(h * #FLAVOR) + 1
   local f = FLAVOR[i]
@@ -297,6 +302,10 @@ local PARK_FACTS = {
 
 --- a "DID YOU KNOW" card: { id = person id or nil, text = ... }, seeded by n (the break number)
 function St.didYouKnow(tl, meta, bi, n, lineups)
+  if K.source and K.source.didYouKnow then
+    local r = K.source:didYouKnow(tl, meta, bi, n)
+    if r then return r end
+  end
   local pk = meta.park or {}
   if n % 3 == 1 then
     for k = 0, #PARK_FACTS - 1 do

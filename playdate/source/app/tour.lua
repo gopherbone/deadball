@@ -121,41 +121,85 @@ local function buildPennant()
   S(14, function() press("A") local e = PLand.byKey("eiffel_tower")
     PennantUI.LandmarkCard.open({ lm = { key = "eiffel_tower", name = e.name, text = e.lines[1]:gsub("{p}", "Moose Mullane"), effect = "Spirits are up. (Mood +1)" } }) end, "p23b_landmark")
   S(6, function() press("A") Pennant.toHub() end, nil)
-  -- game day and a live game: you bat and pitch
+  -- game day and live games: you bat and pitch, first with the Arcade controls, then Scout
   S(20, function() if PL.gameFor(Pennant.L, Pennant.L.user) then Pennant.hub:playBall() end end, "p24_gameday")
-  U(function() return bcWatching() end, 900, function() if T().links then PennantLive.start("play") end end, nil, 30)
-  Tour.pn = {}
-  U(function()
-    local src = live()
-    if not src then return true end
-    local u = src.ui
-    local s = T()
-    if u and u.kind == "bat" and s.tl and src.prov and s:curBeatIndex() == src.prov.beat and u.tau and u.plan and u.tau > u.plan.pitch.tRel + 0.15 and not Tour.pn.bat then
-      Tour.pn.bat = true shot("p25_batting")
-    end
-    if u and u.kind == "pitch" and src:caughtUp(s) then
-      Tour.pn.pt = (Tour.pn.pt or 0) + 1
-      if Tour.pn.pt == 4 and not Tour.pn.pitch then Tour.pn.pitch = true shot("p26_pitching") end
-      if Tour.pn.pt == 20 then u.stage = "effort" end
-      if Tour.pn.pt == 26 and not Tour.pn.eff then Tour.pn.eff = true shot("p26b_effort") end
-      if Tour.pn.pt >= 34 then src:input(s, "A") Tour.pn.pt = 0 end
-    end
-    if u and u.kind == "dugout" and src:caughtUp(s) then
-      -- (the shot reads the last frame shown: let the menu be on screen first)
-      Tour.pn.df = (Tour.pn.df or 0) + 1
-      if Tour.pn.df == 4 and not Tour.pn.dug then Tour.pn.dug = true shot("p27_dugout") end
-      if Tour.pn.df >= 6 then Tour.pn.df = 0 src:input(s, "A") end
-    end
-    -- (once both direct-control shots are in, the manager calls time to get the dugout up)
-    if Tour.pn.bat and Tour.pn.pitch and not Tour.pn.called then Tour.pn.called = true src.callTime = true src.directBat, src.directPitch = false, false end
-    return Tour.pn.bat and Tour.pn.pitch and Tour.pn.dug
-  end, 30 * 240, nil, nil, 2)
-  S(10, function() local src = live() if src then src:openMenu() end end, "p28_timeout_menu")
-  U(function() local src = live() local s = T() return not src or (src.pause and src.pause.reason == "done" and s.tl and s:curBeatIndex() == #s.tl.beats and s.t - s.tl.beats[#s.tl.beats].start > 1.5) end,
-    30 * 60, function() local src = live() if src then src.menu = nil src:simToEnd(false) end end, "p29_final", 4)
-  U(function() return T() and T().box ~= nil end, 600, function() local src = live() if src then src:finish() end end, nil, 2)
-  U(function() local t = T() return t and t.state == "done" end, 600, nil, nil, 2)
-  S(20, function() local t = T() if t and t.AButtonDown and t.state then t:AButtonDown() end end, "p30_postgame")
+  local function liveGame(scheme, tag, withDugout)
+    S(4, function()
+      local st = Pennant.L.settings
+      st.batScheme, st.pitchScheme = scheme, scheme
+      st.seenHelp = {}
+      Tour.pn = { shots = {} }
+    end, nil)
+    U(function() return bcWatching() end, 900, function()
+      local t = T()
+      if t and t.links then PennantLive.start("play") end
+    end, nil, 30)
+    U(function()
+      local src = live()
+      if not src then return true end
+      local s = T()
+      local pn = Tour.pn
+      local function once(name) if not pn.shots[name] then pn.shots[name] = true shot(name) end end
+      pn.f = (pn.f or 0) + 1
+      -- the how-to cards: shoot each, then dismiss
+      if src.help then
+        pn.hf = (pn.hf or 0) + 1
+        if pn.hf == 4 then once(tag .. "_help_" .. src.help.key) end
+        if pn.hf >= 6 then pn.hf = 0 src:input(s, "A") end
+        return false
+      end
+      local u = src.ui
+      if u and u.kind == "bat_arcade" and src.prov and s:curBeatIndex() == src.prov.beat and u.plan then
+        local pp = u.plan.pitch
+        if u.tau and u.tau > pp.tRel + 0.12 then once(tag .. "_bat") end
+        if u.tau and u.tau >= pp.tPlate - 0.03 and not u.swung then src:input(s, "A") pn.lastAt = pn.f pn.lastKind = "bat" end
+      elseif u and u.kind == "bat_scout" and src:caughtUp(s) then
+        pn.sf = (pn.sf or 0) + 1
+        if pn.sf == 3 then once(tag .. "_bat") end
+        if pn.sf >= 5 then pn.sf = 0 src:input(s, "up") pn.lastAt = pn.f pn.lastKind = "bat" end
+      elseif u and u.kind == "pitch_arcade" and src:caughtUp(s) then
+        pn.pt = (pn.pt or 0) + 1
+        if pn.pt == 4 then once(tag .. "_pitch") end
+        if pn.pt == 8 then u.stage = "meter" end
+        if pn.pt == 14 then once(tag .. "_pitch_meter") end
+        if pn.pt >= 16 then pn.pt = 0 src:input(s, "A") pn.lastAt = pn.f pn.lastKind = "pitch" end
+      elseif u and u.kind == "pitch_scout" and src:caughtUp(s) then
+        pn.pt = (pn.pt or 0) + 1
+        if pn.pt == 4 then once(tag .. "_pitch") end
+        if pn.pt == 6 then src:input(s, "A") end
+        if pn.pt >= 8 then pn.pt = 0 src:input(s, "AUp") pn.lastAt = pn.f pn.lastKind = "pitch" end
+      elseif u and u.kind == "dugout" and src:caughtUp(s) then
+        pn.df = (pn.df or 0) + 1
+        if pn.df == 4 and withDugout then once("p27_dugout") end
+        if pn.df >= 6 then pn.df = 0 src:input(s, "A") end
+      end
+      -- the LAST card a few frames after a pitch the "player" handled
+      if pn.lastAt and pn.f - pn.lastAt == 20 then once(tag .. "_last_" .. pn.lastKind) end
+      local need = pn.shots[tag .. "_bat"] and pn.shots[tag .. "_pitch"] and pn.shots[tag .. "_last_bat"] and pn.shots[tag .. "_last_pitch"]
+      if need and withDugout and not pn.called then pn.called = true src.callTime = true src.directBat, src.directPitch = false, false end
+      return need and (not withDugout or pn.shots["p27_dugout"])
+    end, 30 * 300, nil, nil, 2)
+    if withDugout then S(10, function() local src = live() if src then src:openMenu() end end, "p28_timeout_menu") end
+    U(function() local src = live() local s = T() return not src or (src.pause and src.pause.reason == "done" and s.tl and s:curBeatIndex() == #s.tl.beats and s.t - s.tl.beats[#s.tl.beats].start > 1.5) end,
+      30 * 60, function() local src = live() if src then src.menu = nil src:simToEnd(false) end end, withDugout and "p29_final" or nil, 4)
+    U(function() return T() and T().box ~= nil end, 600, function() local src = live() if src then src:finish() end end, nil, 2)
+    U(function() local t = T() return t and t.state == "done" end, 600, nil, nil, 2)
+    S(20, function() local t = T() if t and t.AButtonDown and t.state then t:AButtonDown() end end, withDugout and "p30_postgame" or nil)
+  end
+  liveGame("arcade", "p25_arcade", true)
+  -- the next day (an off day sims straight through), then a Scout game
+  S(10, function()
+    local t = T()
+    for _ = 1, 4 do t = T() if t ~= Pennant.hub and t and (t.rows or t.map2 or t.lm) and t.AButtonDown then t:AButtonDown() end end
+    Pennant.toHub()
+  end, nil)
+  U(function() local t = T() return (t == Pennant.hub and PL.gameFor(Pennant.L, Pennant.L.user) ~= nil) or (t and t.state == "done") end, 30 * 60, function()
+    local L = Pennant.L
+    if not PL.gameFor(L, L.user) then PennantUI.Advance.open({ days = 1 }) end
+  end, nil, 2)
+  S(4, function() local t = T() if t and t.state == "done" then t:AButtonDown() end Pennant.toHub() end, nil)
+  S(20, function() if PL.gameFor(Pennant.L, Pennant.L.user) then Pennant.hub:playBall() end end, nil)
+  liveGame("scout", "p26_scout", false)
   -- the rest of the season, the playoffs, awards, the offseason
   U(function() local t = T() return t and t.state == "done" end, 30 * 400, function() Pennant.toHub() PennantUI.Advance.open({ untilPhase = "awards" }) end, "p31_season_done", 4)
   S(10, function() press("A") end, nil)

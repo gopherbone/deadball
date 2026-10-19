@@ -18,11 +18,11 @@ end
 
 --- All of today's games are in: close the day, autosave, then the follow-up screens.
 --- kind: "played" | "simmed" ; onReady(rep, travel) is called with the day report.
-function PennantUI.closeDay()
+function PennantUI.closeDay(Y, noSave)
   local L = Pennant.L
   local from = PennantUI.cityOn(L, L.day)
   L.alerts = {}
-  local rep = PL.finishDay(L)
+  local rep = PL.finishDay(L, Y)
   rep.alerts = L.alerts
   local ng = PL.nextGame(L, L.user)
   local to = ng and ng.h or from
@@ -31,7 +31,7 @@ function PennantUI.closeDay()
     travel = { from = from, to = to }
     if L.settings.landmarks ~= false then travel.landmark = PLand.maybe(L, from, to) end
   end
-  Pennant.autosave()
+  if not noSave then Pennant.autosave() end
   return rep, travel
 end
 
@@ -112,7 +112,9 @@ function GameDay:layout(Lb)
   end
   by = by + 2
   Lb:button("Manage", 4, by, 92, 18, function() PennantLive.start("manage") end, { id = "manage", hint = "Watch it in BallCast and make the dugout's calls (steals, bunts, pitching changes...)" })
-  Lb:button("Play", 100, by, 92, 18, function() PennantLive.start("play") end, { id = "play", hint = "Take the at-bats and the pitching yourself (plus the dugout calls)" })
+  local s = L.settings
+  Lb:button("Play", 100, by, 92, 18, function() PennantLive.start("play") end, { id = "play",
+    hint = "Bat and pitch yourself: " .. PScheme.NAME[s.batScheme or "arcade"] .. " / " .. PScheme.NAME[s.pitchScheme or "arcade"] .. " (Options; or time out in the game)" })
   Lb:button("Simulate", 196, by, 92, 18, function() PennantUI.Advance.open({ days = 1, fromGameDay = true }) end, { id = "sim", hint = "The coaches play it out; box score after" })
   Lb:button("Lineup", 292, by, 96, 18, function() PennantUI.Lineup.open({}) end, { id = "lineup", hint = "Change the order, positions, rotation" })
   Lb:mark(PUI.VIEW_H - 2)
@@ -165,56 +167,142 @@ function Advance:wantMore()
   return false
 end
 
-function Advance:update()
+--- The day's close, spread over frames: PL.finishDay yields between clubs.
+function Advance:startClose()
   local L = Pennant.L
-  self.t = self.t + 1
-  local t0 = playdate.getCurrentTimeMilliseconds()
-  -- sims in ~24 ms slices; the progress screen redraws every frame
-  while playdate.getCurrentTimeMilliseconds() - t0 < 24 and self.state == "day" do
-    PJobs.tick(24 - (playdate.getCurrentTimeMilliseconds() - t0))
-    if not PJobs.busy() then
-      local today = PL.today(L)
-      local mine = PL.gameFor(L, L.user)
-      self.lastOff = today and today.off
-      local rep, travel = PennantUI.closeDay()
-      self.travel = travel or self.travel
-      self.days = self.days + 1
-      if mine and mine.done then
-        local me = mine.h == L.user and mine.hs or mine.as
-        local them = mine.h == L.user and mine.as or mine.hs
-        if me > them then self.w = self.w + 1 else self.l = self.l + 1 end
-        self.lastBox = mine.box
-        self.lines[#self.lines + 1] = PL.date(L, L.day - 1) .. "  " .. (me > them and "W " or "L ") .. me .. "-" .. them .. (mine.h == L.user and " vs " or " at ") .. (mine.h == L.user and mine.a or mine.h)
-      end
-      self.rep = rep
-      for _, a in ipairs(rep.alerts or {}) do
-        if a.kind == "inj" and not self.args.days then
-          local p = L.players[a.id]
-          self.stopNote = "Stopped: " .. (p and PM.name(p) or "a player") .. " got hurt."
-        end
-      end
-      if self:wantMore() then self:queueDay() else self.state = "done" end
-    end
-  end
-  self:draw()
+  local today = PL.today(L)
+  self.closeMine = PL.gameFor(L, L.user)
+  self.lastOff = today and today.off
+  self.state = "close"
+  self.closeCo = coroutine.create(function()
+    local more = true
+    -- (the autosave waits for the end of a multi-day run)
+    local rep, travel = PennantUI.closeDay(function() self:Y() end, true)
+    return rep, travel
+  end)
 end
 
+function Advance:Y()
+  if playdate.getCurrentTimeMilliseconds() - self.t0 >= self.budget then coroutine.yield() end
+end
+
+function Advance:afterClose(rep, travel)
+  local L = Pennant.L
+  local mine = self.closeMine
+  self.travel = travel or self.travel
+  self.days = self.days + 1
+  if mine and mine.done then
+    local me = mine.h == L.user and mine.hs or mine.as
+    local them = mine.h == L.user and mine.as or mine.hs
+    if me > them then self.w = self.w + 1 else self.l = self.l + 1 end
+    self.lastBox = mine.box
+    self.lines[#self.lines + 1] = PL.date(L, L.day - 1) .. "  " .. (me > them and "W " or "L ") .. me .. "-" .. them .. (mine.h == L.user and " vs " or " at ") .. (mine.h == L.user and mine.a or mine.h)
+  end
+  self.rep = rep
+  for _, a in ipairs(rep.alerts or {}) do
+    if a.kind == "inj" and not self.args.days then
+      local p = L.players[a.id]
+      self.stopNote = "Stopped: " .. (p and PM.name(p) or "a player") .. " got hurt."
+    end
+  end
+  if self:wantMore() then
+    self.state = "day"
+    self:queueDay()
+  else
+    self.state = "saving"
+    Pennant.autosave()
+  end
+  self.dirtyText = true
+end
+
+function Advance:update()
+  local L = Pennant.L
+  local fs = playdate.getCurrentTimeMilliseconds()
+  self:work()
+  self:draw()
+  local d = playdate.getCurrentTimeMilliseconds() - fs
+  if d > 40 and PUI.PROF then print(string.format("[pnadv] %d ms frame (state %s)", d, tostring(self.state))) end
+end
+
+function Advance:prof(what, t0)
+  local d = playdate.getCurrentTimeMilliseconds() - t0
+  if d > 25 and PUI.PROF then print(string.format("[pnadv] %s %d ms", what, d)) end
+end
+
+function Advance:work()
+  local L = Pennant.L
+  self.t = self.t + 1
+  self.t0 = playdate.getCurrentTimeMilliseconds()
+  -- ~18 ms of work a frame (the device runs Lua ~5-10x slower than the Simulator)
+  self.budget = 15
+  local guard = 0
+  while playdate.getCurrentTimeMilliseconds() - self.t0 < self.budget and guard < 50 do
+    guard = guard + 1
+    local ts = playdate.getCurrentTimeMilliseconds()
+    if self.state == "day" then
+      PJobs.tick(self.budget - (playdate.getCurrentTimeMilliseconds() - self.t0))
+      self:prof("jobs", ts)
+      if not PJobs.busy() then self:startClose() end
+    elseif self.state == "close" then
+      local ok, rep, travel = coroutine.resume(self.closeCo)
+      self:prof("close slice", ts)
+      if not ok then print("[pennant] day close failed: " .. tostring(rep)) self.state = "done" break end
+      if coroutine.status(self.closeCo) == "dead" then
+        self.closeCo = nil
+        local ta = playdate.getCurrentTimeMilliseconds()
+        self:afterClose(rep, travel)
+        self:prof("after close", ta)
+      else break end
+    elseif self.state == "saving" then
+      PJobs.tick(self.budget - (playdate.getCurrentTimeMilliseconds() - self.t0))
+      if not PJobs.busy() then self.state = "done" self.dirtyText = true end
+      break
+    else
+      break
+    end
+  end
+end
+
+--- The window is painted once; the changing lines are re-rendered only when they change.
 function Advance:draw()
   local L = Pennant.L
-  Draw.tile(0, 0, 400, 240, "light")
-  local ix, iy, iw, ih = Draw.window(50, 34, 300, 170, self.state == "done" and "Done" or "Simulating...")
+  if not self.bg then
+    self.bg = gfx.image.new(400, 240, gfx.kColorWhite)
+    gfx.pushContext(self.bg)
+    Draw.tile(0, 0, 400, 240, "light")
+    self.ix, self.iy, self.iw, self.ih = Draw.window(50, 34, 300, 170, "Pennant '96")
+    gfx.popContext()
+  end
+  self.bg:draw(0, 0)
+  local ix, iy, iw, ih = self.ix, self.iy, self.iw, self.ih
+  local key
   if self.state ~= "done" then
-    Text.draw(PL.dateLong(L, math.min(L.day, #L.sched)), ix + iw // 2, iy + 12, UI.fonts.head, nil, "center")
+    key = PL.date(L, math.min(L.day, #L.sched)) .. self.days .. self.w .. self.l .. self.state
+  else
+    key = "done" .. #self.lines .. tostring(self.stopNote)
+  end
+  if key ~= self.textKey then
+    self.textKey = key
+    self.textImg = gfx.image.new(iw, ih, gfx.kColorClear)
+    gfx.pushContext(self.textImg)
+    if self.state ~= "done" then
+      Text.draw(PL.dateLong(L, math.min(L.day, #L.sched)), iw // 2, 12, UI.fonts.head, nil, "center")
+      Text.draw(self.days .. " day" .. (self.days == 1 and "" or "s") .. " done \u{2022} you went " .. self.w .. "-" .. self.l, iw // 2, 76, UI.fonts.body, nil, "center")
+      Text.draw(self.state == "saving" and "Saving..." or (self.state == "close" and "Closing the books..." or "Playing the games..."), iw // 2, 96, UI.fonts.body, nil, "center")
+    else
+      Text.draw("You went " .. self.w .. "-" .. self.l .. " over " .. self.days .. " day" .. (self.days == 1 and "" or "s"), iw // 2, 6, UI.fonts.head, nil, "center")
+      local y = 26
+      for i = math.max(1, #self.lines - 6), #self.lines do Text.draw(self.lines[i], 14, y, UI.fonts.body) y = y + 13 end
+      if self.stopNote then Text.draw(self.stopNote, 14, y + 2, UI.fonts.bold) end
+      Text.draw("A: continue", iw - 8, ih - 15, UI.fonts.body, nil, "right")
+    end
+    gfx.popContext()
+  end
+  self.textImg:draw(ix, iy)
+  if self.state ~= "done" then
     Draw.throbber(ix + 30, iy + 60, 8, self.t, true)
     local done = self.dayGames - #PL.pending(L)
-    Draw.progress(ix + 50, iy + 54, iw - 80, 10, self.dayGames > 0 and done / self.dayGames or 1, "gray")
-    Text.draw(self.days .. " day" .. (self.days == 1 and "" or "s") .. " done \u{2022} you went " .. self.w .. "-" .. self.l, ix + iw // 2, iy + 76, UI.fonts.body, nil, "center")
-  else
-    Text.draw("You went " .. self.w .. "-" .. self.l .. " over " .. self.days .. " day" .. (self.days == 1 and "" or "s"), ix + iw // 2, iy + 6, UI.fonts.head, nil, "center")
-    local y = iy + 26
-    for i = math.max(1, #self.lines - 6), #self.lines do Text.draw(self.lines[i], ix + 14, y, UI.fonts.body) y = y + 13 end
-    if self.stopNote then Text.draw(self.stopNote, ix + 14, y + 2, UI.fonts.bold) end
-    Text.draw("A: continue", ix + iw - 8, iy + ih - 15, UI.fonts.body, nil, "right")
+    Draw.progress(ix + 50, iy + 54, iw - 80, 10, self.state == "day" and (self.dayGames > 0 and done / self.dayGames or 1) or 1, "gray")
   end
 end
 
