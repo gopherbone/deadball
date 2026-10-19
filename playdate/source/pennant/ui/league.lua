@@ -22,30 +22,55 @@ function League:layout(Lb)
   elseif self.tab == "sched" then y = self:schedule(Lb, y)
   elseif self.tab == "lead" then y = self:leaders(Lb, y)
   else y = self:history(Lb, y) end
-  Lb:mark(y + 4)
+  Lb:mark(y)
 end
 
 function League:standings(Lb, y)
   local L = Pennant.L
-  local cols = { { "W", 190 }, { "L", 214 }, { "PCT", 252 }, { "GB", 280 }, { "RS", 308 }, { "RA", 334 }, { "STK", 362 }, { "L10", 392 } }
-  for _, c in ipairs(cols) do Text.draw(c[1], c[2], y, UI.fonts.body, nil, "right") end
-  gfx.drawLine(4, y + 13, 392, y + 13)
-  y = y + 16
+  -- games left with the user's club, per club
+  local left = {}
+  for d = L.day, L.regDays or #L.sched do
+    local day = L.sched[d]
+    if day and not day.po then
+      for _, g in ipairs(day.games) do
+        if not g.done and (g.h == L.user or g.a == L.user) then
+          local o = g.h == L.user and g.a or g.h
+          left[o] = (left[o] or 0) + 1
+        end
+      end
+    end
+  end
+  local season = L.phase == "season"
+  local cols = { { "W", 200 }, { "L", 226 }, { "GB", 262 }, { "#", 292 }, { "vs", 318 }, { "STK", 356 }, { "L10", 392 } }
+  for _, c in ipairs(cols) do Text.draw(c[1], c[2], y - 2, UI.fonts.body, nil, "right") end
+  gfx.drawLine(4, y + 11, 392, y + 11)
+  y = y + 15
   for i, T in ipairs(PL.standings(L)) do
     local mine = T.abbr == L.user
-    if mine then gfx.fillRect(2, y - 2, 392, 19) end
+    if mine then gfx.fillRect(2, y - 2, 392, 18) end
     local col = mine and "white" or nil
     Text.draw(i .. ".", 18, y + 1, UI.fonts.bold, col, "right")
     if not mine then PUI.logo(T.abbr, 22, y - 1, 16) end
     Text.draw(PUI.teamName(T.abbr), 42, y + 1, mine and UI.fonts.bold or UI.fonts.body, col)
-    local vals = { T.w, T.l, PM.rate3(PL.pct(T)), PL.gbText(T.gb), T.rs, T.ra, PL.streakText(T), PL.l10(T) }
-    for k, c in ipairs(cols) do Text.draw(tostring(vals[k]), c[2], y + 1, UI.fonts.body, col, "right") end
-    Lb:link(2, y - 2, 392, 19, function() PennantUI.Team.open({ abbr = T.abbr }) end, { id = "t" .. T.abbr, style = "ring", hint = "A: " .. PUI.nick(T.abbr) .. " roster (scouting)" })
-    if i == 4 then gfx.setPattern(UI.pat.gray) gfx.fillRect(4, y + 17, 388, 1) gfx.setColor(gfx.kColorBlack) end
-    y = y + 20
+    -- # : the magic number inside the top four, the elimination number outside it
+    local num = "-"
+    if season then
+      if i <= 4 then
+        local m = PL.magic(L, T.abbr)
+        num = m and (m <= 0 and "IN" or ("M" .. m)) or "-"
+      else
+        local e = PL.elimination(L, T.abbr)
+        num = e and (e <= 0 and "OUT" or ("E" .. e)) or "-"
+      end
+    end
+    local vals = { T.w, T.l, PL.gbText(T.gb), num, mine and "" or tostring(left[T.abbr] or 0), PL.streakText(T), PL.l10(T) }
+    for k, c in ipairs(cols) do Text.draw(tostring(vals[k]), c[2], y + 1, k == 4 and UI.fonts.bold or UI.fonts.body, col, "right") end
+    Lb:link(2, y - 2, 392, 18, function() PennantUI.Team.open({ abbr = T.abbr }) end, { id = "t" .. T.abbr, style = "ring", hint = "A: " .. PUI.nick(T.abbr) .. " roster (scouting).  RS " .. T.rs .. "  RA " .. T.ra .. "  PCT " .. PM.rate3(PL.pct(T)) })
+    if i == 4 then gfx.setPattern(UI.pat.gray) gfx.fillRect(4, y + 16, 388, 1) gfx.setColor(gfx.kColorBlack) end
+    y = y + 19
   end
-  local h = Text.block("Top four make the playoffs: 1 vs 4 and 2 vs 3 (best of five), then the pennant series (best of seven).", 4, y + 2, 386, UI.fonts.body)
-  return y + 4 + h
+  Text.draw(Text.ellipsize("Top 4 make the playoffs.  M: magic #  E: elimination #  vs: games left with you", UI.fonts.body, 388), 4, y, UI.fonts.body)
+  return y + 13
 end
 
 function League:schedule(Lb, y)
@@ -69,9 +94,10 @@ function League:schedule(Lb, y)
       local f = (d == L.day) and UI.fonts.bold or UI.fonts.body
       local ry = y
       PUI.lazy(Lb, 4, ry - 1, 388, 15, function()
-        if sep then gfx.setPattern(UI.pat.gray) gfx.drawLine(4, ry - 1, 392, ry - 1) gfx.setColor(gfx.kColorBlack) end
-        Text.draw(txt, 8, ry, f)
-        Text.draw(res, 300, ry, UI.fonts.bold)
+        -- (the series divider sits in the gap above the row, clear of both rows' text)
+        if sep then gfx.setPattern(UI.pat.gray) gfx.drawLine(4, ry - 2, 392, ry - 2) gfx.setColor(gfx.kColorBlack) end
+        Text.draw(txt, 8, ry + 1, f)
+        Text.draw(res, 300, ry + 1, UI.fonts.bold)
       end)
       if g.box and L.boxes[g.box] then
         Lb:link(4, y - 1, 388, 15, function() PennantUI.Box.open({ key = g.box }) end, { id = "d" .. d, style = "invert", hint = "A: box score" })
@@ -138,21 +164,23 @@ function League:history(Lb, y)
     Text.draw(h.year .. "  " .. PUI.teamName(h.champ), 26, y + 1, UI.fonts.bold)
     Text.draw("over " .. PUI.nick(h.runnerUp or ""), 250, y + 1, UI.fonts.body)
     y = y + 17
-    Text.draw(string.format("You: %d-%d (%s)  MVP %s  Pitcher %s  Rookie %s", h.w, h.l, PUI.ord(h.rank), h.mvp or "-", h.cy or "-", h.roy or "-"), 26, y, UI.fonts.body)
-    y = y + 16
-    Lb:link(2, y - 34, 390, 33, function() end, { id = "h" .. i, style = "ring", hint = h.year .. " season" })
+    local y0 = y - 17
+    local bh = Text.block(string.format("You: %d-%d (%s)  MVP %s  Pitcher %s  Rookie %s", h.w, h.l, PUI.ord(h.rank), h.mvp or "-", h.cy or "-", h.roy or "-"), 26, y, 364, UI.fonts.body, nil, 2)
+    y = y + math.max(13, bh) + 3
+    Lb:link(2, y0, 390, y - y0 - 1, function() end, { id = "h" .. i, style = "ring", hint = h.year .. " season" })
   end
   y = PUI.head(Lb, "Franchise: " .. PUI.teamName(L.user), 6, y + 6, 386)
   local T = L.teams[L.user]
   local w, l, titles = 0, 0, 0
   for _, h in ipairs(T.hist or {}) do w = w + h[2] l = l + h[3] end
   for _, h in ipairs(L.history) do if h.champ == L.user then titles = titles + 1 end end
-  Text.draw(string.format("%d seasons, %d-%d, %d pennant%s", #(T.hist or {}), w, l, titles, titles == 1 and "" or "s"), 6, y, UI.fonts.body)
+  local ns = #(T.hist or {})
+  Text.draw(string.format("%d season%s, %d-%d, %d pennant%s", ns, ns == 1 and "" or "s", w, l, titles, titles == 1 and "" or "s"), 6, y, UI.fonts.body)
   y = y + 16
   -- the user's award winners
   for id, p in pairs(L.players) do
     if p.awards and p.team == L.user then
-      Text.draw("\u{2605} " .. PM.name(p) .. ": " .. p.awards:gsub(";", ", "), 6, y, UI.fonts.body)
+      Text.drawFit("\u{2605} " .. PM.name(p) .. ": " .. p.awards:gsub(";", ", "), 6, y, 386, UI.fonts.body)
       y = y + 14
     end
   end

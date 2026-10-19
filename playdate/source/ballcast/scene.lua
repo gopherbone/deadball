@@ -894,6 +894,17 @@ function S:update()
   self.lastTau = tau
   Audio.update(quiet)
 
+  -- a local source may freeze the picture under a static panel (time-out menu, final card):
+  -- blit the last rendered frame instead of re-rendering the world
+  local frz = self.src and self.src.freeze and self.src:freeze(self, bi, b, tau)
+  if not frz then self.frozenImg = nil
+  elseif self.frozenImg then
+    self.frozenImg:draw(0, 0)
+    if self.src.draw then self.src:draw(self, bi, b, tau) end
+    self:backgroundLoad(now, 27)
+    return
+  end
+
   -- TV presentation (ballcast/tv): a running segment (replay, cards, open) owns the frame
   if TV.frame(self, bi, b, tau, dt, scrubbing) then
     self:backgroundLoad(now, 27)
@@ -972,6 +983,7 @@ function S:update()
   self:drawHud(bi, b, tau, slo, camName, incident, dt)
   TV.overlay(self, bi, b, tau, camName, slo, dt)
   if self.logOpen then Log.draw() end
+  if frz and not self.frozenImg then self.frozenImg = gfx.getWorkingImage() end
   if self.src and self.src.draw then self.src:draw(self, bi, b, tau) end
   self.profHud = (playdate.getElapsedTime() - th) * 1000
   self:backgroundLoad(now, 27)

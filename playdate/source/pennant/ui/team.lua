@@ -48,8 +48,8 @@ function Team:layout(Lb)
   local active = PRoster.activeCount(L, T)
   Text.draw(mine and (active .. "/26 active") or PUI.teamName(self.abbr), 392, 4, UI.fonts.body, nil, "right")
   local extra = self.tab == "pit" and "ERA  W-L" or (self.tab == "farm" and "AGE  POT" or "AVG  HR")
-  PUI.rowHeader(4, y, extra)
-  y = y + 16
+  PUI.rowHeader(4, y - 2, extra)
+  y = y + 12
   self.order = self:list()
   for i, p in ipairs(self.order) do
     local ex
@@ -58,10 +58,10 @@ function Team:layout(Lb)
     else ex = PM.rate3(PM.avg(p.st.b)) .. " " .. (p.st.b.hr or 0) end
     if p.inj then ex = p.inj.k .. " (" .. p.inj.d .. "d)" end
     local hint = PM.name(p) .. ", " .. p.age .. ". " .. PM.COND_NAME[p.cond] .. " condition, " .. PM.MOOD_NAME[p.mood or 0]:lower() .. (p.inj and (". Out until " .. PL.date(L, L.day + p.inj.d)) or "")
-    PUI.playerRow(Lb, p, 4, y, 388, function() PennantUI.Card.open({ list = self.order, i = i }) end, { extra = ex, hint = hint, id = "p" .. p.id })
-    y = y + 17
+    PUI.playerRow(Lb, p, 4, y, 388, function() PennantUI.Card.open({ list = self.order, i = i }) end, { extra = ex, hint = hint, id = "p" .. p.id, compact = true })
+    y = y + 13
   end
-  Lb:mark(y + 4)
+  Lb:mark(y)
 end
 
 function Team:initialFocus()
@@ -71,12 +71,13 @@ end
 
 -- Player card --------------------------------------------------------------------------------------
 
-local Card = PUI.define({ title = "Player", hint = "Left/right on Prev/Next: another player" })
+local Card = PUI.define({ title = "Player", hint = "Crank: another player  left/right on the tabs: Ratings / Stats" })
 PennantUI.Card = Card
 
 function Card:init(args)
   self.list = args.list
   self.i = args.i or 1
+  self.pg = args.pg or "rat"
 end
 function Card:resume(r) Page.resume(self, r) self:render(true) end
 
@@ -92,18 +93,49 @@ local function trendMark(d)
   return (d > 0 and "\u{25b2}" or "\u{25bc}") .. math.abs(d)
 end
 
+--- The two pages (Ratings | Stats) and prev / next, along the bottom of both.
+function Card:footer(Lb)
+  local y = 190
+  local function flip(d) self.pg = (self.pg == "rat") and "stats" or "rat" self:render(true) end
+  local tx = 6
+  for _, t in ipairs({ { "rat", "Ratings" }, { "stats", "Stats" } }) do
+    local on = self.pg == t[1]
+    local w = UI.fonts.bold:getTextWidth(t[2]) + 14
+    if on then gfx.fillRect(tx, y, w, 17) Text.draw(t[2], tx + 7, y + 1, UI.fonts.bold, "white")
+    else gfx.drawRect(tx, y, w, 17) Text.draw(t[2], tx + 7, y + 1, UI.fonts.bold) end
+    local key = t[1]
+    Lb:link(tx, y, w, 17, function() if self.pg ~= key then flip() end end, PUI.opts("pg:" .. key, "Left/right: Ratings / Stats", function(d) flip(d) end, "ring"))
+    tx = tx + w + 3
+  end
+  Text.draw((self.i) .. "/" .. #self.list, 240, y + 2, UI.fonts.body, nil, "right")
+  Lb:button("\u{25c0} Prev", 248, y, 70, 17, function() self:step(-1) end, PUI.opts("prev", "Previous player (or crank)", function(d) self:step(d, true) end, "ring"))
+  Lb:button("Next \u{25b6}", 322, y, 70, 17, function() self:step(1) end, PUI.opts("next", "Next player (or crank)", function(d) self:step(d, true) end, "ring"))
+  Lb:mark(y + 18)
+end
+
+function Card:cranked(change)
+  self.crankAcc = (self.crankAcc or 0) + change
+  if math.abs(self.crankAcc) >= 90 then
+    local d = self.crankAcc > 0 and 1 or -1
+    self.crankAcc = 0
+    self:step(d)
+    Sfx.detent()
+  end
+end
+
 function Card:layout(Lb)
   local L = Pennant.L
   local p = self:player()
   if not p then return end
   local mine = p.team == L.user
+  if self.pg == "stats" then return self:layoutStats(Lb, p) end
   -- face
   Faces.draw("face:" .. p.face, 6, 4, 96, { double = false })
   -- identity
   local x = 110
   Text.draw(PM.name(p), x, 2, UI.fonts.big)
   local posTxt = p.pos == "P" and (p.role == "SP" and "Starting pitcher" or "Relief pitcher") or (({ C = "Catcher", ["1B"] = "First base", ["2B"] = "Second base", ["3B"] = "Third base", SS = "Shortstop", LF = "Left field", CF = "Center field", RF = "Right field" })[p.pos] or p.pos)
-  Text.draw(string.format("%s \u{2022} Age %d \u{2022} B/T %s/%s%s", posTxt, p.age, p.bats, p.throws, p.pos2 and p.pos ~= "P" and (" \u{2022} also " .. p.pos2) or ""), x, 26, UI.fonts.body)
+  Text.draw(string.format("%s \u{2022} Age %d \u{2022} B/T %s/%s%s", posTxt, p.age, p.bats, p.throws, (p.pos2 and p.pos2 ~= p.pos and p.pos ~= "P") and (" \u{2022} also " .. p.pos2) or ""), x, 26, UI.fonts.body)
   Text.draw(PUI.teamName(p.team) .. (p.lvl == "F" and " (farm)" or "") .. (p.rk and "  \u{2022} ROOKIE" or ""), x, 40, UI.fonts.body)
   -- overall / potential / condition
   local o = PM.ovr(p)
@@ -137,7 +169,7 @@ function Card:layout(Lb)
     local ds = p.s0 and (v - math.floor(p.s0[k] or v)) or 0
     Text.draw(trendMark(d), x + 246, ry, UI.fonts.bold)
     if ds ~= 0 then Text.draw((ds > 0 and "+" or "") .. ds .. " yr", x + 278, ry, UI.fonts.body) end
-    ry = ry + 15
+    ry = ry + 14
   end
   if p.pos == "P" then
     Text.draw("Pitches", x, ry, UI.fonts.body)
@@ -151,7 +183,7 @@ function Card:layout(Lb)
     ry = ry + 16
   end
   -- under the face: plan + moves
-  local ly = 128
+  local ly = 124
   if mine then
     local plan = p.plan or { i = 2 }
     Text.draw("Training", 6, ly, UI.fonts.bold)
@@ -165,7 +197,7 @@ function Card:layout(Lb)
     if p.lvl == "F" then
       Lb:button("Call up", 4, ly + 46, 98, 17, function()
         local ok, err = PRoster.callUp(L, T, p.id)
-        if ok then PRoster.validate(L, T) Sfx.coin() Toast.show(PM.short(p) .. " called up to the big club.", "good") else Toast.show(err, "bad") end
+        if ok then PRoster.validate(L, T) PL.news(L, "CALLED UP: " .. PM.name(p) .. " (" .. p.pos .. ")", true) PennantUI.CallUp.open({ p = p }) else Toast.show(err, "bad") end
         self:render(true)
       end, { id = "move", hint = "Bring him up to the big club" })
     else
@@ -176,9 +208,15 @@ function Card:layout(Lb)
       end, { id = "move", hint = "Option him to the farm club (he won't like it)" })
     end
   end
-  -- stats
-  local sy2 = math.max(ry + 4, 196)
-  sy2 = PUI.head(Lb, "Stats", 6, sy2, 386)
+  self:footer(Lb)
+end
+
+function Card:layoutStats(Lb, p)
+  local L = Pennant.L
+  Faces.draw("face:" .. p.face, 6, 4, 48)
+  Text.draw(PM.name(p), 62, 4, UI.fonts.big)
+  Text.draw(string.format("%s \u{2022} Age %d \u{2022} %s", p.pos == "P" and (p.role or "P") or p.pos, p.age, PUI.teamName(p.team)), 62, 28, UI.fonts.body)
+  local sy2 = PUI.head(Lb, "Stats", 6, 68, 386)
   local function batRow(lbl, s, yy)
     Text.draw(lbl, 6, yy, UI.fonts.bold)
     Text.draw(string.format("G %d  AB %d  H %d  2B %d  3B %d  HR %d  RBI %d  BB %d  K %d  SB %d", s.g or 0, s.ab or 0, s.h or 0, s.d or 0, s.t or 0, s.hr or 0, s.rbi or 0, s.bb or 0, s.k or 0, s.sb or 0), 60, yy, UI.fonts.body)
@@ -203,10 +241,7 @@ function Card:layout(Lb)
   if p.awards then
     for a in p.awards:gmatch("[^;]+") do Text.draw("\u{2605} " .. a, 6, sy2, UI.fonts.bold) sy2 = sy2 + 14 end
   end
-  -- prev / next
-  Lb:button("\u{25c0} Prev", 6, sy2 + 4, 70, 17, function() self:step(-1) end, PUI.opts("prev", "Previous player", function(d) self:step(d, true) end, "ring"))
-  Lb:button("Next \u{25b6}", 82, sy2 + 4, 70, 17, function() self:step(1) end, PUI.opts("next", "Next player", function(d) self:step(d, true) end, "ring"))
-  Lb:mark(sy2 + 26)
+  self:footer(Lb)
 end
 
 function Card:step(d, noRender)

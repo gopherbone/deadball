@@ -331,6 +331,8 @@ function Page:render(keepFocus)
       break
     end
   end
+  -- a page may forgive a few px of overflow (the bottom padding), so it doesn't scroll for nothing
+  if self.contentH - vh <= (self.scrollSlack or 0) then self.contentH = vh end
   self.scroll:setMax(self.contentH - vh)
   -- restore focus
   self.focus = 0

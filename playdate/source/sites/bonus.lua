@@ -605,6 +605,13 @@ function Odd:statusText() return "A: claim it, or go do it \u{2022} crank: scrol
 --- The countdowns are painted into the canvas: refresh them twice a minute (and after a stamp).
 function Odd:tick()
   self.tickN = (self.tickN or 0) + 1
+  local land = self.paidLand
+  if land and self.canvas then
+    self.paidLand = nil
+    gfx.pushContext(self.canvas)
+    Bonus.drawStamp("stamp-paid", 4, land[1], land[2])
+    gfx.popContext()
+  end
   if self.needRender or (self.tickN % 900 == 0 and not self.paidFx) then
     self.needRender = false
     self:render(true)
@@ -669,11 +676,16 @@ function Odd:jobRow(L, j, y)
     if fx and fx.id == j.id and fx.t < 10 then
       -- the PAID stamp slams: 1.6x -> 1x in four prerendered steps, a thunk and a 2-frame shake
       L:live(rx - 30, y - 12, rw + 30, ROW_H + 20, function(_, sx, sy)
+        if self.paidFx ~= fx then return end   -- (landed: it's in the canvas now)
         fx.t += 1
         if fx.t == 4 then Sfx.stamp() end
         local shake = (fx.t == 4 and 2) or (fx.t == 5 and -1) or 0
         Bonus.drawStamp("stamp-paid", fx.t, sx + (px - rx + 30) + shake, sy + (py - y + 12) - shake)
-        if fx.t >= 9 then self.paidFx = nil self.needRender = true end
+        if fx.t >= 6 then
+          -- stamp the landed copy straight into the page canvas: no full re-render for one row
+          self.paidFx = nil
+          self.paidLand = { px, py }   -- (Odd:tick paints it, outside the screen's clip)
+        end
       end)
     else
       Bonus.drawStamp("stamp-paid", 4, px, py)

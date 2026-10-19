@@ -181,16 +181,27 @@ function Live:drawCard()
       yy = yy + 15
     else
       Text.draw(Text.ellipsize(l, F().body, w - 6), x + 3, yy, F().body)
-      yy = yy + 12
+      yy = yy + 13
     end
   end
 end
 
 function Live:setCard(c)
-  local n = 0
-  for _, l in pairs(c.lines) do n = n + 1 end
+  -- long lines wrap (two at most) rather than being cut
+  local out = {}
+  for _, l in ipairs(c.lines) do
+    if type(l) == "string" and F().body:getTextWidth(l) > CW - 6 then
+      local w = Text.wrap(l, F().body, CW - 6)
+      for i = 1, math.min(2, #w) do out[#out + 1] = w[i] end
+    else
+      out[#out + 1] = l
+    end
+  end
+  c.lines = out
+  local hh = 17
+  for _, l in ipairs(out) do hh = hh + (type(l) == "table" and 15 or 13) end
   -- (at least as tall as BallCast's K-zone history it covers)
-  c.h = math.max(CH, 17 + n * 13)
+  c.h = math.max(CH, hh)
   self.card = c
   self.cardKey = (self.cardKey or 0) + 1
 end
@@ -403,7 +414,7 @@ function Live:drawScoutBat()
   lab("\u{25bc} SIT SOFT", cx, KY + 60, "center")
   gfx.fillRect(KX + 6, KY + 79, KW - 12, 15)
   Text.draw("A: SEE IT", cx, KY + 80, F().bold, "white", "center")
-  hintStrip("B take  hold B: time", KY + KH + 2)
+  hintStrip("B: take  hold B: time out", KY + KH + 2)
 end
 
 -- Pitching --------------------------------------------------------------------------------------------------
@@ -545,27 +556,30 @@ end
 
 function Live:drawArcadePitch()
   local u = self.ui
-  local i = self.pause.info
-  kzFrame("PITCH", "ARCADE")
+  local a = u.ars[u.k]
+  -- the frame, the hint and the meter's bands are static: one cached image; the crosshair and the
+  -- marker are drawn live
+  self:cached("ap" .. u.k .. u.stage, KX, KY - 1, KW + 2, KH + 32, function()
+    kzFrame("PITCH", "ARCADE")
+    local y = KY + KH + 2
+    hintStrip((a and (a.kind .. " " .. (a.velo or "") .. "  ") or "") .. (u.stage == "aim" and "crank / A" or "A: stop"), y)
+    y = y + 15
+    gfx.setColor(gfx.kColorWhite)
+    gfx.fillRect(KX, y, KW, 12)
+    gfx.setColor(gfx.kColorBlack)
+    gfx.drawRect(KX, y, KW, 12)
+    local half = PScheme.band(u.command) / 2
+    local bx0, bx1 = KX + floor((PScheme.BAND_C - half) * KW), KX + floor((PScheme.BAND_C + half) * KW)
+    gfx.setPattern(UI.pat.gray)
+    gfx.fillRect(bx0, y + 1, bx1 - bx0, 10)
+    gfx.setColor(gfx.kColorBlack)
+    gfx.fillRect(KX + floor(0.92 * KW), y + 1, KW - floor(0.92 * KW) - 1, 10)
+  end, "control")
   local cx, cy = kzx(u.x), kzy(u.z)
   gfx.drawCircleAtPoint(cx, cy, 6)
   gfx.drawLine(cx - 9, cy, cx - 3, cy) gfx.drawLine(cx + 3, cy, cx + 9, cy)
   gfx.drawLine(cx, cy - 9, cx, cy - 3) gfx.drawLine(cx, cy + 3, cx, cy + 9)
-  local a = u.ars[u.k]
-  local y = KY + KH + 2
-  hintStrip((a and (a.kind .. " " .. (a.velo or "") .. "  ") or "") .. (u.stage == "aim" and "crank / A" or "A: stop"), y)
-  -- the meter: the command band, the reach-back zone, the moving marker
-  y = y + 15
-  gfx.setColor(gfx.kColorWhite)
-  gfx.fillRect(KX, y, KW, 12)
-  gfx.setColor(gfx.kColorBlack)
-  gfx.drawRect(KX, y, KW, 12)
-  local half = PScheme.band(u.command) / 2
-  local bx0, bx1 = KX + floor((PScheme.BAND_C - half) * KW), KX + floor((PScheme.BAND_C + half) * KW)
-  gfx.setPattern(UI.pat.gray)
-  gfx.fillRect(bx0, y + 1, bx1 - bx0, 10)
-  gfx.setColor(gfx.kColorBlack)
-  gfx.fillRect(KX + floor(0.92 * KW), y + 1, KW - floor(0.92 * KW) - 1, 10)
+  local y = KY + KH + 17
   if u.stage == "meter" then
     local mx = KX + floor(meter(u) * (KW - 2)) + 1
     gfx.setColor(gfx.kColorWhite)
@@ -621,14 +635,27 @@ function Live:controlInput(scene, btn, change)
   return false
 end
 
+--- (frame hook) BallCast's own K-zone history stays hidden while one of ours covers its spot.
+function Live:updateHideKzone()
+  local u = self.ui
+  local panel = u and u.kind ~= "dugout"
+  self.hideKzone = (self.help ~= nil) or panel or (self.card ~= nil and self.cardShown ~= nil and now() - self.cardShown < 4000)
+end
+
 function Live:drawControl(scene, bi, b, tau)
+  -- the game's over: no stale LAST card on the final
+  if self.pause and self.pause.reason == "done" then self.card = nil end
   if self.help then self:cached("help" .. self.help.key, 60, 60, 283, 113, function() self:drawHelp() end) return end
   local u = self.ui
   local mine = self.pause and (self.pause.reason == "bat" or self.pause.reason == "pitchsel")
   if u and u.kind == "bat_arcade" and self.prov and bi == self.prov.beat then self:drawArcadeBat(b, tau)
-  elseif u and u.kind == "bat_scout" and self:caughtUp(scene) then self:cached("sb", KX, KY, KW + 2, KH + 17, function() self:drawScoutBat() end)
+  elseif u and u.kind == "bat_scout" and self:caughtUp(scene) then self:cached("sb", KX, KY - 1, KW + 2, KH + 18, function() self:drawScoutBat() end, "control")
   elseif u and u.kind == "pitch_arcade" and self:caughtUp(scene) then self:drawArcadePitch()
-  elseif u and u.kind == "pitch_scout" and self:caughtUp(scene) then self:drawScoutPitch() end
+  elseif u and u.kind == "pitch_scout" and self:caughtUp(scene) then
+    local rows = (#u.ars + 1) // 2
+    local hs = u.aDown and ((u.aHeld or 0) >= 12 and 2 or 1) or 0
+    self:cached("ps" .. u.spot .. ":" .. u.k .. ":" .. hs, KX, KY - 1, KW + 2, KH + rows * 13 + 22, function() self:drawScoutPitch() end, "control")
+  end
   -- the card over BallCast's K-zone history while the player is in the at-bat
   if self.card and (mine or (self.cardShown and now() - self.cardShown < 4000)) then
     if mine then self.cardShown = now() end

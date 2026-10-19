@@ -13,17 +13,25 @@ local function P(L, id) return L.players[id] end
 
 function R.healthy(p) return not p.inj and (p.late or 0) <= 0 end
 
---- Bat value (no defense) for ordering.
-function R.batValue(p)
+--- The platoon edge in rating points against a starter who throws `vs` ("R"|"L"); 0 without one.
+--- (The engine gives the batter about 2.5 points with the platoon advantage, docs/PENNANT_ENGINE.md.)
+function R.platoon(p, vs)
+  if not vs then return 0 end
+  if p.bats == "S" then return 2.5 end
+  return (p.bats ~= vs) and 2.5 or -2.5
+end
+
+--- Bat value (no defense) for ordering; vs = the opposing starter's hand (optional).
+function R.batValue(p, vs)
   local r = p.r
-  return r.con * 0.34 + r.pow * 0.34 + r.eye * 0.18 + r.spd * 0.14 + PM.formBonus(p)
+  return r.con * 0.34 + r.pow * 0.34 + r.eye * 0.18 + r.spd * 0.14 + PM.formBonus(p) + R.platoon(p, vs) * 2
 end
 
 --- How well p plays position pos (bat + glove, penalised off his position).
-function R.posValue(p, pos)
+function R.posValue(p, pos, vs)
   if p.pos == "P" then return -999 end
   local r = p.r
-  local bat = R.batValue(p)
+  local bat = R.batValue(p, vs)
   if pos == "DH" then return bat end
   local pen = 0
   if p.pos ~= pos then
@@ -56,8 +64,10 @@ function R.pitchers(L, T, lvl)
   return out
 end
 
---- Positions + batting order from the healthy, rested ML hitters.
-function R.autoLineup(L, T)
+--- Positions + batting order from the healthy, rested ML hitters. vs: build the card for a
+--- starter of that hand (default: the club's active platoon card, if it keeps two).
+function R.autoLineup(L, T, vs)
+  if not vs and T.cards then vs = T.cardSide or "R" end
   local pool = {}
   for _, p in ipairs(R.hitters(L, T)) do if R.healthy(p) then pool[#pool + 1] = p end end
   -- rest the exhausted if there's someone to play
@@ -69,7 +79,7 @@ function R.autoLineup(L, T)
     local best, bv = nil, -1e9
     for _, p in ipairs(pool) do
       if not used[p.id] then
-        local v = R.posValue(p, pos)
+        local v = R.posValue(p, pos, vs)
         if v > bv then best, bv = p, v end
       end
     end
@@ -77,7 +87,7 @@ function R.autoLineup(L, T)
   end
   local dh, dv = nil, -1e9
   for _, p in ipairs(pool) do
-    if not used[p.id] and R.batValue(p) > dv then dh, dv = p, R.batValue(p) end
+    if not used[p.id] and R.batValue(p, vs) > dv then dh, dv = p, R.batValue(p, vs) end
   end
   if dh then field[dh.id] = "DH" used[dh.id] = true end
   -- batting order: speed/OBP up top, power in the middle
@@ -85,7 +95,34 @@ function R.autoLineup(L, T)
   for id in pairs(field) do nine[#nine + 1] = P(L, id) end
   T.field = field
   T.order = R.orderFor(nine)
+  if T.cards then T.cards[T.cardSide or "R"] = { order = T.order, field = T.field } end
   return T.order
+end
+
+-- Platoon cards (P0-4) ----------------------------------------------------------------------------
+-- The user's club keeps a lineup card vs RHP and one vs LHP: T.cards = { R = {order, field}, L = ... },
+-- T.cardSide = the active one. T.order / T.field always point at the active card's tables, so every
+-- reader (sim, engine, hub, wire) is unchanged.
+
+function R.syncCard(T)
+  T.cards = T.cards or {}
+  local side = T.cardSide or "R"
+  T.cardSide = side
+  if T.order then T.cards[side] = { order = T.order, field = T.field } end
+end
+
+--- Make `side` the active card (building it the first time); validates it.
+function R.useCard(L, T, side)
+  R.syncCard(T)
+  if T.cardSide == side and T.order then return end
+  T.cardSide = side
+  local c = T.cards[side]
+  if c and c.order then
+    T.order, T.field = c.order, c.field
+    R.validate(L, T)
+  else
+    R.autoLineup(L, T, side)
+  end
 end
 
 function R.orderFor(nine)
@@ -248,6 +285,51 @@ function R.demote(L, T, id)
   return true
 end
 
+--- READY: a healthy farm hand who beats the weakest big-leaguer of his kind by 3+ OVR.
+function R.ready(L, T, p)
+  if not p or p.inj or p.lvl ~= "F" then return false end
+  local worst = 99
+  for _, mid in ipairs(T.ml) do
+    local q = P(L, mid)
+    if q and not q.inj and (q.pos == "P") == (p.pos == "P") then worst = math.min(worst, PM.ovr(q)) end
+  end
+  return PM.ovr(p) >= worst + 3
+end
+
+--- The farm hand the assistant GM would call up for an opening (what aiMaintain picks first).
+function R.aiPick(L, T)
+  local n = 0
+  for _, id in ipairs(T.ml) do local p = P(L, id) if p and not p.inj and p.pos == "P" then n = n + 1 end end
+  local needPit = n < 12
+  local best, bv = nil, -1e9
+  for _, id in ipairs(T.farm) do
+    local p = P(L, id)
+    if p and not p.inj and ((p.pos == "P") == needPit) and PM.ovr(p) > bv then best, bv = id, PM.ovr(p) end
+  end
+  return best
+end
+
+--- The best farm replacement for an injured player: his position first, then his kind (pitcher / hitter).
+function R.bestReplacement(L, T, hurt)
+  local best, bv = nil, -1e9
+  for _, id in ipairs(T.farm) do
+    local p = P(L, id)
+    if p and not p.inj and (p.pos == "P") == (hurt.pos == "P") then
+      local v = PM.ovr(p) + ((p.pos == hurt.pos or p.pos2 == hurt.pos) and 8 or 0) + ((hurt.pos == "P" and p.role == hurt.role) and 6 or 0)
+      if v > bv then best, bv = id, v end
+    end
+  end
+  return best
+end
+
+--- Who the coaches would play at a position without a move (a scratch lineup; the club's card is untouched).
+function R.coverFor(L, T, pos)
+  local Tc = setmetatable({ cards = false }, { __index = T })
+  R.autoLineup(L, Tc, T.cardSide)
+  for id, ps in pairs(rawget(Tc, "field") or {}) do if ps == pos then return id end end
+  return nil
+end
+
 --- AI: keep 26 healthy players on the big club (call up for the injured; send the healed back
 --- down once the roster overflows), position and pitcher counts balanced.
 function R.aiMaintain(L, T)
@@ -312,6 +394,44 @@ function R.evaluate(L, T, other, give, get)
   elseif ratio >= need * 0.6 then note = "Not enough for them."
   else note = "They hung up." end
   return ratio >= need, ratio / need, note
+end
+
+--- An AI club's call: one of your spare parts (a bench bat, a spare arm, a farm prospect) for one of
+--- theirs who'd beat your weakest of his kind, priced so their side says yes. Returns give, get or nil.
+function R.aiOffer(L, T, other)
+  local regular = {}
+  for _, id in ipairs(T.order or {}) do regular[id] = true end
+  for _, id in ipairs(T.rot or {}) do regular[id] = true end
+  for id, role in pairs(T.pen or {}) do if role == "CL" then regular[id] = true end end
+  local spare = {}
+  for _, list in ipairs({ T.ml, T.farm }) do
+    for _, id in ipairs(list) do
+      local p = P(L, id)
+      if p and not p.inj and not regular[id] then spare[#spare + 1] = p end
+    end
+  end
+  table.sort(spare, function(a, b) return R.value(a) > R.value(b) end)
+  local weakest = { [true] = 99, [false] = 99 }
+  for _, id in ipairs(T.ml) do
+    local p = P(L, id)
+    if p and not p.inj then local k = p.pos == "P" weakest[k] = math.min(weakest[k], PM.ovr(p)) end
+  end
+  local theirs = {}
+  for _, id in ipairs(other.ml) do local q = P(L, id) if q and not q.inj then theirs[#theirs + 1] = q end end
+  table.sort(theirs, function(a, b) return PM.ovr(a) > PM.ovr(b) end)
+  -- (each club asks about a different one of your top four spare parts)
+  local n = math.min(4, #spare)
+  local off = n > 0 and ((other.abbr:byte(1) + other.abbr:byte(2) + (L.day // 7)) % n) or 0
+  for k = 1, n do
+    local want = spare[(k - 1 + off) % n + 1]
+    for _, q in ipairs(theirs) do
+      if PM.ovr(q) >= weakest[q.pos == "P"] + 3 then
+        local ok = R.evaluate(L, T, other, { want.id }, { q.id })
+        if ok then return want.id, q.id end
+      end
+    end
+  end
+  return nil
 end
 
 --- Execute a trade (lists of ids).

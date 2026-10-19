@@ -23,30 +23,39 @@ function Picker.open(opts)
   return p
 end
 
+local built = setmetatable({}, { __mode = "k" })   -- opts.items table -> { items, letters }
+
 function Picker:enter()
-  local items = {}
-  for i, it in ipairs(self.opts.items or {}) do
-    if type(it) ~= "table" then it = { label = tostring(it), value = it } end
-    items[i] = it
+  -- the normalized list and its letter index are built once per items table (callers that
+  -- reuse their list, like the composer's ~1,000 players, open the picker without a hitch)
+  local src = self.opts.items or {}
+  local b = built[src]
+  if not b then
+    local items = {}
+    for i, it in ipairs(src) do
+      if type(it) ~= "table" then it = { label = tostring(it), value = it } end
+      items[i] = it
+    end
+    local letters, seen = {}, {}
+    for i, it in ipairs(items) do
+      -- first letter or digit, skipping leading punctuation/space
+      local p = it.label:find("[^%p%s]")
+      local c = p and it.label:sub(p, p):upper() or ""
+      if c ~= "" and not seen[c] then
+        seen[c] = true
+        letters[#letters + 1] = { c = c, i = i }
+      end
+    end
+    b = { items = items, letters = letters }
+    built[src] = b
   end
+  local items = b.items
   self.items = items
+  self.letters = b.letters
   self.sel = math.max(1, math.min(#items, self.opts.selected or 1))
   self.pos = self.sel   -- smoothed position for the wheel
   self.acc = 0
   self.t = 0
-  -- letter index
-  self.letters = {}
-  local seen = {}
-  for i, it in ipairs(items) do
-    -- first letter or digit, skipping leading punctuation/space (one find per item:
-    -- long lists like every player in the league are built here)
-    local p = it.label:find("[^%p%s]")
-    local c = p and it.label:sub(p, p):upper() or ""
-    if c ~= "" and not seen[c] then
-      seen[c] = true
-      self.letters[#self.letters + 1] = { c = c, i = i }
-    end
-  end
   self.letterJump = self.opts.letterJump ~= false and #items > 12 and #self.letters > 1
   self.w = self.opts.width or 300
   self.h = 15 + 6 + VISIBLE * ROW_H + 22
@@ -105,6 +114,29 @@ function Picker:update()
   self.pos += d * (Game.settings.reduceMotion and 1 or 0.45)
   if math.abs(d) < 0.02 then self.pos = self.sel end
 
+  -- settled: the panel is a cached image, repainted only when the selection changes
+  -- (12 rows of text, four fades and the letter strip were ~20 ms a frame on the device)
+  local settled = self.pos == self.sel and not (self.bumpT and self.bumpT > 0)
+  if settled then
+    if self.panelSel ~= self.sel or not self.panelImg then
+      self.panelSel = self.sel
+      self.panelImg = self.panelImg or gfx.image.new(self.w + 4, self.h + 4, gfx.kColorClear)
+      self.panelImg:clear(gfx.kColorClear)
+      gfx.pushContext(self.panelImg)
+      gfx.setDrawOffset(-self.x, -self.y)
+      self:drawPanel()
+      gfx.setDrawOffset(0, 0)
+      gfx.popContext()
+    end
+    self.panelImg:draw(self.x, self.y)
+  else
+    self:drawPanel()
+  end
+end
+
+--- The window, the wheel, the letter strip and the footer, in screen coordinates.
+function Picker:drawPanel()
+  local bbs = self.opts.style == "bbs"
   local x, y, w, h = self.x, self.y, self.w, self.h
   local ix, iy, iw, ih
   if bbs then
@@ -132,7 +164,12 @@ function Picker:update()
       local ry = mid + math.floor((i - self.pos) * ROW_H + 0.5)
       local dist = math.abs(i - self.pos)
       local f = (dist < 0.5) and UI.fonts.bold or UI.fonts.body
-      local label = Text.ellipsize(it.label, f, listW - 12 - (it.note and 60 or 0))
+      local bold = f == UI.fonts.bold
+      local label = bold and it._eb or it._el
+      if not label then
+        label = Text.ellipsize(it.label, f, listW - 12 - (it.note and 60 or 0))
+        if bold then it._eb = label else it._el = label end
+      end
       Text.draw(label, listX + 8, ry + 2, f, fg)
       if it.note then Text.draw(it.note, listX + listW - 6, ry + 2, UI.fonts.body, fg, "right") end
     end

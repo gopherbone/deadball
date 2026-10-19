@@ -111,11 +111,18 @@ function Composer:chooseWord(slotIndex, kind)
     end
     w.sortedSlots[kind] = sorted
   end
-  local items = {}
+  -- one items list per word list, kept with it: the picker caches its letter index on it
+  w.slotItems = w.slotItems or {}
+  local items = w.slotItems[kind]
+  if not items then
+    items = {}
+    for i, s in ipairs(sorted) do items[i] = { label = s, value = s } end
+    w.slotItems[kind] = items
+  end
   local sel = 1
-  for i, s in ipairs(sorted) do
-    items[i] = { label = s, value = s }
-    if s == self.words[slotIndex] then sel = i end
+  local cur = self.words[slotIndex]
+  if cur then
+    for i, s in ipairs(sorted) do if s == cur then sel = i break end end
   end
   Picker.open({
     title = "Pick a " .. kind, items = items, selected = sel, letterJump = true,

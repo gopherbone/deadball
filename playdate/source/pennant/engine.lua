@@ -72,6 +72,7 @@ end
 --- noPlayers: list the active roster's ids in team.playerIds instead of building player tables
 function PEng.team(L, abbr, ctrl, noPlayers)
   local T = L.teams[abbr]
+  PL.todayCard(L, abbr)
   local notes = PRoster.validate(L, T)
   if abbr == L.user and #notes > 0 then L.lineupNotes = notes end
   local c = PennantClubs.byAbbr[abbr]

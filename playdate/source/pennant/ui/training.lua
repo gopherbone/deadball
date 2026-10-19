@@ -4,7 +4,7 @@
 local gfx <const> = playdate.graphics
 PennantUI = PennantUI or {}
 
-local Training = PUI.define({ title = "Training", hint = "Left/right: focus  A: intensity  crank: scroll" })
+local Training = PUI.define({ title = function() return "Training \u{2022} week " .. ((Pennant.L and Pennant.L.week) or 1) end, hint = "Left/right: focus  A: intensity  crank: scroll" })
 PennantUI.Training = Training
 
 function Training:init(args)
@@ -54,29 +54,26 @@ function Training:layout(Lb)
     { "pit", "Pitchers", function() self.tab = "pit" self:render() end },
     { "farm", "Farm", function() self.tab = "farm" self:render() end },
   }, self.tab, 2)
-  Text.draw("Week " .. (L.week or 1), 392, 4, UI.fonts.body, nil, "right")
-  -- group plan
+  -- the group plan sits in the tab row: [focus] [intensity] Apply
   local gl = self.tab == "pit" and PL.FOCI_PIT or PL.FOCI_BAT
   if self.tab == "farm" then gl = PL.FOCI_BAT end
-  local gk = gl[self.gf[self.tab]] or gl[1]
-  Text.draw("Everyone:", 4, y + 2, UI.fonts.bold)
-  gfx.drawRect(72, y, 104, 17)
-  Text.draw("\u{25c0} " .. PL.FOCUS_NAME[gk] .. " \u{25b6}", 124, y + 2, UI.fonts.body, nil, "center")
-  local gy = y
-  local gfl = Lb:link(72, y, 104, 17, function() end, PUI.opts("gf", "Left/right: focus for the whole group (pitchers get their own list on the farm)", function(d)
+  local gy = 2
+  local FX, FW, IX, IW, AX, AW = 176, 88, 267, 66, 336, 56
+  local function paintF()
+    gfx.drawRect(FX, gy, FW, 16)
+    Text.draw(Text.ellipsize("\u{25c0} " .. PL.FOCUS_NAME[gl[self.gf[self.tab]] or gl[1]] .. " \u{25b6}", UI.fonts.body, FW - 4), FX + FW // 2, gy + 1, UI.fonts.body, nil, "center")
+  end
+  local function paintI()
+    gfx.drawRect(IX, gy, IW, 16)
+    Text.draw("\u{25c0} " .. PL.INTENSITY[self.gi + 1] .. " \u{25b6}", IX + IW // 2, gy + 1, UI.fonts.body, nil, "center")
+  end
+  paintF() paintI()
+  local gfl = Lb:link(FX, gy, FW, 16, function() end, PUI.opts("gf", "Everyone on this tab: left/right picks the focus, then Apply", function(d)
     self.gf[self.tab] = (self.gf[self.tab] - 1 + d) % #gl + 1 end))
-  gfl.data.repaint = function() PUI.repaint(self, 72, gy, 105, 18, function()
-    gfx.drawRect(72, gy, 104, 17)
-    Text.draw("\u{25c0} " .. PL.FOCUS_NAME[gl[self.gf[self.tab]] or gl[1]] .. " \u{25b6}", 124, gy + 2, UI.fonts.body, nil, "center")
-  end) end
-  gfx.drawRect(180, y, 86, 17)
-  Text.draw("\u{25c0} " .. PL.INTENSITY[self.gi + 1] .. " \u{25b6}", 223, y + 2, UI.fonts.body, nil, "center")
-  local gil = Lb:link(180, y, 86, 17, function() end, PUI.opts("gi", "Left/right: intensity for the whole group", function(d) self.gi = (self.gi + d) % 4 end))
-  gil.data.repaint = function() PUI.repaint(self, 180, gy, 87, 18, function()
-    gfx.drawRect(180, gy, 86, 17)
-    Text.draw("\u{25c0} " .. PL.INTENSITY[self.gi + 1] .. " \u{25b6}", 223, gy + 2, UI.fonts.body, nil, "center")
-  end) end
-  Lb:button("Apply to all", 272, y, 90, 17, function()
+  gfl.data.repaint = function() PUI.repaint(self, FX, gy, FW + 1, 17, paintF) end
+  local gil = Lb:link(IX, gy, IW, 16, function() end, PUI.opts("gi", "Everyone on this tab: left/right picks the intensity, then Apply", function(d) self.gi = (self.gi + d) % 4 end))
+  gil.data.repaint = function() PUI.repaint(self, IX, gy, IW + 1, 17, paintI) end
+  Lb:button("Apply", AX, gy, AW, 16, function()
     for _, p in ipairs(self:players()) do
       p.plan = p.plan or {}
       local list = fociFor(p)
@@ -89,30 +86,30 @@ function Training:layout(Lb)
     end
     Sfx.select()
     for _, l in ipairs(self.links) do if l.data and l.data.repaint and l.id and l.id:sub(1, 1) == "t" then l.data.repaint() end end
-  end, { id = "apply", hint = "Set every player on this tab to that plan" })
-  y = y + 22
+  end, { id = "apply", hint = "Set everyone on this tab to that focus and intensity" })
   -- column heads
-  Text.draw("PLAYER", 30, y, UI.fonts.body)
-  Text.draw("CND", 160, y, UI.fonts.body)
-  Text.draw("FAT", 180, y, UI.fonts.body)
+  y = y - 2
+  Text.draw("PLAYER", 32, y, UI.fonts.body)
+  Text.draw("C", 168, y, UI.fonts.body, nil, "center")
+  Text.draw("FAT", 184, y, UI.fonts.body)
   Text.draw("FOCUS", 216, y, UI.fonts.body)
   Text.draw("INTENSITY", 300, y, UI.fonts.body)
   Text.draw("/WK", 390, y, UI.fonts.body, nil, "right")
-  gfx.drawLine(4, y + 13, 392, y + 13)
-  y = y + 16
+  gfx.drawLine(4, y + 12, 392, y + 12)
+  y = y + 14
   for _, p in ipairs(self:players()) do
     local ry = y
-    PUI.lazy(Lb, 2, ry - 1, 391, 17, function() PennantUI.trainingRow(p, ry) end)
+    PUI.lazy(Lb, 2, ry - 1, 391, 14, function() PennantUI.trainingRow(p, ry) end)
     local link
     local function repaint()
-      PUI.repaint(self, 2, ry - 1, 391, 17, function() PennantUI.trainingRow(p, ry) end)
+      PUI.repaint(self, 2, ry - 1, 391, 14, function() PennantUI.trainingRow(p, ry) end)
       link.hint = PennantUI.trainingHint(p)
     end
-    link = Lb:link(2, ry - 1, 391, 17, function() cycleInt(p) Sfx.tick() repaint() end,
+    link = Lb:link(2, ry - 1, 391, 14, function() cycleInt(p) Sfx.tick() repaint() end,
       { id = "t" .. p.id, style = "invert", hint = PennantUI.trainingHint(p), data = { adj = function(d) cycleFocus(p, d) end, repaint = repaint } })
-    y = y + 17
+    y = y + 13
   end
-  Lb:mark(y + 4)
+  Lb:mark(y)
 end
 
 local INT_GLYPH <const> = { "Rest", "Light", "Normal", "HARD" }
@@ -121,9 +118,10 @@ local INT_GLYPH <const> = { "Rest", "Light", "Normal", "HARD" }
 function PennantUI.trainingRow(p, y)
   local plan = p.plan or { i = 2 }
   local img = Faces.get("face:" .. p.face, 24)
-  PUI.srcRect = PUI.srcRect or playdate.geometry.rect.new(0, 4, 24, 16)
-  if img then img:draw(4, y, gfx.kImageUnflipped, PUI.srcRect) end
-  Text.draw((p.pos == "P" and (p.role or "P") or p.pos) .. " " .. Text.ellipsize(PM.short(p), UI.fonts.body, 96), 30, y + 1, UI.fonts.body)
+  PUI.srcRectC = PUI.srcRectC or playdate.geometry.rect.new(0, 6, 24, 12)
+  if img then img:draw(4, y, gfx.kImageUnflipped, PUI.srcRectC) end
+  y = y - 1
+  Text.draw((p.pos == "P" and (p.role or "P") or p.pos) .. " " .. Text.ellipsize(PM.short(p), UI.fonts.body, 94), 32, y + 1, UI.fonts.body)
   if p.inj then PUI.cross(162, y + 2) else PUI.arrow(162, y + 2, p.cond) end
   PUI.fatigue(180, y + 5, p.fat, 30)
   local f = plan.f
@@ -187,8 +185,122 @@ function Results:enter(args)
   self.t = 0
   self.ticks = 0
   self.onDone = args and args.onDone
+  self.mode = (args and args.all) and "all" or "card"
+  self.btn = 1
+  self:buildCard()
   self:paint()
   Sfx.music("charge", {})
+end
+
+-- the one-page report card (P0-3) ----------------------------------------------------------------
+
+--- Whole points crossed for one rating: floor(now) - floor(before).
+local function whole(now, d) return math.floor(now) - math.floor(now - d + 1e-6) end
+
+function Results:buildCard()
+  local L = Pennant.L
+  local big, farm, pitch = {}, {}, nil
+  for _, r in ipairs(self.rows) do
+    local p = r.p
+    if r.learned and not pitch then pitch = r end
+    for _, k in ipairs(PM.keys(p)) do
+      local d = r.d[k]
+      if d then
+        local now = r.now and r.now[k] or p.r[k]
+        local w = whole(now, d)
+        if w ~= 0 then
+          local e = { p = p, k = k, d = d, w = w, now = now, from = now - d, cap = p.cap[k] }
+          if p.lvl == "F" then farm[#farm + 1] = e else big[#big + 1] = e end
+        end
+      end
+    end
+  end
+  -- whole points first (gains before declines), then the bigger raw move
+  local function order(a, b) if a.w ~= b.w then return a.w > b.w end return a.d > b.d end
+  table.sort(big, order)
+  table.sort(farm, order)
+  local pow = (big[1] and big[1].w > 0 and big[1]) or (farm[1] and farm[1].w > 0 and farm[1]) or nil
+  self.card = { big = {}, farm = farm, pow = pow, pitch = pitch, nFarmCloser = 0 }
+  for _, e in ipairs(big) do
+    if e ~= pow and #self.card.big < (pitch and 3 or 4) then self.card.big[#self.card.big + 1] = e end
+  end
+  -- farm hands who moved but didn't cross a point
+  local crossed = {}
+  for _, e in ipairs(farm) do crossed[e.p.id] = true end
+  for _, r in ipairs(self.rows) do if r.p.lvl == "F" and not crossed[r.p.id] then self.card.nFarmCloser = self.card.nFarmCloser + 1 end end
+  -- Adjust training opens on the top mover, or on someone whose focus is within a point of his cap
+  local tgt = pow and pow.p
+  for _, id in ipairs(L.teams[L.user].ml) do
+    local p = L.players[id]
+    local f = p and p.plan and p.plan.f
+    if f and p.r[f] and p.cap[f] and p.cap[f] - p.r[f] <= 1 then tgt = p break end
+  end
+  self.card.target = tgt
+end
+
+Results.BUTTONS = { "Adjust training", "Every row", "Done" }
+
+function Results:paintCard(ix, iy, iw, ih)
+  local c = self.card
+  local L = Pennant.L
+  local y = iy + 2
+  if c.pow then
+    local e, p = c.pow, c.pow.p
+    Text.draw("PLAYER OF THE WEEK", ix + 6, y, UI.fonts.bold)
+    Faces.draw("face:" .. p.face, ix + 6, y + 14, 48)
+    Text.draw(PM.name(p), ix + 64, y + 16, UI.fonts.head)
+    Text.draw((p.pos == "P" and (p.role or "P") or p.pos) .. (p.lvl == "F" and " \u{2022} farm" or "") .. " \u{2022} age " .. (p.age or "?"), ix + 64, y + 34, UI.fonts.body)
+    Text.draw(PM.SHORT[e.k], ix + 64, y + 50, UI.fonts.bold)
+    self.bars[#self.bars + 1] = { x = ix + 96, y = y + 53, from = e.from, to = e.now, cap = e.cap, d = e.d, row = 0, w = 120 }
+    -- the rubber stamp
+    local sx, sy = ix + iw - 86, y + 16
+    gfx.setLineWidth(2)
+    gfx.drawRoundRect(sx, sy, 76, 34, 4)
+    gfx.setLineWidth(1)
+    Text.draw("+" .. e.w .. " " .. PM.SHORT[e.k], sx + 38, sy + 3, UI.fonts.head, nil, "center")
+    Text.draw("P.O.W.", sx + 38, sy + 20, UI.fonts.bold, nil, "center")
+    y = y + 76
+  else
+    Text.draw("A quiet week: nobody crossed a whole point.", ix + 6, y + 4, UI.fonts.bold)
+    Text.draw("Rested players feel better. Try Normal or Hard.", ix + 6, y + 18, UI.fonts.body)
+    y = y + 36
+  end
+  Draw.dotted(ix + 4, ix + iw - 5, y)
+  y = y + 4
+  if #c.big > 0 then
+    Text.draw("BIG CLUB", ix + 6, y, UI.fonts.bold)
+    y = y + 14
+    for i, e in ipairs(c.big) do
+      local p = e.p
+      Text.draw(Text.ellipsize(PM.name(p), UI.fonts.body, 110), ix + 6, y, UI.fonts.body)
+      Text.draw(PM.SHORT[e.k], ix + 122, y, UI.fonts.bold)
+      self.bars[#self.bars + 1] = { x = ix + 152, y = y + 3, from = e.from, to = e.now, cap = e.cap, d = e.d, row = i, w = 90 }
+      if e.w < 0 and (p.age or 0) >= 31 then Text.draw("(age " .. p.age .. ")", ix + iw - 8, y, UI.fonts.body, nil, "right") end
+      y = y + 14
+    end
+  end
+  if c.pitch then
+    Text.draw("NEW PITCH: " .. PM.name(c.pitch.p) .. " learned the " .. (PM.PITCH_NAME[c.pitch.learned] or c.pitch.learned) .. "!", ix + 6, y + 1, UI.fonts.bold)
+    y = y + 15
+  end
+  -- one farm line
+  local parts = {}
+  for i = 1, math.min(2, #c.farm) do
+    local e = c.farm[i]
+    parts[#parts + 1] = e.p.ln .. " " .. (e.w > 0 and "+" or "") .. e.w .. " " .. PM.SHORT[e.k]
+  end
+  if c.nFarmCloser > 0 then parts[#parts + 1] = c.nFarmCloser .. " other" .. (c.nFarmCloser == 1 and "" or "s") .. " closer" end
+  if #parts > 0 then
+    Text.draw(Text.ellipsize("FARM: " .. table.concat(parts, ", "), UI.fonts.body, iw - 12), ix + 6, y + 1, UI.fonts.body)
+  end
+  -- the buttons
+  self.btnRects = {}
+  local bw, by = 112, iy + ih - 22
+  for i, label in ipairs(Results.BUTTONS) do
+    local bx = ix + 8 + (i - 1) * (bw + 9)
+    self.btnRects[i] = { bx, by, bw, 18 }
+    Draw.button(bx, by, bw, 18, label)
+  end
 end
 
 function Results:pages() return math.max(1, (#self.rows + PER_PAGE - 1) // PER_PAGE) end
@@ -198,8 +310,15 @@ function Results:paint()
   local img = gfx.image.new(400, 240, gfx.kColorWhite)
   gfx.pushContext(img)
   Draw.tile(0, 0, 400, 240, "light")
-  local ix, iy, iw, ih = Draw.window(6, 4, 386, 230, "Training report \u{2022} week " .. (self.rep.week or 1))
+  local ix, iy, iw, ih = Draw.window(6, 4, 386, 230, (self.mode == "card" and "Report card" or "Training report") .. " \u{2022} week " .. (self.rep.week or 1))
   self.bars = {}
+  if self.mode == "card" then
+    self:paintCard(ix, iy, iw, ih)
+    gfx.popContext()
+    self.img = img
+    self.t = 0
+    return
+  end
   if #self.rows == 0 then
     Text.draw("No rating changes this week.", 200, 90, UI.fonts.head, nil, "center")
     Text.draw("Rested players feel better. Try Normal or Hard.", 200, 112, UI.fonts.body, nil, "center")
@@ -243,23 +362,51 @@ function Results:update()
     local u = math.max(0, math.min(1, (self.t - start) / 16))
     if Game.settings.reduceMotion then u = 1 end
     local v = b.from + (b.to - b.from) * u
-    PUI.bar(b.x, b.y, v, b.cap, 120, 8)
+    local bw = b.w or 120
+    PUI.bar(b.x, b.y, v, b.cap, bw, 8)
     local shown = math.floor(v)
     -- the whole rating; a point crossed mid-animation ticks over
-    Text.draw(tostring(shown), b.x + 126, b.y - 3, UI.fonts.bold)
+    Text.draw(tostring(shown), b.x + bw + 6, b.y - 3, UI.fonts.bold)
     if u > 0 then
       local s = (b.d > 0 and "+" or "") .. (b.d % 1 == 0 and string.format("%d", b.d) or string.format("%.1f", b.d))
       local pop = u < 1 and math.floor((1 - u) * 3) or 0
-      Text.draw(s, b.x + 152, b.y - 3 - pop, UI.fonts.bold)
+      Text.draw(s, b.x + bw + 32, b.y - 3 - pop, UI.fonts.bold)
     end
     if u > 0 and b.lastShown and b.lastShown ~= shown and b.d > 0 then Sfx.coin() end
     b.lastShown = shown
     if u > 0 and u < 1 and self.t % 3 == 0 and b.d > 0 then Sfx.tick() end
     if u >= 1 and not b.dinged then b.dinged = true if b.d > 0 then Sfx.focus() end end
   end
+  self:drawFocus()
 end
 
+function Results:drawFocus()
+  if self.mode ~= "card" or not self.btnRects then return end
+  local r = self.btnRects[self.btn]
+  gfx.setColor(gfx.kColorXOR)
+  gfx.fillRect(r[1] + 2, r[2] + 2, r[3] - 4, r[4] - 4)
+  gfx.setColor(gfx.kColorBlack)
+end
+function Results:leftButtonDown() if self.mode == "card" then self.btn = math.max(1, self.btn - 1) Sfx.focus() end end
+function Results:rightButtonDown() if self.mode == "card" then self.btn = math.min(#Results.BUTTONS, self.btn + 1) Sfx.focus() end end
+
 function Results:AButtonDown()
+  if self.mode == "card" then
+    local L = Pennant.L
+    if self.btn == 1 then
+      local tgt = self.card.target
+      self:finish(true)
+      PennantUI.Training.open({ focusId = tgt and tgt.id, tab = tgt and tgt.pos == "P" and "pit" or "bat" })
+    elseif self.btn == 2 then
+      Sfx.select()
+      self.mode = "all"
+      self.page = 1
+      self:paint()
+    else
+      self:finish()
+    end
+    return
+  end
   if self.page < self:pages() then
     self.page = self.page + 1
     self:paint()
@@ -270,6 +417,7 @@ function Results:AButtonDown()
 end
 function Results:BButtonDown() self:finish() end
 function Results:cranked(change)
+  if self.mode == "card" then return end
   self.acc = (self.acc or 0) + change
   if math.abs(self.acc) > 90 then
     local d = self.acc > 0 and 1 or -1
@@ -279,8 +427,8 @@ function Results:cranked(change)
   end
 end
 
-function Results:finish()
-  Sfx.back()
+function Results:finish(quiet)
+  if not quiet then Sfx.back() end
   App.pop()
   if self.onDone then self.onDone() end
 end

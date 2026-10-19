@@ -77,6 +77,13 @@ local function metaOf(L)
     for k, v in pairs(T) do t[k] = v end
     t.field = pairsOf(T.field)
     t.pen = pairsOf(T.pen)
+    if T.cards then
+      t.cards = {}
+      for side, c in pairs(T.cards) do
+        -- the active card is T.order / T.field itself (written above)
+        if side ~= T.cardSide then t.cards[side] = { order = c.order, field = pairsOf(c.field) } end
+      end
+    end
     m.teams[abbr] = t
   end
   return m
@@ -204,7 +211,7 @@ function PSave.begin(L, slot)
       else
         local T = L.teams[L.user]
         idx[slot] = { v = PSave.VERSION, team = L.user, year = L.year, date = PL.date(L, math.min(L.day, #L.sched)), w = T.w, l = T.l, rank = PL.rank(L, L.user),
-          phase = L.phase, gen = gen, at = playdate.getSecondsSinceEpoch(), season = L.season }
+          phase = L.phase, gen = gen, at = playdate.getSecondsSinceEpoch(), season = L.season, titles = PUI.titles and PUI.titles() or nil }
         writeIndex(idx)
         job.done = true
         return true
@@ -243,6 +250,10 @@ function PSave.load(slot)
   for abbr, T in pairs(L.teams) do
     T.field = mapOf(T.field)
     T.pen = mapOf(T.pen)
+    if T.cards then
+      for side, c in pairs(T.cards) do if c.field then c.field = mapOf(c.field) end end
+      T.cards[T.cardSide or "R"] = { order = T.order, field = T.field }
+    end
     T.l10 = T.l10 or {}
   end
   -- boxes / settings defaults for older saves

@@ -157,6 +157,23 @@ function K.fitChain(fonts, s, width, shorts)
   return K.fit(f, cands[#cands], width), f
 end
 
+--- A name that fits: the whole name, then "F. LAST", each in font and then in the narrower alt
+--- font, and only then cut. Returns font, text.
+function K.fitName(font, alt, full, width, upper)
+  full = full or ""
+  if upper then full = string.upper(full) end
+  local first, last = full:match("^(%S+)%s+(.+)$")
+  local short = first and (first:sub(1, 1) .. ". " .. last) or full
+  for _, f in ipairs({ font, alt }) do
+    if f then
+      if f:getTextWidth(full) <= width then return f, full end
+      if f:getTextWidth(short) <= width then return f, short end
+    end
+  end
+  local f = alt or font
+  return f, K.fit(f, last or full, width)
+end
+
 function K.money(n)
   n = math.floor(tonumber(n) or 0)
   local neg = n < 0

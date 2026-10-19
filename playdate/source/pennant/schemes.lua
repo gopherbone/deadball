@@ -61,7 +61,8 @@ function PScheme.batVerdict(raw, con)
   local by = math.floor(abs(dt) * 1000 + 0.5)
   local hw = PScheme.cursorHalf(con, raw.power)
   local dz = (raw.cz or 0) - (raw.bz or 0)
-  local aimWord = abs(dz) <= hw and nil or (dz > 0 and "OVER IT" or "UNDER IT")
+  local aimWord = nil
+  if abs(dz) > hw then aimWord = dz > 0 and "OVER IT" or "UNDER IT" end
   return words, by, aimWord
 end
 

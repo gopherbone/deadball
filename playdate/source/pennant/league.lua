@@ -195,8 +195,75 @@ function PL.view(p, abbr, norm)
   return v
 end
 
+--- The race in a few words: the magic / elimination number once half the season is gone, the
+--- games back before that.
+function PL.raceNumber(L)
+  local T = L.teams[L.user]
+  local m, e = PL.magic(L, L.user), PL.elimination(L, L.user)
+  if m and m <= 0 then return "CLINCHED" end
+  if e and e <= 0 then return "ELIMINATED" end
+  if (T.w + T.l) * 2 >= PL.seasonGames(L) then
+    if m then return "MAGIC # " .. m end
+    if e then return "ELIM # " .. e end
+  end
+  PL.standings(L)
+  return (T.gb or 0) <= 0 and "IN FIRST" or (PL.gbText(T.gb) .. " GB")
+end
+
+--- The trade deadline: two-thirds through the regular season.
+function PL.deadline(L) return math.floor((L.regDays or #L.sched) * 2 / 3) end
+function PL.tradeOpen(L) return L.phase ~= "season" or L.day <= PL.deadline(L) end
+
+--- Now and then (before the deadline) a club phones with an offer the user can take or leave.
+function PL.maybeTradeCall(L)
+  if L.phase ~= "season" or not PL.tradeOpen(L) then L.tradeCall = nil return end
+  if L.tradeCall and L.day - L.tradeCall.day > 2 then L.tradeCall = nil end
+  if L.tradeCall or L.day - (L.lastCall or 0) < 12 or L.day < 10 then return end
+  local rng = PL.rng(L, 91)
+  if not rng:chance(0.3) then return end
+  local list = {}
+  for _, c in ipairs(PennantClubs) do if c.abbr ~= L.user then list[#list + 1] = c.abbr end end
+  local from = list[rng:int(#list)]
+  local give, get = PRoster.aiOffer(L, L.teams[L.user], L.teams[from])
+  L.lastCall = L.day
+  if give then L.tradeCall = { from = from, give = give, get = get, day = L.day } end
+end
+
+--- Injuries waiting for the Trainer's Room (fresh ones: today or yesterday; healed or traded drop out).
+function PL.trainerPending(L)
+  local q = L.trainerQ
+  if not q then return nil end
+  local keep = {}
+  for _, e in ipairs(q) do
+    local p = L.players[e.id]
+    if p and p.inj and p.team == L.user and p.lvl ~= "F" and L.day - e.day < 2 then keep[#keep + 1] = e end
+  end
+  L.trainerQ = #keep > 0 and keep or nil
+  return L.trainerQ and L.trainerQ[1] or nil
+end
+
+--- The opposing starter's hand today ("R"|"L"), or nil without a game.
+function PL.vsHand(L, abbr, d)
+  local g = PL.gameFor(L, abbr, d)
+  if not g then return nil end
+  local opp = L.teams[g.h == abbr and g.a or g.h]
+  local sp = opp and opp.rot and #opp.rot > 0 and PRoster.starter(L, opp)
+  local p = sp and L.players[sp]
+  return (p and p.throws == "L") and "L" or "R"
+end
+
+--- The user's club plays today's platoon card (vs RHP / vs LHP). Returns the hand.
+function PL.todayCard(L, abbr)
+  abbr = abbr or L.user
+  if abbr ~= L.user then return nil end
+  local vs = PL.vsHand(L, abbr)
+  if vs then PRoster.useCard(L, L.teams[abbr], vs) end
+  return vs
+end
+
 function PL.sideSpec(L, abbr, ctrl)
   local T = L.teams[abbr]
+  PL.todayCard(L, abbr)
   local notes = PRoster.validate(L, T)
   if abbr == L.user and #notes > 0 then L.lineupNotes = notes end
   local sp, idx = PRoster.starter(L, T)
@@ -337,6 +404,7 @@ function PL.apply(L, g, res)
         PL.news(L, string.format("INJURY: %s (%s): out %d days", PM.name(p), p.inj.k, p.inj.d), true)
         L.alerts = L.alerts or {}
         L.alerts[#L.alerts + 1] = { kind = "inj", id = p.id }
+        L.trainerQ = L.trainerQ or {} L.trainerQ[#L.trainerQ + 1] = { id = p.id, day = L.day }
       end
     end
   end
@@ -351,6 +419,7 @@ function PL.apply(L, g, res)
       end
     end
   end
+  if PL.onApply then PL.onApply(L, g, res) end
   -- headline
   local hw = g.hs > g.as
   local wT, lT = hw and g.h or g.a, hw and g.a or g.h
@@ -386,6 +455,7 @@ function PL.injure(L, p, rng, training)
     PL.news(L, string.format("%s %s (%s, %s): out %d days", training and "TRAINING:" or "INJURY:", PM.name(p), p.pos, pick[1], d), true)
     L.alerts = L.alerts or {}
     L.alerts[#L.alerts + 1] = { kind = "inj", id = p.id }
+    L.trainerQ = L.trainerQ or {} L.trainerQ[#L.trainerQ + 1] = { id = p.id, day = L.day }
   end
 end
 
@@ -601,8 +671,10 @@ function PL.finishDay(L, Y)
       PRoster.autoLineup(L, T)
       if Y then Y("autoLineup") end
       PRoster.autoPitching(L, T)
-    elseif L.settings.autoRoster ~= false then
-      -- the user's assistant GM covers injuries with call-ups (Settings can turn it off)
+    elseif L.settings.autoRoster ~= false and not PL.trainerPending(L) then
+      -- the user's assistant GM covers injuries with call-ups (Settings can turn it off); a fresh
+      -- injury waits two days for the Trainer's Room, where the user picks the fix
+      L.trainerQ = nil
       local before = #T.farm
       PRoster.aiMaintain(L, T)
       if #T.farm ~= before then PL.news(L, "Roster move: the assistant GM covered an injury from the farm.", true) end
@@ -837,7 +909,11 @@ end
 -- The offseason ------------------------------------------------------------------------------------------
 
 --- Aging, development, retirements, rookies, a fresh schedule. Returns a report for the UI.
-function PL.offseason(L)
+--- The winter: the season into the books, aging, retirements, the draft, a new schedule.
+--- Y (optional) is called between players and clubs with a label; the caller yields on the clock
+--- (a 4 s single frame on the device otherwise).
+function PL.offseason(L, Y)
+  Y = Y or function() end
   local rng = PL.rng(L, 23)
   local rep = { retired = {}, rookies = {}, grew = {}, declined = {} }
   local ut = L.teams[L.user]
@@ -888,6 +964,7 @@ function PL.offseason(L)
     p.wk = PM.snapshot(p)
     p.wkx = PL.progress(p)
     used[p.face] = true
+    Y("aging")
   end
   -- retirements
   for id, p in pairs(L.players) do
@@ -903,6 +980,7 @@ function PL.offseason(L)
       L.players[id] = nil
       used[p.face] = nil
     end
+    Y("retirements")
   end
   -- rookies: refill every farm club
   L.usedFaces = used
@@ -928,6 +1006,7 @@ function PL.offseason(L)
       T.farm[#T.farm + 1] = np.id
       if isP then pit = pit + 1 else bat = bat + 1 end
       if c.abbr == L.user then rep.rookies[#rep.rookies + 1] = np.id end
+      Y("draft")
     end
     -- trim the farm: release the weakest over the limit
     while #T.farm > PRoster.FARM_MAX do
@@ -937,14 +1016,18 @@ function PL.offseason(L)
       L.players[worst] = nil
     end
     PRoster.aiMaintain(L, T)
+    Y("rosters")
     T.order = nil
+    if T.cards then T.cards = nil T.cardSide = nil end
     PRoster.auto(L, T)
-    if c.abbr ~= L.user then PL.aiPlan(L, T) end
+    Y("rosters")
+    if c.abbr ~= L.user then PL.aiPlan(L, T) Y("plans") end
     T.w, T.l, T.rs, T.ra, T.streak, T.l10, T.road, T.rotIdx = 0, 0, 0, 0, 0, {}, 0, 1
   end
   L.usedFaces, L.usedNames = nil, nil
   -- rookies this season: never played in the majors
   for _, p in pairs(L.players) do if (p.mlYrs or 0) == 0 then p.rk = true end end
+  Y("schedule")
   -- the new season
   L.year = L.year + 1
   L.season = L.season + 1
@@ -1027,4 +1110,111 @@ function PL.elimination(L, abbr)
   local fourth = st[4]
   local T = L.teams[abbr]
   return G + 1 - fourth.w - T.l
+end
+
+-- Hub helpers ------------------------------------------------------------------------------------------
+
+--- The user's most recent finished game's box, and its key.
+function PL.lastBox(L)
+  local best, bk = nil, nil
+  for k, b in pairs(L.boxes or {}) do
+    if (b.h == L.user or b.a == L.user) and (not best or b.d > best.d) then best, bk = b, k end
+  end
+  return best, bk
+end
+
+--- The game's star for one side: { id, text } from the box lines (batting or the starter).
+function PL.hero(L, b, abbr)
+  local side = (b.h == abbr) and b.home or b.away
+  local best, bv, txt = nil, -1e9, nil
+  for _, ln in ipairs(side.bat or {}) do
+    -- id, ab, r, h, rbi, bb, k, hr
+    local v = ln[4] * 2 + ln[8] * 3 + ln[5] * 1.2 + ln[3] * 0.6 + ln[6] * 0.5 - ln[7] * 0.3
+    if v > bv then
+      best, bv = ln[1], v
+      local parts = { ln[4] .. "-" .. ln[2] }
+      if ln[8] > 0 then
+        local p = L.players[ln[1]]
+        parts[#parts + 1] = (ln[8] > 1 and (ln[8] .. " HR") or "HR") .. (p and (" (" .. (p.st.b.hr or 0) .. ")") or "")
+      end
+      if ln[5] > 0 then parts[#parts + 1] = ln[5] .. " RBI" end
+      txt = table.concat(parts, ", ")
+    end
+  end
+  local sp = side.pit and side.pit[1]
+  if sp then
+    -- id, outs, h, r, er, bb, k, np: a good start beats a quiet bat
+    local v = sp[2] / 3 * 1.4 + sp[7] * 0.4 - sp[5] * 1.6 - sp[3] * 0.3 - 4
+    if v > bv then
+      best = sp[1]
+      txt = string.format("%d.%d IP, %d ER, %d K", sp[2] // 3, sp[2] % 3, sp[5], sp[7])
+    end
+  end
+  return best and { id = best, text = txt } or nil
+end
+
+--- One heads-up line for today (the hub): the most pressing thing about the lineup.
+function PL.headsUp(L)
+  local T = L.teams[L.user]
+  local seen, missing = {}, nil
+  for _, id in ipairs(T.order or {}) do seen[T.field[id] or "DH"] = (seen[T.field[id] or "DH"] or 0) + 1 end
+  for _, pos in ipairs({ "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH" }) do
+    if not seen[pos] then missing = pos break end
+    if seen[pos] > 1 then return "Two at " .. pos .. " in the lineup", "lineup" end
+  end
+  if missing then return "Nobody at " .. missing .. " in the lineup", "lineup" end
+  if T.platoonNote then return T.platoonNote, "lineup" end
+  local dl = PL.deadline(L) - L.day
+  if L.phase == "season" and dl >= 0 and dl <= 5 then return "TRADE DEADLINE " .. (dl == 0 and "TODAY" or ("IN " .. dl .. " DAY" .. (dl == 1 and "" or "S"))), "trades" end
+  if T.cards and T.cardSide == "L" and PL.gameFor(L, L.user) then
+    -- the lefty card goes in on its own; say so once a day
+    local sp = PL.vsHand(L, L.user) == "L" and PL.gameFor(L, L.user)
+    if sp then return "Lefty starter: your vs-LHP card is in", "lineup" end
+  end
+  for _, id in ipairs(T.order or {}) do
+    local p = L.players[id]
+    if p and (p.fat or 0) >= 70 then return PM.short(p) .. " is worn out (" .. math.floor(p.fat) .. ")", "lineup" end
+  end
+  for _, id in ipairs(T.ml) do
+    local p = L.players[id]
+    if p and p.pos ~= "P" and (p.sat or 0) >= 5 and (p.mood or 0) < 0 then return PM.short(p) .. " wants to play (" .. p.sat .. " days on the bench)", "lineup" end
+  end
+  for _, id in ipairs(T.order or {}) do
+    local p = L.players[id]
+    if p and T.field[id] == "C" and (p.fat or 0) >= 60 then return PM.short(p) .. " (C) is due a day off", "lineup" end
+  end
+  -- road wear (the rule: from the 6th straight road game, a little fatigue every day)
+  local g = PL.gameFor(L, L.user)
+  if g and g.a == L.user then
+    local rs = PL.roadStreak(L, L.user, L.day)
+    if rs >= 6 then return "Road wear: road game " .. rs .. " in a row, legs getting heavy", "map" end
+  end
+  return nil
+end
+
+--- Five consecutive standings places around the playoff line that include the user's club.
+function PL.raceWindow(L)
+  local st = PL.standings(L)
+  local r = PL.rank(L, L.user)
+  local s = math.max(1, math.min(4, r - 2))
+  if r < s then s = r end
+  if r > s + 4 then s = r - 4 end
+  s = math.max(1, math.min(#st - 4, s))
+  local out = {}
+  for i = s, s + 4 do out[#out + 1] = { rank = i, T = st[i] } end
+  return out
+end
+
+--- Tonight's game that matters most for the race: the club just above or below the user.
+function PL.rivalTonight(L)
+  local st = PL.standings(L)
+  local r = PL.rank(L, L.user)
+  for _, k in ipairs({ r - 1, r + 1, r - 2, r + 2 }) do
+    local T = st[k]
+    if T then
+      local g = PL.gameFor(L, T.abbr)
+      if g and g.h ~= L.user and g.a ~= L.user then return g end
+    end
+  end
+  return nil
 end

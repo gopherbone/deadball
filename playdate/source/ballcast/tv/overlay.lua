@@ -293,8 +293,11 @@ local WIDE = { deepL = true, deepC = true, deepR = true, blimp = true, wallLow =
 function O.draw(G, scene, bi, b, tau, camName, slo, R)
   local tl = G.tl
   local now = playdate.getCurrentTimeMilliseconds() / 1000
-  -- pitch cams: zone + tracker + inset
-  if b.kind == "p" and b.plan.pitch and (camName == "pitch" or camName == "behindPlate") then
+  -- pitch cams: zone + tracker + inset (a local game's own direct-control panel replaces the inset)
+  local hideKz = scene and scene.src and scene.src.hideKzone
+  if hideKz then
+    if b.kind == "p" and b.plan.pitch and R and R.project and (camName == "pitch" or camName == "behindPlate") then tracker(R, b.plan, tau) end
+  elseif b.kind == "p" and b.plan.pitch and (camName == "pitch" or camName == "behindPlate") then
     if R and R.project then tracker(R, b.plan, tau) end
     local img = kzone(tl, bi, b, tau)
     img:draw(4, 62)

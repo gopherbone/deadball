@@ -171,6 +171,7 @@ end
 -- Drawing ----------------------------------------------------------------------------------
 
 local stampImg = nil
+local stampGrow = {}   -- grow (px) -> the stamp prescaled for that slam step
 local function stamp()
   if stampImg then return stampImg end
   local f = UI.fonts.big
@@ -190,21 +191,8 @@ local function stamp()
   return stampImg
 end
 
-function Ticket:update(covered)
-  self.t += 1
-  if self.bounce > 0 then self.bounce -= 1 end
-  if self.nudge and self.nudge > 0 then self.nudge -= 1 end
-  if self.holdT and not covered then
-    if playdate.buttonIsPressed(playdate.kButtonA) then
-      self.holdT += 1
-      if self.holdT >= HOLD_FRAMES then self.holdT = nil self:place() end
-    else
-      self.holdT = nil
-    end
-  end
-  self.shown += (self.amount - self.shown) * 0.5
-  if math.abs(self.amount - self.shown) < 0.5 then self.shown = self.amount end
-  Draw.dim(0.5)
+--- The ticket's face (everything but the dim and the stamp), in screen coordinates.
+function Ticket:drawFace(closesText)
   local o = self.o
   -- the ticket: white paper, a perforated top, the counterfoil number
   gfx.setColor(gfx.kColorBlack)
@@ -294,7 +282,7 @@ function Ticket:update(covered)
     Text.draw("\u{25b2}\u{25bc} pick a side first", cx, cy, UI.fonts.bold, nil, "center")
   end
   cy += 14
-  local closes = o.closes and o.closes() or nil
+  local closes = closesText
   Text.draw(Text.ellipsize("Pools still move" .. (closes and (" until " .. closes) or "") .. ". Min " .. Fmt.money(self.min) .. ", max " .. Fmt.money(self.max) .. ".", UI.fonts.body, W - 16), cx, cy, UI.fonts.body, nil, "center")
   -- footer: the verbs
   local fy = Y + H - 20
@@ -311,6 +299,44 @@ function Ticket:update(covered)
       gfx.fillRect(X + 20, fy + 14, math.floor((W - 40) * self.holdT / HOLD_FRAMES), 3)
     end
   end
+end
+
+function Ticket:update(covered)
+  self.t += 1
+  if self.bounce > 0 then self.bounce -= 1 end
+  if self.nudge and self.nudge > 0 then self.nudge -= 1 end
+  if self.holdT and not covered then
+    if playdate.buttonIsPressed(playdate.kButtonA) then
+      self.holdT += 1
+      if self.holdT >= HOLD_FRAMES then self.holdT = nil self:place() end
+    else
+      self.holdT = nil
+    end
+  end
+  self.shown += (self.amount - self.shown) * 0.5
+  if math.abs(self.amount - self.shown) < 0.5 then self.shown = self.amount end
+  Draw.dim(0.5)
+  -- The ticket's face is cached as an image and only repainted when something on it changes
+  -- (redrawing ~30 text runs every frame cost the device 30+ ms; a blit is ~1 ms).
+  local o = self.o
+  local closes = o.closes and o.closes() or nil
+  local crank = math.floor(playdate.getCrankPosition() / 15)
+  local busyDots = self.state == "busy" and ((self.t // 6) % 4) or 0
+  local key = table.concat({ tostring(self.side), self.amount, math.floor(self.shown + 0.5), self.state, tostring(self.holdT),
+    (self.nudge or 0) > 0 and (self.nudge % 4 < 2 and 1 or 2) or 0, self.bounce > 0 and (self.bounce % 2) + 1 or 0, crank, busyDots,
+    tostring(closes), tostring(self.after and self.after.next) }, "|")
+  if key ~= self.faceKey or not self.faceImg then
+    self.faceKey = key
+    self.faceImg = self.faceImg or gfx.image.new(W + 5, H + 5, gfx.kColorClear)
+    self.faceImg:clear(gfx.kColorClear)
+    gfx.pushContext(self.faceImg)
+    gfx.setDrawOffset(-X, -Y)
+    self:drawFace(closes)
+    gfx.setDrawOffset(0, 0)
+    gfx.popContext()
+  end
+  self.faceImg:draw(X, Y)
+  local cx = X + W // 2
   -- the stamp
   if self.state == "placed" then
     self.stampT += 1
@@ -318,19 +344,32 @@ function Ticket:update(covered)
     local sw, sh = img:getSize()
     local grow = math.max(0, 4 - self.stampT) * 6
     if grow > 0 then
-      img:drawScaled(cx - sw // 2 - grow, Y + 70 - sh // 2 - grow, 1 + grow / sw * 2)
+      -- the slam's scaled steps are made once (scaledImage), never scaled per frame
+      local big = stampGrow[grow]
+      if not big then big = img:scaledImage(1 + grow / sw * 2) stampGrow[grow] = big end
+      big:draw(cx - sw // 2 - grow, Y + 70 - sh // 2 - grow)
     else
-      img:draw(cx - sw // 2, Y + 70 - sh // 2)
-      local a = self.after
-      if a and a.next then
-        local nt = "next up: " .. a.next .. " \u{25b6}"
-        local nw = UI.fonts.bold:getTextWidth(nt) + 10
-        gfx.setColor(gfx.kColorWhite)
-        gfx.fillRect(cx - nw // 2, Y + 70 + sh // 2 - 6, nw, 15)
-        gfx.setColor(gfx.kColorBlack)
-        gfx.drawRect(cx - nw // 2, Y + 70 + sh // 2 - 6, nw, 15)
-        Text.draw(nt, cx, Y + 70 + sh // 2 - 5, UI.fonts.bold, nil, "center")
+      -- landed: the stamp and its "next up" tag, painted once
+      if not self.landedImg then
+        local a = self.after
+        local nt = a and a.next and ("next up: " .. a.next .. " \u{25b6}") or nil
+        local nw = nt and (UI.fonts.bold:getTextWidth(nt) + 10) or 0
+        local lw = math.max(sw, nw)
+        local li = gfx.image.new(lw, sh + 12, gfx.kColorClear)
+        gfx.pushContext(li)
+        img:draw((lw - sw) // 2, 0)
+        if nt then
+          local tx = (lw - nw) // 2
+          gfx.setColor(gfx.kColorWhite)
+          gfx.fillRect(tx, sh - 6, nw, 15)
+          gfx.setColor(gfx.kColorBlack)
+          gfx.drawRect(tx, sh - 6, nw, 15)
+          Text.draw(nt, lw // 2, sh - 5, UI.fonts.bold, nil, "center")
+        end
+        gfx.popContext()
+        self.landedImg, self.landedW = li, lw
       end
+      self.landedImg:draw(cx - self.landedW // 2, Y + 70 - sh // 2)
     end
   end
   Chrome.menubar()

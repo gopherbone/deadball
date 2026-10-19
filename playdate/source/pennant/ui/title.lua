@@ -43,6 +43,17 @@ function Title:layout(L)
       Text.draw(PUI.teamName(e.team), x + 82, y + 3, UI.fonts.bold)
       local phase = e.phase == "season" and (e.w .. "-" .. e.l .. ", " .. PUI.ord(e.rank or 1)) or (e.phase == "playoffs" and "Playoffs" or "Offseason")
       Text.draw(string.format("%d \u{2022} %s \u{2022} %s \u{2022} season %d", e.year, e.date or "", phase, e.season or 1), x + 82, y + 18, UI.fonts.body)
+      -- the slot's pennants
+      local px = x + w - 8
+      for i = 1, math.min(4, #(e.titles or {})) do
+        local yr = "'" .. tostring(e.titles[i]):sub(-2)
+        local tw = UI.fonts.body:getTextWidth(yr)
+        px = px - tw
+        Text.draw(yr, px, y + 3, UI.fonts.body)
+        px = px - 11
+        gfx.fillTriangle(px, y + 5, px + 9, y + 8, px, y + 11)
+        px = px - 3
+      end
       L:link(x, y, w, h, function() self:continue(k) end, { id = "slot" .. k, style = "ring", hint = "A: continue this career" })
     else
       Text.draw("Empty \u{2014} start a new career", x + 82, y + 10, UI.fonts.body)
@@ -64,6 +75,17 @@ function Title:layout(L)
 end
 
 function Title:goBack() Pennant.quit() end
+
+--- Focus the slot played last.
+function Title:initialFocus()
+  local best, bt = nil, -1
+  for k = 1, PSave.SLOTS do
+    local e = self.idx[k]
+    if e and (e.at or 0) > bt then best, bt = k, e.at or 0 end
+  end
+  if best then for i, l in ipairs(self.links) do if l.id == "slot" .. best then return i end end end
+  return 1
+end
 
 function Title:continue(k)
   local L, err

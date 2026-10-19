@@ -171,6 +171,9 @@ if playdate.file.exists("pennant-sim.flag") then
   if line and line:match("^bench") then
     playdate.frameTimer.performAfterDelay(20, function() PennantTest.bench() end)
   elseif line and line:match("^bots") then
+    -- "bots [scheme] [games] [seed]": e.g. "bots scout 120 777"
+    local only, n, seed = line:match("^bots%s*(%a*)%s*(%d*)%s*(%d*)")
+    PennantTest.botOpts = { only = (only ~= "" and only) or nil, games = tonumber(n), seed = tonumber(seed) }
     playdate.frameTimer.performAfterDelay(20, function() PennantTest.bots() end)
   else
     local n = tonumber(line or "") or 2
@@ -343,17 +346,20 @@ end
 
 function Bots:body()
   local configs = { { "coaches" } }
-  for _, s in ipairs({ "arcade", "scout" }) do for _, k in ipairs({ "great", "decent", "poor" }) do configs[#configs + 1] = { s, k } end end
+  local opt = PennantTest.botOpts or {}
+  for _, s in ipairs({ "arcade", "scout" }) do
+    if not opt.only or opt.only == s then for _, k in ipairs({ "great", "decent", "poor" }) do configs[#configs + 1] = { s, k } end end
+  end
   for _, cfg in ipairs(configs) do
     local scheme, skill = cfg[1], cfg[2]
     local sk = SKILL[skill or "decent"]
-    local L = PGen.league(31337, "HCL", 84)
+    local L = PGen.league(opt.seed or 31337, "HCL", 84)
     PL.init(L)
     Pennant.L = L
     local rng = PRng.new(99)
     local bat, opp = {}, {}
     local games = 0
-    while games < 40 and L.phase == "season" do
+    while games < (opt.games or 40) and L.phase == "season" do
       local g = PL.gameFor(L, "HCL")
       if g and not g.done then
         self.msg = scheme .. " " .. (skill or "") .. " game " .. games

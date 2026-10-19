@@ -149,3 +149,26 @@ function PRoutes.zones(a, b)
 end
 
 PRoutes.NODES = N
+
+-- names for the "via" line (the bigger stops)
+PRoutes.NAME = { BUF = "Buffalo", CLE = "Cleveland", CHI = "Chicago", OMA = "Omaha", ALB = "Albany", PIT = "Pittsburgh",
+  STL = "St. Louis", KCY = "Kansas City", DEN = "Denver", CHY = "Cheyenne", OGD = "Ogden", BOI = "Boise", POR = "Portland",
+  MSP = "Minneapolis", NYC = "New York", PHL = "Philadelphia", IND = "Indianapolis", COL = "Columbus", SPK = "Spokane",
+  BIL = "Billings", TOL = "Toledo", SYR = "Syracuse", HBG = "Harrisburg", DSM = "Des Moines", NPL = "North Platte",
+  SPR = "Springfield", HFD = "Hartford", MKE = "Milwaukee", FAR = "Fargo", BTM = "Butte", SEA = "Seattle" }
+
+--- Up to n named stops along a ground route, evenly spread ("Buffalo, Chicago, Omaha").
+function PRoutes.via(r, n)
+  local named = {}
+  for i = 2, #(r.nodes or {}) - 1 do
+    local k = r.nodes[i]
+    if PRoutes.NAME[k] then named[#named + 1] = PRoutes.NAME[k] end
+  end
+  n = n or 3
+  if #named <= n then return named end
+  local out = {}
+  for k = 1, n do out[#out + 1] = named[math.floor((k - 0.5) * #named / n) + 1] end
+  return out
+end
+
+PRoutes.MODE_NAME = { bus = "Bus", train = "Rail", plane = "Charter flight" }

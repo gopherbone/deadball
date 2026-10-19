@@ -248,6 +248,7 @@ local function held(btn) return playdate.buttonIsPressed(btn) end
 
 function Live:frame(scene, bi, b, tau, dt)
   local tl = scene.tl
+  self:updateHideKzone()
   -- (the rest of the league waits: BallCast has the frame; the Advance screen after the game
   -- plays the other games with a progress bar)
   if not tl then return nil end
@@ -505,23 +506,64 @@ function Live:drawMenu()
   end
 end
 
+--- The race after tonight (the result counted in before it's applied): "Up to 2nd, 1 GB",
+--- "Still 5th, 3 GB", late in the year "MAGIC # 6" / "ELIM # 4".
+function Live:raceLine(res)
+  local L = self.L
+  if L.phase ~= "season" then return nil end
+  local T = L.teams[self.user]
+  local before = PL.rank(L, self.user)
+  local mine = self.side == "home" and res.home.runs or res.away.runs
+  local them = self.side == "home" and res.away.runs or res.home.runs
+  local won = mine > them
+  if won then T.w = T.w + 1 else T.l = T.l + 1 end
+  local ok, line = pcall(function()
+    local r = PL.rank(L, self.user)
+    local gb = T.gb or 0
+    local left = PL.seasonGames(L) - (T.w + T.l)
+    if left <= 20 then
+      local m, e = PL.magic(L, self.user), PL.elimination(L, self.user)
+      if m then return m <= 0 and "CLINCHED A PLAYOFF SPOT!" or ("Playoff MAGIC # " .. m .. ", " .. left .. " to play") end
+      if e then return e <= 0 and "Eliminated." or ("ELIM # " .. e .. ", " .. left .. " to play") end
+    end
+    local verb = r < before and "Up to " or (r > before and "Down to " or "Still ")
+    return verb .. PUI.ord(r) .. ", " .. (gb <= 0 and "in first" or (PL.gbText(gb) .. " GB"))
+  end)
+  if won then T.w = T.w - 1 else T.l = T.l - 1 end
+  PL.standings(L)   -- (restore the GB column)
+  return ok and line or nil
+end
+
 function Live:drawFinal(scene)
   local L = self.L
   local res = self.finalRes
-  if not res then res = self.h:result() self.finalRes = res end
-  local x, y, w, h = 100, 150, 200, 70
+  if not res then res = self.h:result() self.finalRes = res self.finalRace = self:raceLine(res) end
+  local x, y, w, h = 90, 140, 220, 84
   panel(x, y, w, h)
   gfx.fillRect(x, y, w, 15)
   Text.draw("FINAL", x + w // 2, y + 1, F().bold, "white", "center")
   Text.draw(self.g.a .. " " .. res.away.runs .. "    " .. self.g.h .. " " .. res.home.runs .. ((res.innings or 9) > 9 and ("  (" .. res.innings .. ")") or ""), x + w // 2, y + 18, F().head, nil, "center")
   local function nm(id) local p = id and L.players[id] return p and PM.short(p) or "-" end
   Text.draw("W " .. nm(res.W) .. "   L " .. nm(res.L) .. (res.S and ("   S " .. nm(res.S)) or ""), x + w // 2, y + 36, F().body, nil, "center")
-  Text.draw("A: box score & the rest of the day", x + w // 2, y + 54, F().body, nil, "center")
+  if self.finalRace then
+    gfx.fillRect(x + 2, y + 51, w - 4, 15)
+    Text.draw(Text.ellipsize(self.finalRace, F().bold, w - 10), x + w // 2, y + 52, F().bold, "white", "center")
+  end
+  Text.draw("A: box score & the rest of the day", x + w // 2, y + 68, F().body, nil, "center")
+end
+
+--- BallCast holds the picture still under a static panel (the time-out menu, the final card).
+function Live:freeze(scene, bi, b, tau)
+  if self.menu then return true end
+  return self.pause ~= nil and self.pause.reason == "done" and b.kind == "end" and tau > 1.25
 end
 
 --- Text-heavy panels are painted into an image when they change and blitted every frame.
-function Live:cached(key, x, y, w, h, paint)
-  local c = self.pcache
+function Live:cached(key, x, y, w, h, paint, slot)
+  -- slots keep panels that show together (a pitch panel under the menu) from evicting each other
+  self.pcaches = self.pcaches or {}
+  slot = slot or "main"
+  local c = self.pcaches[slot]
   if not c or c.key ~= key then
     local img = gfx.image.new(w + 3, h + 3, gfx.kColorClear)
     gfx.pushContext(img)
@@ -530,7 +572,7 @@ function Live:cached(key, x, y, w, h, paint)
     gfx.setDrawOffset(0, 0)
     gfx.popContext()
     c = { key = key, img = img }
-    self.pcache = c
+    self.pcaches[slot] = c
   end
   c.img:draw(x, y)
 end
@@ -548,11 +590,11 @@ function Live:draw(scene, bi, b, tau)
   end
   self:drawControl(scene, bi, b, tau)
   if self.pause and self.pause.reason == "done" and b.kind == "end" and tau > 1.0 then
-    self:cached("final", 100, 150, 203, 73, function() self:drawFinal(scene) end)
+    self:cached("final", 90, 140, 223, 87, function() self:drawFinal(scene) end, "final")
   end
   if self.menu then
     local m = self.menu
     local h = 18 + #m.items * 16
-    self:cached("m" .. m.sel, 120, 120 - h // 2, 163, h + 2, function() self:drawMenu() end)
+    self:cached("m" .. m.sel, 120, 120 - h // 2, 163, h + 2, function() self:drawMenu() end, "menu")
   end
 end

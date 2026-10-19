@@ -35,13 +35,34 @@ function PUI.flag(x, y, white)
   gfx.setColor(gfx.kColorBlack)
 end
 
+--- The user's titles, newest first (years), for the masthead pennants.
+function PUI.titles()
+  local L = Pennant and Pennant.L
+  local out = {}
+  for i = #((L and L.history) or {}), 1, -1 do
+    local h = L.history[i]
+    if h.champ == L.user then out[#out + 1] = h.year end
+  end
+  return out
+end
+
 function PUI.topBar(title, right)
-  local key = (title or "") .. "|" .. (right or "")
+  local titles = PUI.titles()
+  local key = (title or "") .. "|" .. (right or "") .. "|" .. #titles
   if barCache.key ~= key then
     local img = gfx.image.new(400, PUI.TOP, gfx.kColorBlack)
     gfx.pushContext(img)
     PUI.flag(5, 3, true)
     local w = Text.draw("PENNANT '96", 19, 2, F().bold, "white")
+    -- a small pennant per title won, with its year
+    for i = 1, math.min(3, #titles) do
+      local px = 25 + w
+      gfx.setColor(gfx.kColorWhite)
+      gfx.fillTriangle(px, 4, px + 9, 7, px, 10)
+      local yw = Text.draw("'" .. tostring(titles[i]):sub(-2), px + 10, 2, F().body, "white")
+      w = w + 14 + yw
+    end
+    if #titles > 3 then w = w + 2 + Text.draw("+" .. (#titles - 3), 25 + w, 2, F().body, "white") end
     gfx.setColor(gfx.kColorWhite)
     gfx.drawLine(25 + w, 4, 25 + w, 13)
     if title then Text.draw(Text.ellipsize(title, F().bold, 190), 31 + w, 2, F().bold, "white") end
@@ -91,6 +112,7 @@ function PUI.define(def)
   def.style = "bare"
   def.swr = false
   def.ownHoldB = true
+  if def.scrollSlack == nil then def.scrollSlack = 8 end   -- (Page pads 8 px below the content)
   for k, v in pairs(Base) do if rawget(def, k) == nil then def[k] = v end end
   return Page.define(def)
 end
@@ -230,6 +252,9 @@ function Base:updateInner(covered)
       self.heldHome = true
       Sfx.back()
       Pennant.toHub()
+      -- (this frame still shows something: the screen we just landed on)
+      local t = App.top()
+      if t and t ~= self and t.update then t:update(false) end
       return
     end
   else
@@ -406,7 +431,8 @@ function PUI.nick(abbr) local c = PennantClubs.byAbbr[abbr] return c and c.name 
 --- One player row (roster-style). cols: name, pos, cond, mood, fatigue, ovr, extra text
 function PUI.playerRow(Lb, p, x, y, w, action, opts)
   opts = opts or {}
-  local h = 16
+  -- compact rows (14 px pitch, a 12 px face crop) let a 13-man list fit without scrolling
+  local h = opts.compact and 13 or 16
   PUI.lazy(Lb, x - 2, y - 1, w + 4, h + 1, function() PUI.paintPlayerRow(p, x, y, w, opts) end)
   if action then Lb:link(x - 2, y - 1, w + 4, h + 1, action, { id = opts.id or ("p" .. p.id), style = "invert", hint = opts.hint, data = opts.data }) end
   return h
@@ -417,8 +443,11 @@ function PUI.paintPlayerRow(p, x, y, w, opts)
     -- tiny face (24px thumb, cropped to the row)
     local img = Faces.get("face:" .. p.face, 24)
     PUI.srcRect = PUI.srcRect or playdate.geometry.rect.new(0, 4, 24, 16)
-    if img then img:draw(x, y, gfx.kImageUnflipped, PUI.srcRect) else gfx.drawRect(x, y, 24, 16) end
+    PUI.srcRectC = PUI.srcRectC or playdate.geometry.rect.new(0, 6, 24, 12)
+    local r = opts.compact and PUI.srcRectC or PUI.srcRect
+    if img then img:draw(x, y, gfx.kImageUnflipped, r) else gfx.drawRect(x, y, 24, r.height) end
   end
+  if opts.compact then y = y - 1 end
   local nx = x + (opts.face ~= false and 28 or 2)
   Text.draw(p.pos == "P" and (p.role or "P") or p.pos, nx, y + 1, F().bold)
   Text.draw(Text.ellipsize(PM.short(p), F().body, 108), nx + 26, y + 1, F().body)
@@ -438,9 +467,10 @@ function PUI.rowHeader(x, y, extra)
   Text.draw("POS", nx, y, F().body)
   Text.draw("NAME", nx + 26, y, F().body)
   local cx = nx + 138
-  Text.draw("CND", cx - 2, y, F().body)
-  Text.draw("MD", cx + 16, y, F().body)
-  Text.draw("FAT", cx + 33, y, F().body)
+  -- (one-letter heads over the arrow and the mood face, so nothing runs together)
+  Text.draw("C", cx + 6, y, F().body, nil, "center")
+  Text.draw("M", cx + 23, y, F().body, nil, "center")
+  Text.draw("FAT", cx + 34, y, F().body)
   Text.draw("OVR", cx + 92, y, F().body, nil, "right")
   if extra then Text.draw(extra, cx + 98, y, F().body) end
   gfx.drawLine(x, y + 13, 392, y + 13)

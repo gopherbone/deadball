@@ -128,10 +128,27 @@ function PLand.maybe(L, from, to)
   L.lmTrips = (L.lmTrips or 0) + 1
   local a, b = PennantClubs.byAbbr[from], PennantClubs.byAbbr[to]
   if not a or not b then return nil end
-  local ax, ay = PLand.project(a.ll[1], a.ll[2])
-  local bx, by = PLand.project(b.ll[1], b.ll[2])
-  local legLen = math.sqrt((bx - ax) ^ 2 + (by - ay) ^ 2)
+  -- the leg actually travelled: the corridor (bus / rail), or the flight's arc (window sightings)
+  local r = PRoutes and PRoutes.path(from, to)
+  local pts = {}
+  local src = r and r.points or { a.ll[1], a.ll[2], b.ll[1], b.ll[2] }
+  for i = 1, #src, 2 do local x, y = PLand.project(src[i], src[i + 1]) pts[#pts + 1] = x pts[#pts + 1] = y end
+  local cum, legLen = { 0 }, 0
+  for i = 3, #pts, 2 do legLen = legLen + math.sqrt((pts[i] - pts[i - 2]) ^ 2 + (pts[i + 1] - pts[i - 1]) ^ 2) cum[#cum + 1] = legLen end
   if legLen < 25 then return nil end
+  local flight = r and r.mode == "plane"
+  --- distance from the leg, and how far along it (0..1)
+  local function along(x, y)
+    local best, bt = 1e9, 0
+    for i = 1, #pts - 2, 2 do
+      local d, t = segDist(x, y, pts[i], pts[i + 1], pts[i + 2], pts[i + 3])
+      if d < best then
+        local k = (i + 1) // 2
+        best, bt = d, (cum[k] + t * (cum[k + 1] - cum[k])) / legLen
+      end
+    end
+    return best, bt
+  end
   -- odds: rare on the first trips after one, likelier the longer it's been
   local p = 0.08 + math.min(0.5, (L.lmTrips - 1) * 0.12)
   if not rng:chance(p) then return nil end
@@ -139,7 +156,7 @@ function PLand.maybe(L, from, to)
   local near, detour = {}, {}
   for _, e in ipairs(PLand.LIST) do
     local x, y = PLand.project(e.ll[1], e.ll[2])
-    local d, t = segDist(x, y, ax, ay, bx, by)
+    local d, t = along(x, y)
     if t > 0.08 and t < 0.92 then
       local fresh = not L.lmSeen[e.key]
       if d < 16 then near[#near + 1] = { e = e, t = t, fresh = fresh } elseif d < 70 then detour[#detour + 1] = { e = e, t = t, fresh = fresh } end
@@ -152,10 +169,21 @@ function PLand.maybe(L, from, to)
     if #list > 0 and rng:chance(0.3) then return list[rng:int(#list)] end
     return nil
   end
-  local c = choose(near) or (rng:chance(0.35) and choose(detour)) or nil
+  -- on the ground: what's on the corridor, now and then a detour; from the air, anything below
+  local c
+  if flight then c = choose(near) or choose(detour)
+  else c = choose(near) or (rng:chance(0.35) and choose(detour)) or nil end
   if not c then return nil end
   L.lmTrips = 0
   L.lmSeen[c.e.key] = true
+  if flight then
+    -- a window sighting: a line, no effect
+    local line = c.e.lines[rng:int(#c.e.lines)]
+    local T = L.teams[L.user]
+    local someone = L.players[T.ml[rng:int(#T.ml)]]
+    line = line:gsub("{p}", someone and PM.name(someone) or "the shortstop"):gsub("{q}", "the trainer"):gsub("{city}", b.city)
+    return { key = c.e.key, name = c.e.name, text = line, t = c.t, window = true }
+  end
   local T = L.teams[L.user]
   local pool = {}
   for _, id in ipairs(T.ml) do local p = L.players[id] if not p.inj then pool[#pool + 1] = p end end

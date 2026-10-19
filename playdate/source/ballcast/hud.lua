@@ -621,8 +621,9 @@ local function ltStage(face, title, upto)
   if e.stage < 2 and upto >= 2 then
     local t0 = playdate.getElapsedTime()
     gfx.pushContext(e.img)
-    local nf = K.fonts.bold
-    K.textW(nf, K.fit(nf, string.upper(title), w - nx - 30), nx + 5, 2)
+    -- the full name, else "F. LAST", else the narrower font, before anything is cut
+    local nf, s = K.fitName(K.fonts.bold, K.fonts.nb, title, w - nx - 30, true)
+    K.textW(nf, s, nx + 5, 2)
     gfx.popContext()
     e.stage = 2
     slow("lower third name " .. title, t0)
