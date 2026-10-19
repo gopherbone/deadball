@@ -113,8 +113,9 @@ Cells run in rows of F frames, in this order (puppets.lua rebuilds the same layo
 and checks each chunk's length; tools/assets/humanoid/sprites.py `pack_views` writes it):
 
 1. for each view set — `pitcher_seq` (F 6), `batter_seq` (6), `catcher` (3), `umpire` (3, no away),
-   `fielder` (6), `runner` (7), `runner_seq` (4) — for home then `_away`, views v0..v7
-   (2x: only `pitcher_seq`, `batter_seq`, `catcher`, `umpire`, `fielder`);
+   `fielder` (6), `runner` (7), `runner_seq` (4), `catcher_reach` (14, views 0/2/4/6), `walker` (6) — for
+   home then `_away`, views v0..v7 (2x: only `pitcher_seq`, `batter_seq`, `catcher`, `umpire`, `fielder`,
+   `catcher_reach`, `walker`);
 2. then the single-view rows `accent`, `accent_away`, `fan` (4 frames), `mascot`, `streaker` (2);
 3. a new chunk starts when the next row would pass 96 (1x) / 40 (2x) cells; the last grid row is padded.
 
@@ -171,6 +172,19 @@ rotation, flipX, pixel offset; nearest-neighbour, pivot on the feet anchor or th
   (`blit`, `play`); previews in `tools/assets/humanoid/preview/anim_*.gif` / `anim_tracks.png`.
 - Runtime: `ballcast/anim.lua` samples the tracks (pure function of time + a per-puppet seed, so scrubbing
   is exact); the C billboard path applies the transform (`bc3d.bb(id, x, y, z, flip, hscale, sx, sy, rot, dx, dy, pivotPx)`).
+
+### Walk-offs, changeovers and player looks
+
+- `walker` view set (F 6, home + `_away`, 1x and 2x; packed after `catcher_reach`): 1-2 walk (contact L, R),
+  3-4 dejected walk (head down), 5-6 dejected walk dragging the bat. Hand-keyed (`poses.walk`).
+- Tracks: `walk`, `slump`, `drag` (loops on `walker`), `jog` (the run cycle with longer holds),
+  `practice` (the on-deck hitter's half swing back to the stance).
+- `images/puppets/landmarks.json` (`sprites.py write_landmarks`, from `render_frames.py --landmarks`): per view
+  set + view (`"<set>#<v>"`), 24 chars a frame: head, nose, face code, back (number), back code, knees/ankles,
+  elbows/wrists, in 1x cell px at half-pixel steps (char = 40 + 2v). The C billboard path uses them to stamp
+  per-player looks (`bc3d.sprite(..., widthFactor, landmarks)`, `bc3d.bb(..., look)`; bits in bc3d.c
+  `lookPass`): skin dither, facial hair, socks, sleeves, batting helmet, jersey number. Body types are a
+  width factor + figure height baked into the C size caches (`ballcast/looks.lua`, `puppets.lua BODY`).
 
 ## BallCast ballparks (`images/parks/`)
 

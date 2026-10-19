@@ -11,6 +11,7 @@ import "ballcast/puppets"
 import "ballcast/anim"
 import "ballcast/tags"
 import "ballcast/juice"
+import "ballcast/looks"
 
 local gfx <const> = playdate.graphics
 local floor <const>, sqrt <const>, abs <const>, min <const>, max <const> = math.floor, math.sqrt, math.abs, math.min, math.max
@@ -22,6 +23,7 @@ BallCast.Play = Play
 local Cam = BallCast.Cam
 local Pup = BallCast.Puppets
 local Anim = BallCast.Anim
+local Looks = BallCast.Looks
 local K = BCKit
 local project = Cam.project
 
@@ -52,6 +54,17 @@ end
 Play.ALIGN = ALIGN
 local POSLIST = { "P", "C", "1B", "2B", "SS", "3B", "LF", "CF", "RF" }
 Play.POSLIST = POSLIST
+-- the dugouts (geo.lua: the black walls from (95,-10) to (130,25), mirrored): home on the
+-- first-base side. A puppet "goes down the steps" at the mouth, just in front of the wall.
+local DUGOUT = { home = { 98, 2 }, away = { -98, 2 } }
+Play.DUGOUT = DUGOUT
+-- on-deck circles (TV-cheated in toward the plate so the walk-up fits a beat) and coach's boxes
+local ONDECK = { home = { 17, -12 }, away = { -17, -12 } }
+local COACH = { { 76, 58 }, { -76, 58 } }       -- 1B box, 3B box (foul side of each line)
+Play.ONDECK, Play.COACH = ONDECK, COACH
+local WALK_V <const>, SLUMP_V <const>, JOG_V <const> = 9, 7, 16     -- ft/s (TV-compressed)
+local CHANGE_DUR <const> = 4.0       -- the half-inning changeover beat (was TL.DUR.half 3.2)
+local PA_WALKUP <const> = 0.5        -- extra on a "pa" beat: the walk-up from on deck + a practice cut
 local INFIELD = { P = true, C = true, ["1B"] = true, ["2B"] = true, SS = true, ["3B"] = true }
 
 local function dist2(ax, ay, bx, by) return sqrt((ax - bx) ^ 2 + (ay - by) ^ 2) end
@@ -64,8 +77,29 @@ Play.batSide = batSide
 -- planning helpers
 
 local function newPlan()
-  return { cams = {}, ball = {}, fmoves = {}, fposes = {}, runners = {}, pops = {}, sfx = {}, umpCalls = {}, catches = {}, slo = nil, shake = nil }
+  return { cams = {}, ball = {}, fmoves = {}, fposes = {}, runners = {}, pops = {}, sfx = {}, umpCalls = {}, catches = {}, slo = nil, shake = nil,
+    exits = {}, carry = {} }
 end
+
+-- walk-offs: someone heading for his dugout (variant v's) from (x0, y0), starting at plan time
+-- t0 at `speed` on animatic `track`; carried into the following beats until he's down the steps
+local function exit(plan, id, v, track, x0, y0, t0, speed, seed, helmet)
+  local d = DUGOUT[v] or DUGOUT.home
+  local e = { id = id, v = v, track = track, x0 = x0, y0 = y0, x1 = d[1], y1 = d[2], t0 = t0, speed = speed,
+    D = sqrt((d[1] - x0) ^ 2 + (d[2] - y0) ^ 2), seed = seed, helmet = helmet }
+  plan.exits[#plan.exits + 1] = e
+  return e
+end
+local function exitPos(e, tau)
+  if tau < e.t0 then return nil end
+  local d = (tau - e.t0) * e.speed
+  if d >= e.D then return nil end
+  local u = d / e.D
+  return e.x0 + (e.x1 - e.x0) * u, e.y0 + (e.y1 - e.y0) * u
+end
+Play.exitPos = exitPos
+local function offVariant(b) return b.pre.top and "away" or "home" end
+local function defVariant(b) return b.pre.top and "home" or "away" end
 
 local function cam(plan, t, name, opt) plan.cams[#plan.cams + 1] = { t = t, name = name, opt = opt } end
 local function sfx(plan, t, kind, v) plan.sfx[#plan.sfx + 1] = { t = t, kind = kind, v = v } end
@@ -396,12 +430,17 @@ local function planPitch(b, tl, plan)
     b.dur = D.p
   end
   if b.k then
+    -- the walk back: head down (dragging the bat, some of the swinging ones), under the call
+    local bs = batSide(b.pre.bat)
+    local drag = e.r == "S" and K.hash01(b.pre.bat or "?", 211) < 0.5
+    plan.batterExit = exit(plan, b.pre.bat, offVariant(b), drag and "drag" or "slump", -bs * 3.2, 0.2, tPlate + 0.75, SLUMP_V, 61, true)
     pop(plan, tPlate + 0.25, e.r == "C" and "STRIKE THREE!" or "STRUCK HIM OUT!", 0, -6, 9, 1.4)
     plan.umpCall = tPlate + 0.2
     umpCall(plan, tPlate + 0.2, "ump_strike", 1.4, 1)    -- the punch-out
     plan.kT = tPlate + 0.2
     sfx(plan, tPlate + 0.2, "ooh")
     sfx(plan, tPlate + 0.25, "strike3")
+    b.dur = max(b.dur, tPlate + 1.5)
   elseif e.r == "C" then
     plan.umpCall = tPlate + 0.2
     umpCall(plan, tPlate + 0.2, "ump_strike", 0.8)
@@ -792,16 +831,24 @@ local function planOther(b, tl, plan)
   local k = b.kind
   local e = b.e
   if k == "half" then
-    if K.hash01(b.i, 57) < 0.4 then cam(plan, 0, "blimp", { side = K.hash01(b.i, 58) < 0.5 and 1 or -1 })
-    else cam(plan, 0, "high", { establish = true }) end
-    b.dur = D.half
+    -- the changeover: the side that was in the field jogs in, the other trots out to its
+    -- positions, the umpire and the base coaches reposition (drawChangeover). Two held shots
+    -- from high home (Play.changeoverShot): wide (named "dugout": the scene renders the stands
+    -- cheaply for it), then a cut in tighter as the new side takes its spots.
+    local sd = b.pre.top and -1 or 1          -- the side coming in bats now: away bats in the top
+    cam(plan, 0, "dugout", { changeover = 1, side = sd })
+    cam(plan, 1.9, "high", { changeover = 2 })
+    plan.change = true
+    b.dur = CHANGE_DUR
   elseif k == "pa" then
     local h = K.hash01(b.i, 59)
     -- dead time between batters: a slow push on the pitcher or the batter, or the usual angle
     if h < 0.25 then cam(plan, 0, "pitcherSide", { side = h < 0.12 and 1 or -1 })
     elseif h < 0.5 then cam(plan, 0, "batterSide", { side = Play.batSide(e.bat) })
     else cam(plan, 0, "pitch") end
-    b.dur = D.pa
+    -- the hitter walks up from the on-deck circle and takes a practice cut
+    plan.walkUp = { t1 = 1.2, practice = 1.25 }
+    b.dur = D.pa + PA_WALKUP
   elseif k == "sb" then
     cam(plan, 0, K.hash01(b.i, 60) < 0.5 and "runner" or "high", { side = -1 })
     local m = b.mvs[1]
@@ -929,12 +976,57 @@ local function reactions(b, plan)
   end
 end
 
+-- walk-offs for the runners of a play: the batter put out walks back (after the turn), a runner
+-- thrown out walks off after his slide, a run that scores jogs to the dugout after the celebration
+local function runnerExits(b, plan)
+  local v = offVariant(b)
+  for i = 1, #plan.runners do
+    local r = plan.runners[i]
+    if r.to == -1 or r.to == 4 then
+      local x, y = runnerPos(r, r.t1 + 0.01)
+      if r.to == 4 then
+        local hype = plan.homerBatter or b.walkoff
+        r.exit = exit(plan, r.id, v, "jog", x, y, r.t1 + (hype and 1.4 or 0.6), JOG_V, 300 + i * 31, true)
+      elseif r.role == "batter" then
+        local slump = K.hash01(tostring(r.id) .. b.i, 213) < 0.45
+        r.exit = exit(plan, r.id, v, slump and "slump" or "walk", x, y, r.t1 + 0.3, slump and SLUMP_V or WALK_V, 300 + i * 31, true)
+      else
+        local tr = (Anim.has and Anim.has("slide_safe")) and ((K.hash01(tostring(r.id), 91) < 0.35 and "slide_head_out") or "slide_out") or "slide"
+        r.exit = exit(plan, r.id, v, "walk", x, y, r.t1 + Anim.length(tr) + 0.6, WALK_V, 300 + i * 31, true)
+      end
+    end
+  end
+end
+
+-- the walk-offs still on the field when the last beat ended continue here (their clock shifted)
+local function carryExits(b, tl, plan)
+  if b.kind == "end" or not b.n or not tl or not tl.beats then return end
+  local prev = tl.beats[b.n - 1]
+  local pp = prev and prev.plan
+  if not pp then return end
+  local pd = prev.dur or 0
+  for _, list in ipairs({ pp.exits or {}, pp.carry or {} }) do
+    for i = 1, #list do
+      local e = list[i]
+      local t0 = e.t0 - pd
+      if -t0 * e.speed < e.D then
+        local c = {}
+        for k, v in pairs(e) do c[k] = v end
+        c.t0 = t0
+        plan.carry[#plan.carry + 1] = c
+      end
+    end
+  end
+end
+
 function Play.plan(b, tl)
   local plan = newPlan()
   b.plan = plan
   if b.kind == "p" then planPitch(b, tl, plan)
   elseif b.kind == "bip" then planBip(b, tl, plan)
   else planOther(b, tl, plan) end
+  runnerExits(b, plan)
+  carryExits(b, tl, plan)
   reactions(b, plan)
   if #plan.cams == 0 then cam(plan, 0, "pitch") end
   table.sort(plan.cams, function(a, c) return a.t < c.t end)
@@ -1020,8 +1112,8 @@ local function yawTo(x, y, tx, ty) return atan2(ty - y, tx - x) end
 local function yawOf(dx, dy, fallback) if (dx or 0) == 0 and (dy or 0) == 0 then return fallback end return atan2(dy, dx) end
 Play.yawTo = yawTo
 local function putTrack(R, variant, track, tt, x, y, z, flip, seed, vib, xrot, face)
-  if R.far then R:dot(x, y, (z or 0) + 3, false, true); return false end   -- blimp: a dot
-  if R.offscreen and R:offscreen(x, y, z or 0) then return false end      -- off screen: no work
+  if R.far then Pup.use(); R:dot(x, y, (z or 0) + 3, false, true); return false end   -- blimp: a dot
+  if R.offscreen and R:offscreen(x, y, z or 0) then Pup.use(); return false end      -- off screen: no work
   local tn, f, sx, sy, rot, dx, dy, kflip, piv, done = Anim.sample(track, tt, seed, vib)
   if not tn then local d = R.diag; if d then d.notrack = d.notrack + 1; d.lastNoTrack = track end; return true end
   if face then
@@ -1038,8 +1130,8 @@ end
 
 --- a held logical frame (puppets.lua MAP) with the per-puppet boil (+ optional vibrate)
 local function putIdle(R, variant, frame, x, y, z, flip, seed, n, vib, face)
-  if R.far then R:dot(x, y, (z or 0) + 3, false, true); return end
-  if R.offscreen and R:offscreen(x, y, z or 0) then return end
+  if R.far then Pup.use(); R:dot(x, y, (z or 0) + 3, false, true); return end
+  if R.offscreen and R:offscreen(x, y, z or 0) then Pup.use(); return end
   local dx, dy = Anim.boil(seed, n)
   if vib and vib > 0 then
     local vx, vy = Anim.vibrate(seed, n, vib)
@@ -1047,6 +1139,100 @@ local function putIdle(R, variant, frame, x, y, z, flip, seed, n, vib, face)
   end
   R:puppet(variant, frame, x, y, z or 0, flip, dx, dy, face, seed)
 end
+
+-- the next puppet's look (ballcast/looks.lua): body + stamps; extra = role bits (helmet)
+local HELMET <const> = 128
+local function look(L, extra)
+  if L then Pup.use(L.body, L.bits + (extra or 0)) else Pup.use() end
+end
+-- an idle logical frame with a held squash/lean (the batter's own stance)
+local function putIdleXf(R, variant, frame, x, y, flip, seed, n, vib, face, sx, sy, rot)
+  if R.far or (R.offscreen and R:offscreen(x, y, 0)) then return putIdle(R, variant, frame, x, y, 0, flip, seed, n, vib, face) end
+  local tn, f = Pup.tableOf(variant, frame)
+  if not tn then return putIdle(R, variant, frame, x, y, 0, flip, seed, n, vib, face) end
+  local dx, dy = Anim.boil(seed, n)
+  if vib and vib > 0 then
+    local vx, vy = Anim.vibrate(seed, n, vib)
+    dx, dy = dx + vx, dy + vy
+  end
+  R:puppetT(variant, tn, f, x, y, 0, flip, sx, sy, rot, dx, dy, 0, face, seed, false)
+end
+
+-- along a path: at time t the man has covered `d` of `D` ft, arriving at tArr (speed v);
+-- the first stretch is already behind him at t = 0 when the trip is longer than the beat allows
+local function trip(ax, ay, bx, by, t, tArr, v)
+  local D = sqrt((bx - ax) ^ 2 + (by - ay) ^ 2)
+  local d = D - v * (tArr - t)
+  if d <= 0 then return ax, ay, false, D end
+  if d >= D then return bx, by, true, D end
+  local u = d / D
+  return ax + (bx - ax) * u, ay + (by - ay) * u, nil, D
+end
+
+--- The half-inning changeover (beat kind "half", CHANGE_DUR long): the side coming in jogs from
+--- its positions to its dugout (outfielders already on their way at the cut), the side going
+--- out trots from its dugout to its spots (pitcher to the mound, catcher crouches, infielders
+--- take the ready stance), the umpire walks back behind the plate, and the base coaches swap
+--- (the new offense's walk out to the boxes, the old ones jog in). Pure function of tau.
+local OF <const> = { LF = true, CF = true, RF = true }
+local function drawChangeover(R, view, b, tau, n)
+  local inV, outV = offVariant(b), defVariant(b)    -- (pre is the NEW half: offense = coming in)
+  local people = view.people
+  for i = 1, #POSLIST do
+    local pos = POSLIST[i]
+    local a = ALIGN[pos]
+    local ax, ay = a[1], a[2]
+    if pos == "C" then ax, ay = 0, -3.2 elseif pos == "P" then ax, ay = 0, 60 end
+    -- coming in: arrives at the dugout mouth at tIn (then he's gone down the steps)
+    local dIn = DUGOUT[inV]
+    local tIn = 1.3 + i * 0.2 + (OF[pos] and 0.9 or 0)
+    local x, y, arrived = trip(ax, ay, dIn[1], dIn[2], tau, tIn, JOG_V)
+    if not arrived then
+      look(Looks.fielder(people, inV, pos))
+      local face = yawTo(x, y, dIn[1], dIn[2])
+      if arrived == false then putIdle(R, inV, "stand", x, y, 0, false, 700 + i, n, nil, face)
+      else putTrack(R, inV, "jog", tau + i * 0.13, x, y, 0, false, 700 + i, nil, nil, face) end
+    end
+    -- going out: leaves the dugout so he's at his spot by tOut
+    local dOut = DUGOUT[outV]
+    local tOut = 1.7 + i * 0.17 + (OF[pos] and 0.5 or 0)
+    local x2, y2, there = trip(dOut[1], dOut[2], ax, ay, tau, tOut, JOG_V)
+    if there ~= false then
+      local L = Looks.fielder(people, outV, pos)
+      look(L)
+      if there then
+        local face = yawTo(x2, y2, 0, 0)
+        if pos == "C" then putIdle(R, outV, "catcher", x2, y2, 0, false, 720 + i, n, nil, math.pi / 2)
+        elseif pos == "P" then putIdle(R, outV, "set", x2, y2, 0, L.lefty, 720 + i, n, nil, face)
+        else putIdle(R, outV, "ready", x2, y2, 0, false, 720 + i, n, nil, face) end
+      else
+        putTrack(R, outV, "jog", tau + i * 0.11, x2, y2, 0, false, 720 + i, nil, nil, yawTo(dOut[1], dOut[2], ax, ay))
+      end
+    end
+  end
+  -- the umpire: chatting up the line, back behind the plate by 2.4 s
+  look(nil)
+  local ux, uy, uthere = trip(-14, -12, 0, -6.6, tau, 2.4, 6)
+  if uthere then putIdle(R, "ump", "ump", 0, -6.6, 0, false, 51, n, nil, math.pi / 2)
+  else putIdle(R, "ump", (floor(tau * 3.5) % 2 == 0) and "stand" or "walk1", ux, uy, 0, false, 51, n, nil, yawTo(ux, uy, 0, -6.6)) end
+  -- base coaches: the new offense's walk out to the boxes, the old offense's jog in
+  for k = 1, 2 do
+    local c = COACH[k]
+    local dI, dO = DUGOUT[inV], DUGOUT[outV]
+    local x, y, there = trip(dI[1] * 0.6, 20, c[1], c[2], tau, 2.6 + k * 0.4, WALK_V)
+    look(Looks.coach(people, inV, k))
+    if there then putIdle(R, inV, "stand", x, y, 0, false, 740 + k, n, nil, yawTo(x, y, 0, 0))
+    else putTrack(R, inV, "walk", tau + k * 0.2, x, y, 0, false, 740 + k, nil, nil, yawTo(x, y, c[1], c[2])) end
+    local x2, y2, gone = trip(c[1], c[2], dO[1], dO[2], tau, 2.2 + k * 0.5, JOG_V)
+    if not gone then
+      look(Looks.coach(people, outV, k))
+      if gone == false then putIdle(R, outV, "stand", x2, y2, 0, false, 750 + k, n, nil, yawTo(x2, y2, dO[1], dO[2]))
+      else putTrack(R, outV, "jog", tau + k * 0.3, x2, y2, 0, false, 750 + k, nil, nil, yawTo(x2, y2, dO[1], dO[2])) end
+    end
+  end
+  look(nil)
+end
+Play.CHANGE_DUR = CHANGE_DUR
 
 -- pirouette: a quick untweened 360 (90/180/270 held 2 frames each), t = time since it began
 local SPIN_LEN <const> = 0.2
@@ -1548,6 +1734,48 @@ function Play.worldReport()
   worldAcc = {}
 end
 --- view: { defV, offV, incident, brawl }
+-- Idle business while a Pennant player decides (view.idleT = seconds the clock has been held).
+-- Untweened, like everything else: held poses switched on a schedule, per-player offsets so
+-- nobody moves in unison. Pure functions of (idle time, seed), so a replay of the same wait
+-- looks the same.
+local function idlePhase(it, period, seed) return (it + K.hash01(seed, 5) * period) % period end
+local IDLE_KINDS <const> = { p = true, pa = true, sub = true }      -- the batter is at the plate
+local NO_IDLE <const> = { half = true, ["end"] = true, inc = true }  -- nothing to idle
+
+--- The batter's business: waggle, a practice swing, stepping out, the batting gloves.
+--- Returns frame, dx (ft, away from the plate), vib.
+local function idleBatter(it, n)
+  local ph = idlePhase(it, 9.0, 61)
+  if ph < 2.4 then return "stance", 0, ((n // 4) % 2 == 0) and 1 or 0                  -- bat waggle
+  elseif ph < 2.7 then return "swing", 0, nil                                           -- a practice cut
+  elseif ph < 3.0 then return "follow", 0, nil
+  elseif ph < 4.8 then return "stance", 0, nil
+  elseif ph < 6.3 then return "stand", 2.2, nil                                         -- steps out
+  elseif ph < 7.0 then return "stance", 0, ((n // 2) % 2 == 0) and 1 or 0               -- gloves
+  end
+  return "stance", 0, nil
+end
+
+--- The pitcher: looking in, shaking one off, rubbing up the ball, a look over to first.
+--- Returns frame, face offset (rad), vib, lookFirst.
+local function idlePitcher(it, n, runnerOnFirst)
+  local ph = idlePhase(it, 7.5, 7)
+  if ph < 2.2 then return "set", 0, nil, false                                          -- looking in
+  elseif ph < 2.8 then return "set", ((n // 4) % 2 == 0) and 0.35 or -0.35, nil, false  -- shakes it off
+  elseif ph < 4.2 then return "ready", 0, ((n // 3) % 2 == 0) and 1 or 0, false         -- rubs up the ball
+  elseif ph < 5.0 and runnerOnFirst then return "set", 0, nil, true                     -- a look over
+  end
+  return "set", 0, nil, false
+end
+
+--- The catcher: signs (a twitchy glove hand), then sets a target.
+local function idleCatcher(it, n)
+  local ph = idlePhase(it, 5.0, 3)
+  if ph < 2.0 then return "catcher", ((n // 3) % 2 == 0) and 1 or 0 end
+  if ph < 3.4 then return "receive", nil end
+  return "catcher", nil
+end
+
 function Play.drawWorld(R, view, b, tau)
   WT[1] = clk()
   -- device check: one summary per scene at the first pitch (are the puppets really drawn?)
@@ -1569,20 +1797,33 @@ function Play.drawWorld(R, view, b, tau)
   local defV, offV = view.defV, view.offV
   local pre = b.pre
   local kt = keyTimes()
-  local n = floor(((b.start or 0) + tau) * FPS)    -- boil clock (global, so beats don't reset it)
+  local idleT = view.idleT
+  local idle = idleT and not NO_IDLE[b.kind] and idleT or nil
+  -- held at the end of a play (the next batter isn't in the timeline yet): draw the bases as the
+  -- play left them, and the man who's up (view.idleBat) at the plate
+  local between = idle and not IDLE_KINDS[b.kind]
+  local onFirst = ((between and b.post) or b.pre).b1 ~= nil
+  -- boil clock (global, so beats don't reset it; it keeps running while a player decides)
+  local n = floor(((b.start or 0) + tau + (idleT or 0)) * FPS)
   local big = plan.bigVib and 1 or nil              -- ejection / brawl: everyone's rattled
   local pv = plan.powerVib
   local powerOn = pv and tau >= pv.t0 and tau < pv.t1
   local isEnd = b.kind == "end"
+  local change = plan.change
+  local people = view.people
 
   WT[2] = clk()
   -- defense
   local pitchPlan = plan.pitch
   local relT = pitchPlan and pitchPlan.tRel or plan.relT
-  if not isEnd then
+  if change then
+    drawChangeover(R, view, b, tau, n)
+  elseif not isEnd then
     for i = 1, #POSLIST do
       local pos = POSLIST[i]
       local seed = i * 97 + 13
+      local L = (pos == "P" and pre.pit) and Looks.of(pre.pit, people) or Looks.fielder(people, defV, pos)
+      look(L)
       local x, y, moving, pe, dir, ddx, ddy = fielderAt(plan, pos, tau)
       local flip = moving and facesLeft(R, x, y, dir, 0)
       if view.brawl then
@@ -1601,15 +1842,22 @@ function Play.drawWorld(R, view, b, tau)
         end
       elseif plan.leap and plan.leap.pos == pos and tau >= plan.leap.t0 and tau < plan.leap.land then
         drawLeap(R, defV, plan.leap, x, y, tau, false, seed, yawTo(0, 0, x, y))
+      elseif pos == "P" and idle and not pe then
+        local fr, df, vib, glance = idlePitcher(idle, n, onFirst)
+        local face = glance and yawTo(0, 60, 63.64, 63.64) or (yawTo(0, 60, 0, 0) + df)
+        putIdle(R, defV, fr, 0, 60, 0, L.lefty, seed, n, vib or big, face)
+      elseif pos == "C" and idle and not pe then
+        local fr, vib = idleCatcher(idle, n)
+        putIdle(R, defV, fr, 0, -3.2, 0, false, seed, n, vib or big, FACE_CF)
       elseif pos == "P" and relT and not pe then
         -- windup: pitch_back's release key lands on the ball's release
         x, y = 0, 60
         local t0 = relT - kt.pitchRel
         local vib = (powerOn and pv.who == "P") and 1 or big
         local pf = yawTo(x, y, 0, 0)
-        if tau < t0 then putIdle(R, defV, "set", x, y, 0, false, seed, n, vib, pf)
-        elseif tau < relT + 0.8 then putTrack(R, defV, "pitch_back", tau - t0, x, y, 0, false, seed, vib, nil, pf)
-        else putIdle(R, defV, "ready", x, y, 0, false, seed, n, big, pf) end
+        if tau < t0 then putIdle(R, defV, "set", x, y, 0, L.lefty, seed, n, vib, pf)
+        elseif tau < relT + 0.8 then putTrack(R, defV, "pitch_back", tau - t0, x, y, 0, L.lefty, seed, vib, nil, pf)
+        else putIdle(R, defV, "ready", x, y, 0, L.lefty, seed, n, big, pf) end
       elseif pos == "C" and not pe then
         x, y = 0, -3.2
         if plan.reach and tau >= plan.receive - 0.25 and tau < plan.receive + 0.75 then
@@ -1638,7 +1886,12 @@ function Play.drawWorld(R, view, b, tau)
           local up = frame == "run2" and -1 or 0
           R:puppet(defV, frame, x, y, 0, false, 0, up, yawOf(ddx, ddy, 0), seed)
         else
-          putIdle(R, defV, frame, x, y, 0, false, seed, n, big, yawTo(x, y, 0, 0))
+          if idle then
+            -- shifting their weight: a half step one way, then back, each on his own clock
+            local ph = idlePhase(idle, 3.2 + (i % 3) * 0.7, seed)
+            if ph > 2.2 then x = x + ((i % 2 == 0) and 0.7 or -0.7) end
+          end
+          putIdle(R, defV, frame, x, y, 0, pos == "P" and L.lefty, seed, n, big, yawTo(x, y, 0, 0))
         end
       end
     end
@@ -1646,12 +1899,15 @@ function Play.drawWorld(R, view, b, tau)
 
   WT[3] = clk()
   -- umpire
+  look(nil)
   local uc = nil
   for i = 1, #plan.umpCalls do
     local c = plan.umpCalls[i]
     if tau >= c.t - kt.ump and tau < c.t + c.dur then uc = c end
   end
-  if view.incident == "EJECTION" and tau > 0.6 then
+  if change then
+    -- (drawChangeover walked him back behind the plate)
+  elseif view.incident == "EJECTION" and tau > 0.6 then
     -- "YER OUTTA HERE": the punch-out, over and over, shaking
     putTrack(R, "ump", "ump_strike", kt.ump + (tau - 0.6) % 0.7, 0, -6.6, 0, false, 51, 2, nil, FACE_CF)
   elseif uc then
@@ -1669,28 +1925,53 @@ function Play.drawWorld(R, view, b, tau)
   -- batter (until he becomes a runner)
   local batterRunning = false
   for i = 1, #plan.runners do if plan.runners[i].from == 0 and tau >= plan.runners[i].t0 then batterRunning = true end end
-  if b.kind ~= "half" and not isEnd and pre.bat and not batterRunning and not view.brawl then
+  local bx0 = plan.batterExit
+  if between and view.idleBat then
+    local side = batSide(view.idleBat)
+    look(Looks.of(view.idleBat, people), HELMET)
+    local x, y, fl = -side * 3.2, 0.2, side < 0
+    local fr, dx, ivib = idleBatter(idle, n)
+    putIdle(R, offV, fr, x - side * dx, y - (dx > 0 and 1.2 or 0), 0, fl, 61, n, ivib or big, side < 0 and math.pi or 0)
+  elseif b.kind ~= "half" and not isEnd and pre.bat and not batterRunning and not view.brawl
+      and not (bx0 and tau >= bx0.t0) then
     local side = batSide(pre.bat)
+    local BL = Looks.of(pre.bat, people)
+    look(BL, HELMET)
+    local st = BL.stance
     -- RHB stands on the 3B side (x < 0); the table is a RHB as seen from CF
     local x, y, fl = -side * 3.2, 0.2, side < 0
     local bf = side < 0 and math.pi or 0         -- faces the plate (lefties: mirrored figure)
     local seed = 61
     local vib = (powerOn and pv.who == "B") and 1 or big
     if plan.kT and tau > plan.kT and tau < plan.kT + 0.5 then vib = 1 end   -- strikeout: a jolt
-    if b.kind == "bip" then
+    if idle then
+      local fr, dx, ivib = idleBatter(idle, n)
+      putIdle(R, offV, fr, x - side * dx, y - (dx > 0 and 1.2 or 0), 0, fl, seed, n, ivib or vib, bf)
+    elseif b.kind == "bip" then
       if plan.homerBatter then putTrack(R, offV, "homer_batter", tau, x, y, 0, fl, seed, vib, nil, bf)
       else putTrack(R, offV, "swing", kt.swingLen + tau, x, y, 0, fl, seed, vib, nil, bf) end
     elseif plan.hbp and tau >= plan.hbp then
       putTrack(R, offV, "pratfall", tau - plan.hbp, x, y, 0, fl, seed, 1, nil, bf)
     elseif plan.swing then
       local t0 = plan.swing + 0.12 - kt.swingHit
-      if tau < t0 then putIdle(R, offV, "stance", x, y, 0, fl, seed, n, vib, bf)
+      if tau < t0 then putIdleXf(R, offV, "stance", x, y, fl, seed, n, vib, bf, st[1], st[2], st[3])
       elseif plan.hyperWhiff and tau > t0 + kt.swingLen then
         -- swung so hard he corkscrewed himself into the dirt
         putTrack(R, offV, "pratfall", tau - t0 - kt.swingLen, x, y, 0, fl, seed, 1, nil, bf)
       else putTrack(R, offV, "swing", tau - t0, x, y, 0, fl, seed, vib, nil, bf) end
+    elseif plan.walkUp and tau < plan.walkUp.t1 + Anim.length("practice") + 0.05 then
+      local wu = plan.walkUp
+      if tau < wu.t1 then
+        -- up from the on-deck circle (TV-cheated close), bat on the shoulder
+        local od = ONDECK[offV]
+        local u = tau / wu.t1
+        local wx, wy = od[1] + (x - od[1]) * u, od[2] + (y - od[2]) * u
+        putTrack(R, offV, "walk", tau, wx, wy, 0, false, seed, nil, nil, yawTo(wx, wy, x, y))
+      else
+        putTrack(R, offV, "practice", tau - wu.t1, x, y, 0, fl, seed, nil, nil, bf)
+      end
     else
-      putIdle(R, offV, "stance", x, y, 0, fl, seed, n, vib, bf)
+      putIdleXf(R, offV, "stance", x, y, fl, seed, n, vib, bf, st[1], st[2], st[3])
     end
   end
 
@@ -1702,24 +1983,43 @@ function Play.drawWorld(R, view, b, tau)
   for i = 1, #plan.runners do movingIds[plan.runners[i].id] = true end
   local bases = view.bases or {}
   view.bases = bases
-  bases[1], bases[2], bases[3] = pre.b1, pre.b2, pre.b3
+  local bst = (between and b.post) or pre
+  bases[1], bases[2], bases[3] = bst.b1, bst.b2, bst.b3
+  if between then for k in pairs(movingIds) do movingIds[k] = nil end end
   if not isEnd then
     for bi = 1, 3 do
       local id = bases[bi]
       if id and not movingIds[id] then
         local x, y = basePos(bi)
-        putIdle(R, offV, "stand", x - 4, y - 2, 0, false, 200 + bi * 7, n, big, yawTo(x - 4, y - 2, 0, 0))
+        look(Looks.of(id, people), HELMET)
+        if idle then
+          -- leading off: a shuffle step at a time toward the next base (back when the pitcher looks)
+          local _, _, _, glance = idlePitcher(idle, n, onFirst)
+          local steps = glance and 0 or math.min(3, floor(idlePhase(idle, 7.5, 7) / 0.6))
+          local nx, ny = basePos(bi == 3 and 4 or bi + 1)
+          local dx, dy = nx - x, ny - y
+          local l = sqrt(dx * dx + dy * dy)
+          x, y = x + dx / l * steps * 2.2, y + dy / l * steps * 2.2
+          putIdle(R, offV, steps > 0 and "ready" or "stand", x, y - 2, 0, false, 200 + bi * 7, n, big, yawTo(x, y - 2, nx, ny))
+        else
+          putIdle(R, offV, "stand", x - 4, y - 2, 0, false, 200 + bi * 7, n, big, yawTo(x - 4, y - 2, 0, 0))
+        end
       end
     end
   end
   WT[6] = clk()
-  -- moving runners
-  for i = 1, #plan.runners do
+  -- moving runners (between plays they're on their bases, drawn above)
+  for i = 1, (between and 0 or #plan.runners) do
     local r = plan.runners[i]
     local x, y, mv = runnerPos(r, tau)
     local seed = 300 + i * 31
-    if r.to == 4 and tau > r.t1 + ((plan.homerBatter or b.walkoff) and 1.4 or 0.8) then x = nil end
-    if r.to == -1 and tau > r.t1 + 1.6 then x = nil end
+    if r.exit then
+      if tau >= r.exit.t0 then x = nil end       -- walking / jogging off (the exits below)
+    else
+      if r.to == 4 and tau > r.t1 + ((plan.homerBatter or b.walkoff) and 1.4 or 0.8) then x = nil end
+      if r.to == -1 and tau > r.t1 + 1.6 then x = nil end
+    end
+    look(Looks.of(r.id, people), HELMET)
     if x then
       local nx, ny = basePos(math.min(r.target, r.from + 1 + floor(max(0, (tau - r.t0) * r.speed) / 90)))
       local rf = yawOf(nx - x, ny - y, yawTo(x, y, 0, 0))   -- toward the next base
@@ -1762,6 +2062,31 @@ function Play.drawWorld(R, view, b, tau)
     end
   end
 
+  -- walk-offs: the batter after a K or an out, runners put out, runs that scored, on their way to
+  -- the dugout (this beat's and the ones still going from earlier beats)
+  if not isEnd and not view.brawl then
+    for li = 1, 2 do
+      local list = li == 1 and plan.exits or plan.carry
+      for i = 1, #list do
+        local e = list[i]
+        local x, y = exitPos(e, tau)
+        if x then
+          look(Looks.of(e.id, people), e.helmet and HELMET or 0)
+          putTrack(R, e.v, e.track, tau - e.t0 + e.seed * 0.01, x, y, 0, false, e.seed, nil, nil, yawTo(x, y, e.x1, e.y1))
+        end
+      end
+    end
+  end
+  -- the base coaches in their boxes (the changeover walks them out)
+  if not change and not isEnd and not view.brawl then
+    for k = 1, 2 do
+      local c = COACH[k]
+      look(Looks.coach(people, offV, k))
+      putIdle(R, offV, "stand", c[1], c[2], 0, false, 740 + k, n, big, yawTo(c[1], c[2], 0, 0))
+    end
+  end
+  look(nil)
+
   WT[7] = clk()
   -- walk-off: the dugout empties onto home plate
   if b.walkoff and plan.scoreT and tau > plan.scoreT then
@@ -1771,6 +2096,7 @@ function Play.drawWorld(R, view, b, tau)
       local ph = tau - plan.scoreT + K.hash01(i, 4) * 0.6
       local len = Anim.length(tr) + 0.3
       local tw = (i % 3 == 0) and spinRot((tau + i * 0.41) % 1.7) or 0
+      look(Looks.fielder(people, offV, POSLIST[i]))
       putTrack(R, offV, tr, ph % len, cos(a) * 7, 4 + sin(a) * 5, 0, false, 600 + i, 1, tw, yawTo(cos(a) * 7, 4 + sin(a) * 5, 0, 4))
     end
   end
@@ -1784,9 +2110,11 @@ function Play.drawWorld(R, view, b, tau)
       local tr = MOB_TRACKS[1 + i % #MOB_TRACKS]
       local len = Anim.length(tr) + 0.25 + K.hash01(i, 5) * 0.4
       local tw = (i % 4 == 1) and spinRot((tau + i * 0.53) % 2.1) or 0
+      look(Looks.fielder(people, winV, POSLIST[i]))
       putTrack(R, winV, tr, (tau + K.hash01(i, 8) * 2) % len, cos(a) * 10, 58 + sin(a) * 8, 0, false, 500 + i, 1, tw, yawTo(cos(a) * 10, 58 + sin(a) * 8, 0, 58))
     end
   end
+  look(nil)
   if b.kind == "half" or isEnd then
     putTrack(R, "home", "mascot_wave", tau, 62, 22, 0, false, 777)
   end
@@ -1844,16 +2172,18 @@ function Play.drawWorld(R, view, b, tau)
   WT[11] = clk()
   -- calls ("OUT!", "SAFE!") take the moment: no nametags while one is up
   local popUp = false
+  -- (a player deciding with the clock held: the last call has had its moment)
+  local popsDone = view.idleT and view.idleT > 1.2
   for i = 1, #plan.pops do
     local p = plan.pops[i]
-    if tau >= p.t and tau <= p.t + p.dur then popUp = true break end
+    if not popsDone and tau >= p.t and tau <= p.t + p.dur then popUp = true break end
   end
   if view.tags and not popUp and not isEnd and b.kind ~= "half" and b.kind ~= "inc" then drawTags(R, view, b, tau) end
 
   WT[12] = clk()
   -- popups ("OUT!", "SCORES!")
   local font = K.fonts.nb
-  for i = 1, #plan.pops do
+  for i = 1, (popsDone and 0 or #plan.pops) do
     local p = plan.pops[i]
     if tau >= p.t and tau <= p.t + p.dur then
       local sx, sy = R:project(p.x, p.y, p.z)
@@ -1885,6 +2215,89 @@ function Play.drawWorld(R, view, b, tau)
   end
 end
 
+--- The changeover's cameras → eye, target, fov: high home, the plate at the bottom of the frame
+--- (clear of the TOP/BOT pill and the win panel), the dugout mouths just past the left and right
+--- edges: the side coming in jogs out of the frame, the side going out trots in from the edges.
+--- k = 1 wide, a little toward the side coming in; k = 2 cut in tighter as they take their spots. Both
+--- held still (the park render cache then reuses the frame).
+--- (The camera check: Play.changeoverPrepare below, Cam.isClear on Play.changeoverPts().)
+local CO_WIDE = { [1] = { { 14, -92, 56 }, { 6, 66, 0 } }, [-1] = { { -14, -92, 56 }, { -6, 66, 0 } } }
+local CO_TIGHT_E, CO_TIGHT_T = { 0, -80, 44 }, { 0, 70, 0 }
+local function coBase(top, k)
+  if k == 1 then
+    local w = CO_WIDE[top and -1 or 1]          -- leaning toward the side coming in (away: 3B side)
+    return w[1], w[2], 64
+  end
+  return CO_TIGHT_E, CO_TIGHT_T, 54
+end
+
+-- Per park, each changeover camera checked once (Play.changeoverPrepare, from the loader) with
+-- the camera agent's Cam.isClear: the eye as designed, else pulled in over the foul ground,
+-- else that and raised. Without the check (no loader step yet) the cheap rule applies: an eye
+-- off the field is pulled in.
+local coClear = {}   -- park id -> { ["1/1"] = eye, ... }
+local function coCandidates(park, e, t)
+  local Cam = BallCast.Cam
+  local x, y = Cam.pullIn(park, e[1], e[2], t[1], t[2], 12)
+  return { { e[1], e[2], e[3] }, { x, y, e[3] }, { x, y, e[3] + 25 } }
+end
+
+--- loader step: pick (and cache) a clear eye for one changeover camera in this park
+function Play.changeoverPrepare(park, top, k)
+  local Cam = BallCast.Cam
+  local pid = park and park.id or "park-farm"
+  coClear[pid] = coClear[pid] or {}
+  local e, t, fov = coBase(top, k)
+  local cands = coCandidates(park, e, t)
+  local pick = cands[#cands]
+  for _, c in ipairs(cands) do
+    local cam = Cam.safeEye(park, { c[1], c[2], c[3], t[1], t[2], t[3], fov })
+    if Cam.isClear(park, cam, Play.changeoverPts()) then pick = c break end
+  end
+  coClear[pid][(top and 1 or 0) .. "/" .. k] = pick
+  return pick
+end
+
+function Play.changeoverShot(r, b, tau, k)
+  local e, t, fov = coBase(b.pre.top, k)
+  local park = r and r.park
+  local pid = park and park.id or "park-farm"
+  local c = coClear[pid] and coClear[pid][(b.pre.top and 1 or 0) .. "/" .. k]
+  if c then return c, t, fov end
+  if park and BallCast.Cam.pullIn then
+    local x, y = BallCast.Cam.pullIn(park, e[1], e[2], t[1], t[2], 12)
+    if x ~= e[1] or y ~= e[2] then return { x, y, e[3] }, t, fov end
+  end
+  return e, t, fov
+end
+
+--- Field points the changeover shot must keep in view (for a camera "is the eye clear of the
+--- action" check, e.g. the camera agent's Cam.clearOfAction(park, cam, pts)): the mound, the
+--- plate, the bags and both dugout mouths, at puppet waist height.
+function Play.changeoverPts()
+  local pts = { { 0, 60, 3 }, { 0, 0, 3 } }
+  for n = 1, 3 do local x, y = basePos(n); pts[#pts + 1] = { x, y, 3 } end
+  pts[#pts + 1] = { DUGOUT.home[1], DUGOUT.home[2], 3 }
+  pts[#pts + 1] = { DUGOUT.away[1], DUGOUT.away[2], 3 }
+  return pts
+end
+
+--- B during a changeover in a local game (Pennant): jump to the next beat (and fold away the
+--- between-innings cards). → true when it skipped. Replays keep B = back.
+function Play.skipChangeover(scene)
+  if not (scene.src and scene.mode == "watch" and scene.tl) then return false end
+  local TL = BallCast.Timeline
+  local bi = TL.beatAt(scene.tl, scene.t)
+  local b = bi and scene.tl.beats[bi]
+  if not b or not b.plan or not b.plan.change then return false end
+  local TV = BallCast.TV
+  local holding = TV and TV.holding and TV.holding()
+  if not holding and scene.t - b.start > b.dur - 0.25 then return false end
+  if holding and TV.interrupt then TV.interrupt() end
+  scene.t = math.min(scene.tl.total, b.start + b.dur)
+  return true
+end
+
 --- The lead runner's position at tau (the one still running, farthest along), or nil.
 function Play.leadRunner(plan, tau)
   local best, bx, by = -1, nil, nil
@@ -1902,6 +2315,10 @@ end
 --- Bounding box (field ft) of what matters at tau: the ball, fielders with a catch/throw
 --- around now (and where they're headed), moving runners. → x0, x1, y0, y1, ballZ | nil
 function Play.interest(plan, tau)
+  -- the changeover: high home, held on the infield (the "high" shot then sits at its widest,
+  -- aimed at (0, 40): the plate, the mound and the bags; the dugout mouths are just off the
+  -- edges, so the side coming in jogs out of frame). A held camera lets the park cache reuse it.
+  if plan.change then return -60, 60, 10, 70, 0 end
   local x0, x1, y0, y1 = 1e9, -1e9, 1e9, -1e9
   local n = 0
   local function add(x, y)

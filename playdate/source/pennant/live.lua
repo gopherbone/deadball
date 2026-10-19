@@ -159,9 +159,9 @@ end
 
 -- Situations --------------------------------------------------------------------------------------------
 
-function Live:caughtUp(scene)
+function Live:caughtUp(scene, early)
   local tl = scene.tl
-  return tl and scene.t >= tl.total - 0.05 and not scene:timelinePending()
+  return tl and scene.t >= tl.total - 0.05 - (early or 0) and not scene:timelinePending()
 end
 
 --- Would a manager want the menu here?
@@ -261,7 +261,8 @@ function Live:frame(scene, bi, b, tau, dt)
   local p = self.pause
   if p.reason == "done" then return nil end
   if p.reason == "pa" then
-    if not self:caughtUp(scene) then return nil end
+    -- (the manager's call comes up during the batter's walk-up, not half a second after it)
+    if not self:caughtUp(scene, 0.55) then return nil end
     if not self.ui then
       if self:interesting(p) then
         local items, sel, sug = self:menuItems(p)
@@ -309,19 +310,73 @@ end
 
 -- Input --------------------------------------------------------------------------------------------------
 
-function Live:input(scene, btn, change)
+-- Input: one whitelist gate -------------------------------------------------------------------------------
+-- A Pennant game owns every input (Live.ownsInput: ballcast/scene.lua never falls through to its replay
+-- controls: no crank scrub, no at-bat seek, no speed, no play/pause, no game log). Each state allows
+-- only the inputs below; anything else is swallowed. See docs/PENNANT_INPUT_MAP.md.
+-- (D-pad aiming in the Arcade panels and the B hold in Scout batting are polled in their own frames.)
+Live.ownsInput = true
+Live.INPUT_MAP = {
+  menu = { up = true, down = true, A = true, B = true },                 -- time-out menu
+  final = { A = true, B = true },                                        -- final card: on to the box score
+  help = { A = true },                                                   -- how-to card: A dismisses
+  dugout = { up = true, down = true, A = true, B = true },               -- manager's call (B: back / time out)
+  bat_arcade = { A = true, AUp = true, B = true, crank = true },         -- swing / power swing, crank = cursor height
+  bat_scout = { up = true, down = true, left = true, right = true, A = true, B = true },  -- approach; B tap/hold polled
+  pitch_arcade = { A = true, B = true, crank = true },                   -- crank = pitch, A = meter, d-pad polled
+  pitch_scout = { up = true, down = true, left = true, right = true, A = true, AUp = true, B = true, crank = true },
+  play = { B = true },                                                   -- ball in play / between batters: B = time out
+}
+
+--- (scene hook) Waiting on the player with the clock held: BallCast keeps the world alive (idle
+--- puppets, slow decision angles). Not the time-out menu (the picture freezes under it) or the final.
+function Live:idleDecision(scene)
+  if self.menu or self.simming or self.finished then return false end
+  if not self:caughtUp(scene) then return false end   -- (the walk-up still playing: let it)
+  if self.pause and self.pause.reason == "done" then return false end
+  if self.help then return true end
   local u = self.ui
-  if self.menu then return self:menuInput(scene, btn, change) end
-  if self.pause and self.pause.reason == "done" and self:caughtUp(scene) and (btn == "A" or btn == "B") then
-    self:finish()
+  return u ~= nil and (u.kind == "dugout" or u.kind == "bat_scout" or u.kind == "pitch_arcade" or u.kind == "pitch_scout")
+end
+
+--- (scene hook) The strip of the screen our panels leave free, for BallCast's decision angles.
+function Live:decisionFrame()
+  local u = self.ui
+  if u and u.kind == "dugout" then return 4, 224 end                 -- the dugout panel is on the right
+  if u and (u.kind == "pitch_arcade" or u.kind == "pitch_scout" or u.kind == "bat_scout") then return 96, 292 end  -- card left, zone right
+  return 4, 396
+end
+
+--- (scene hook) Who's up while we wait (BallCast's id), for the idle batter and the decision angles.
+function Live:idleBatter()
+  local i = self.pause and self.pause.info
+  return i and i.batter and i.batter.id or nil
+end
+
+--- The input state right now (a key of Live.INPUT_MAP).
+function Live:inputState(scene)
+  if self.menu then return "menu" end
+  if self.pause and self.pause.reason == "done" then return "final" end
+  if self.help then return "help" end
+  local u = self.ui
+  if u and Live.INPUT_MAP[u.kind] then return u.kind end
+  return "play"
+end
+
+function Live:input(scene, btn, change)
+  local st = self:inputState(scene)
+  if PennantLive.onInput then PennantLive.onInput(st, btn) end
+  if not Live.INPUT_MAP[st][btn] then return true end
+  local u = self.ui
+  if st == "menu" then self:menuInput(scene, btn, change) return true end
+  if st == "final" then
+    if self:caughtUp(scene) then self:finish() end
     return true
   end
-  if u and u.kind == "dugout" then return self:dugoutInput(scene, btn) end
-  if self.help or (u and u.kind ~= "dugout") then
-    if self:controlInput(scene, btn, change) then return true end
-  end
-  if btn == "B" then self:openMenu() return true end
-  return false
+  if st == "dugout" then self:dugoutInput(scene, btn) return true end
+  if st == "play" then self:openMenu() return true end
+  self:controlInput(scene, btn, change)
+  return true
 end
 
 function Live:dugoutInput(scene, btn)
@@ -583,7 +638,7 @@ function Live:draw(scene, bi, b, tau)
     Text.draw("SIMULATING...", 200, 105, F().bold, nil, "center")
   end
   local u = self.ui
-  if u and u.kind == "dugout" and self:caughtUp(scene) then
+  if u and u.kind == "dugout" and self:caughtUp(scene, 0.55) then
     local list = u.sub or u.items
     local h = 62 + #list * 15
     self:cached("d" .. tostring(u.sub ~= nil) .. (u.sub and u.subSel or u.sel) .. ":" .. tostring(self.pause), 226, math.max(20, 200 - h), 172, h + 2, function() self:drawDugout() end)

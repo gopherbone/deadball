@@ -298,10 +298,13 @@ end
 --- BallCast's view of the people in a game and the park.
 function PL.people(spec)
   local people = {}
+  local L_players = Pennant and Pennant.L and Pennant.L.players
   for _, key in ipairs({ "home", "away" }) do
     local s = spec[key]
     for id, v in pairs(s.p) do
-      people[v.id] = { id = v.id, name = v.name, face = v.face, teamAbbr = s.abbr, pos = s.field[id] or v.pos }
+      local q = L_players and L_players[id]
+      people[v.id] = { id = v.id, name = v.name, face = v.face, teamAbbr = s.abbr, pos = s.field[id] or v.pos,
+        bats = v.bats, throws = v.throws, num = q and PM.uniform(q) or nil }
     end
   end
   return people

@@ -581,8 +581,15 @@ end
 ---------------------------------------------------------------------------
 -- input
 
+-- A local source (Pennant) may own every input: then nothing below reaches the replay controls
+-- (seek, scrub, speed, pause, the game log, the intro menu, B = leave), in any mode.
 local function hook(self, name, ...)
-  return self.src and self.src.input and self.mode == "watch" and self.src:input(self, name, ...)
+  local src = self.src
+  if not src then return false end
+  if src.input and self.mode == "watch" then
+    if src:input(self, name, ...) then return true end
+  end
+  return src.ownsInput == true
 end
 
 function S:AButtonDown()
@@ -615,6 +622,7 @@ function S:AButtonUp()
 end
 
 function S:BButtonDown()
+  if Play.skipChangeover and Play.skipChangeover(self) then return end   -- (local games: B skips it)
   if hook(self, "B") then return end
   TV.interrupt()
   if self.logOpen then self:closeLog() return end
@@ -708,6 +716,36 @@ function S:cranked(change)
   local mult = abs(change) > 20 and 3 or 1
   self.t = K.clamp(self.t + change / 360 * 12 * mult, 0, self.tl.total)
   self.scrubT = playdate.getCurrentTimeMilliseconds()
+end
+
+---------------------------------------------------------------------------
+-- decision angles (a local source waiting on its player: see S:update)
+
+-- Held angles with a stepped push-in (each step a cut, animatic style: most frames hold the camera
+-- exactly, so the park render cache reuses the frame). R3.shot "decision" frames them and checks the
+-- batter and the pitcher are both in the picture (else the next angle).
+local DECISION <const> = { "overShoulder", "catcherView", "lowBox", "dugoutLook" }
+local DEC_HOLD <const>, DEC_STEP <const> = 4.8, 0.8
+function S:decisionCam(b)
+  local it = self.idleT or 0
+  local d = self.decision
+  if not d then
+    d = { k = floor(K.hash01(b.i or 1, 91) * #DECISION) }
+    self.decision = d
+  end
+  local idx = floor(it / DEC_HOLD)
+  local step = floor((it - idx * DEC_HOLD) / DEC_STEP)
+  local key = idx * 100 + step
+  if d.key ~= key then
+    d.key = key
+    d.cc = { name = "decision", opt = { kind = DECISION[(d.k + idx) % #DECISION + 1], step = step, side = (idx % 2 == 0) and 1 or -1, i = idx,
+      bat = self.src and self.src.idleBatter and self.src:idleBatter() or nil } }
+    -- the free strip of the screen (the source's panels cover the rest)
+    if self.src and self.src.decisionFrame then d.cc.opt.x0, d.cc.opt.x1 = self.src:decisionFrame() end
+    -- a murmur now and then while they wait
+    if step == 0 and idx > 0 and K.hash01(b.i or 1, idx) < 0.5 then Audio.sfx(K.hash01(idx, 7) < 0.6 and "c_murmur" or "c_clap", 0.3) end
+  end
+  return d.cc
 end
 
 ---------------------------------------------------------------------------
@@ -894,6 +932,25 @@ function S:update()
   self.lastTau = tau
   Audio.update(quiet)
 
+  -- a local source waiting on its player with the clock held (Pennant: the dugout's call, the
+  -- approach, the pitch): the world stays alive (Play: idle puppets; decision camera angles)
+  local idle = self.src and self.src.idleDecision and self.src:idleDecision(self)
+  if idle then self.idleT = (self.idleT or 0) + dt else self.idleT, self.decision = nil, nil end
+
+  -- the decision idle runs the world at 15 fps (animatic, and half the cost): every other frame
+  -- re-shows the last rendered one, with the source's panels drawn live on top
+  if self.idleT then
+    self.idleFrame = (self.idleFrame or 0) + 1
+    if self.idleFrame % 2 == 1 and self.idleImg then
+      self.idleImg:draw(0, 0)
+      if self.src.draw then self.src:draw(self, bi, b, tau) end
+      self:backgroundLoad(now, 27)
+      return
+    end
+  else
+    self.idleImg, self.idleFrame = nil, nil
+  end
+
   -- a local source may freeze the picture under a static panel (time-out menu, final card):
   -- blit the last rendered frame instead of re-rendering the world
   local frz = self.src and self.src.freeze and self.src:freeze(self, bi, b, tau)
@@ -913,6 +970,7 @@ function S:update()
 
   -- camera
   local cc = Play.camAt(b.plan, tau)
+  if self.idleT and self.idleT > 0.4 then cc = self:decisionCam(b) end
   local camName = cc.name
   local incident = (b.kind == "inc") and b.e.kind or (cc.opt and cc.opt.incident)
   local shakeX, shakeY = 0, 0
@@ -972,6 +1030,9 @@ function S:update()
     view.brawl = incident == "BRAWL" and camName == "high"
     view.people = self.meta.people
     view.tags = self.tagsOn ~= false
+    view.idleT = self.idleT
+    -- (who's up: at a pause between plays the timeline doesn't have him yet)
+    view.idleBat = self.idleT and self.src and self.src.idleBatter and self.src:idleBatter() or nil
     local tw = playdate.getElapsedTime()
     Play.drawWorld(R, view, b, tau)
     self.profWorld = (playdate.getElapsedTime() - tw) * 1000
@@ -984,6 +1045,7 @@ function S:update()
   TV.overlay(self, bi, b, tau, camName, slo, dt)
   if self.logOpen then Log.draw() end
   if frz and not self.frozenImg then self.frozenImg = gfx.getWorkingImage() end
+  if self.idleT then self.idleImg = gfx.getWorkingImage() end
   if self.src and self.src.draw then self.src:draw(self, bi, b, tau) end
   self.profHud = (playdate.getElapsedTime() - th) * 1000
   self:backgroundLoad(now, 27)
@@ -1227,7 +1289,7 @@ function S:drawIntro()
   local R = self.R
   if self.live3d then
     local a = math.rad(-30 + (playdate.getCurrentTimeMilliseconds() % 60000) / 1000 * 4)
-    R:setCamera({ math.sin(a) * 280, -math.cos(a) * 280 + 60, 110, 0, 170, 10, 50 })
+    R:setCamera(Cam.introOrbit(self.meta and self.meta.park, a))
     R:background(0, 0, 0.3)
   else
     R:use("high")

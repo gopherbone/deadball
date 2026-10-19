@@ -127,7 +127,12 @@ function PEng.peopleOf(spec)
     local t = spec[k]
     local field = {}
     for _, s in ipairs(t.lineup or {}) do field[s.id] = s.pos end
-    for _, p in ipairs(t.players) do out[p.id] = { id = p.id, name = p.name, face = p.face, teamAbbr = t.abbr, pos = field[p.id] or p.pos } end
+    for _, p in ipairs(t.players) do
+      -- (hand and uniform number for BallCast's player looks)
+      local q = Pennant and Pennant.L and Pennant.L.players[PEng.nid(p.id) or -1]
+      out[p.id] = { id = p.id, name = p.name, face = p.face, teamAbbr = t.abbr, pos = field[p.id] or p.pos,
+        bats = q and q.bats or p.bats, throws = q and q.throws or p.throws, num = q and PM.uniform(q) or nil }
+    end
   end
   return out
 end

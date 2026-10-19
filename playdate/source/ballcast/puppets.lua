@@ -241,9 +241,9 @@ end
 -- a new chunk starts when the next row would pass CHUNK_CAP cells.
 local VIEW_SETS <const> = { { "pitcher_seq", 6, true }, { "batter_seq", 6, true }, { "catcher", 3, true },
   { "umpire", 3, false }, { "fielder", 6, true }, { "runner", 7, true }, { "runner_seq", 4, true },
-  { "catcher_reach", 14, true, { 0, 2, 4, 6 } } }      -- [4] = view subset (else all 8)
+  { "catcher_reach", 14, true, { 0, 2, 4, 6 } }, { "walker", 6, true } }      -- [4] = view subset (else all 8)
 local CLOSE_2X <const> = { pitcher_seq = true, batter_seq = true, catcher = true, umpire = true, fielder = true,
-  catcher_reach = true }
+  catcher_reach = true, walker = true }
 local LEGACY_ROWS <const> = { { "accent", 4 }, { "accent_away", 4 }, { "fan", 4 }, { "mascot", 2 }, { "streaker", 2 } }
 local CHUNK_CAP <const> = { 112, 46 }
 local NVIEWS <const> = 8
@@ -253,7 +253,8 @@ local LEGACY_VIEW <const> = {
   pitcher_back_seq = { "pitcher_seq", 4 }, pitcher_side_seq = { "pitcher_seq", 6 },
   batter = { "batter_seq", 1, { 1, 4, 6 } }, batter_seq = { "batter_seq", 1 },
   catcher = { "catcher", 0 }, umpire = { "umpire", 0 }, fielder = { "fielder", 6 },
-  runner = { "runner", 6 }, runner_seq = { "runner_seq", 6 }, catcher_reach = { "catcher_reach", 0 } }
+  runner = { "runner", 6 }, runner_seq = { "runner_seq", 6 }, catcher_reach = { "catcher_reach", 0 },
+  walker = { "walker", 6 } }
 -- sets with a view subset: k (0..7) -> nearest shipped view
 local VIEWMAP = {}
 for _, vs in ipairs(VIEW_SETS) do
@@ -450,9 +451,10 @@ local ids, idsT, invs, nextId = {}, {}, {}, 1
 local MAX_IDS <const> = 250
 local owners, used = {}, {}
 local tick = 0
-function P.frameDone() tick = tick + 1 end
+local pendBody, pendLook = 1, 0
+function P.frameDone() tick = tick + 1; pendBody, pendLook = 1, 0 end
 local function own(id, t, k) local o = owners[id]; o[#o + 1] = t; o[#o + 1] = k end
-P.nReg, P.nRecycle, P.nProc = 0, 0, 0
+P.nReg, P.nRecycle, P.nProc, P.nLooked = 0, 0, 0, 0
 -- C registry generation: bumped by every bc3d.reset (whoever calls it). An id registered in an
 -- older generation is gone from C, so the Lua caches are dropped and the cell re-registered
 -- (P.staleIds counts it; it should stay 0). held[id] pins the images C points at.
@@ -473,7 +475,53 @@ function P.live(id)
   P.badDraws = P.badDraws + 1
   return false
 end
-local function register(i1, i2, ax, ay, inv)
+---------------------------------------------------------------------------
+-- Player looks (ballcast/looks.lua): body type = a width factor + figure height baked into the
+-- sprite's C size caches (one more sprite id per body that's on screen; no per-frame cost), the
+-- rest (skin dither, facial hair, socks, sleeves, helmet, number) = C stamps on the billboard
+-- (bc3d look bits) placed by per-cell landmarks (images/puppets/landmarks.json).
+-- P.use(body, look) applies to the NEXT puppet queued (render3d's puppet/puppetT → idT + bb).
+local BODY <const> = { { 1, 1 }, { 0.9, 1.06 }, { 1.14, 0.96 } }   -- width factor, height factor
+P.BODY = BODY
+function P.use(body, look) pendBody, pendLook = body or 1, look or 0 end
+local LM = nil      -- "set#view" → landmark string (24 chars a frame)
+local function loadLandmarks()
+  if LM then return LM end
+  LM = {}
+  local path = "images/puppets/landmarks.json"
+  local doc = playdate.file.exists(path) and json.decodeFile(path) or nil
+  if doc and doc.cells then LM = doc.cells end
+  return LM
+end
+P.loadLandmarks = loadLandmarks
+local function landmarksFor(tname, f)
+  local L = LM or loadLandmarks()
+  local key
+  if tname:sub(1, 1) == "@" then key = tname:sub(2)
+  else
+    local lv = LEGACY_VIEW[tname]
+    if not lv then return nil end
+    key = lv[1] .. "#" .. lv[2]
+    if lv[3] then f = lv[3][f] or f end
+  end
+  local str = L[key]
+  if not str or #str < f * 24 then return nil end
+  return str:sub((f - 1) * 24 + 1, f * 24)
+end
+if bc3d and not bc3d.__lookWrapped then
+  -- the look of the puppet being queued rides along as bb arg 13 (render3d stays look-agnostic)
+  local rawBB = bc3d.bb
+  bc3d.bb = function(id, x, y, z, fl, hs, sx, sy, rot, dx, dy, piv)
+    local lk = pendLook
+    pendBody, pendLook = 1, 0
+    if lk ~= 0 then return rawBB(id, x, y, z, fl, hs or 1, sx or 1, sy or 1, rot or 0, dx or 0, dy or 0, piv or 0, lk) end
+    if sx then return rawBB(id, x, y, z, fl, hs, sx, sy, rot, dx, dy, piv) end
+    return rawBB(id, x, y, z, fl)
+  end
+  bc3d.__lookWrapped = true
+end
+
+local function register(i1, i2, ax, ay, inv, body, lm)
   P.nReg = P.nReg + 1
   local id = nextId
   if id > MAX_IDS then
@@ -495,16 +543,23 @@ local function register(i1, i2, ax, ay, inv)
   regGen[id] = cgen
   held[id] = { i1, i2 }
   local fh, ft = P.figure(i1)
-  bc3d.sprite(id, i1, i2, ax, ay, fh, ft)
+  local bd = BODY[body or 1] or BODY[1]
+  if bd[1] ~= 1 or lm then bc3d.sprite(id, i1, i2, ax, ay, fh, ft * bd[2], bd[1], lm)
+  else bc3d.sprite(id, i1, i2, ax, ay, fh, ft) end
   invs[id] = inv or false
+  P.nLooked = P.nLooked + ((body or 1) ~= 1 and 1 or 0)
   return id
 end
 
 --- sprite id for a raw table frame (+ whether the art faces the other way)
+local BODYKEY <const> = { "", "/2", "/3" }
 function P.idT(variant, tname, f)
   local v = (variant == "away") and "away" or (variant == "fan" or variant == "ump" or variant == "critter") and variant or "home"
-  local iv = idsT[v]
-  if not iv then iv = {}; idsT[v] = iv end
+  local body = pendBody
+  if v ~= "home" and v ~= "away" then body = 1 end
+  local vk = body == 1 and v or (v .. BODYKEY[body])
+  local iv = idsT[vk]
+  if not iv then iv = {}; idsT[vk] = iv end
   local it = iv[tname]
   if not it then it = {}; iv[tname] = it end
   local id = it[f]
@@ -514,7 +569,8 @@ function P.idT(variant, tname, f)
     forgetIds()
     return P.idT(variant, tname, f)
   end
-  id = register(P.frameT(v, tname, f))
+  local i1, i2, ax, ay, inv = P.frameT(v, tname, f)
+  id = register(i1, i2, ax, ay, inv, body, (v == "home" or v == "away") and landmarksFor(tname, f) or nil)
   it[f] = id
   own(id, it, f)
   return id, invs[id]
@@ -522,6 +578,15 @@ end
 
 --- sprite id + whether the art faces the other way (raccoon)
 function P.id(variant, frame)
+  if pendBody ~= 1 then
+    -- a body variant: its own ids (the logical-frame cache below is shared by every body)
+    local m = (variant == "fan" and FAN[frame]) or MAP[frame]
+    if m then
+      local id = P.idT(variant, m[1], m[2])
+      if m[4] then invs[id] = true end
+      return id, invs[id]
+    end
+  end
   local iv = ids[variant]
   if not iv then iv = {}; ids[variant] = iv end
   local id = iv[frame]
@@ -694,6 +759,7 @@ function P.preload(Y)
     end
   end
   if tables["1x/raccoon"] == nil then load(function() tbl("1x", "raccoon") end, "1x/raccoon") end
+  if not LM then load(loadLandmarks, "landmarks.json") end
   lateArmed = true
   return n
 end
@@ -729,8 +795,9 @@ function P.release()
   snaps = {}
   P.report("scene done", BallCast.Render and BallCast.Render.diag)
   if BallCast.Juice and BallCast.Juice.report then BallCast.Juice.report() end
+  if BallCast.Looks then BallCast.Looks.reset() end
   if BallCast.Play and BallCast.Play.worldReport then BallCast.Play.worldReport() end
-  P.nReg, P.nRecycle, P.nProc, P.staleIds, P.badDraws = 0, 0, 0, 0, 0
+  P.nReg, P.nRecycle, P.nProc, P.staleIds, P.badDraws, P.nLooked = 0, 0, 0, 0, 0, 0
   if bc3d then bc3d.reset() end
   forgetIds()
   hyst, lateArmed = {}, false

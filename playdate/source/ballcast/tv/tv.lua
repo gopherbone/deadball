@@ -256,6 +256,19 @@ function TV.prepare(scene, step)
       step("tv cam guard", function() done = BallCast.Cam.guardBuild(m.park, 150) end)
     end
   end
+  -- the half-inning changeover's cameras, each checked against this park's geometry once
+  if BallCast.Play.changeoverPrepare and BallCast.Cam.isClear then
+    for _, top in ipairs({ true, false }) do
+      for k = 1, 2 do step("tv changeover cam " .. (top and "top" or "bot") .. " " .. k, function() BallCast.Play.changeoverPrepare(m.park, top, k) end) end
+    end
+    -- a local game (Pennant): the decision angles the scene cuts to while the player decides
+    if scene.src and BallCast.Render.decisionPrepare then
+      for _, c in ipairs(BallCast.Render.decisionCombos()) do
+        step("tv decision cam " .. c[1] .. " " .. c[2] .. " " .. c[3], function() BallCast.Render.decisionPrepare(m.park, c[1], c[2], c[3]) end)
+      end
+    end
+    step("tv occluders release", function() BallCast.Cam.releaseOccluders(m.park) end)
+  end
   -- the open's warmups: a dry run along the flyover path (bc3d records the sprite sizes it
   -- would need, nothing is drawn), then the sizes are built a couple per loader step
   if scene.live3d and bc3d and bc3d.collect and scene.R then
@@ -307,7 +320,7 @@ function TV.flyCam(k)
   k = A.ease(k)
   local x = -120 + 160 * k + sin(k * math.pi) * 60
   local y = 420 - 310 * k
-  local z = 12 + 228 * (1 - k) ^ 1.4
+  local z = 16 + 224 * (1 - k) ^ 1.4
   return { x, y, z, -20 * k, 150 - 130 * k, 3 * k, 54 - 2 * k }
 end
 

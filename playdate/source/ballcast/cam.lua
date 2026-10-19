@@ -432,3 +432,220 @@ function Cam.safeEye(park, c)
   end
   return c
 end
+
+---------------------------------------------------------------------------
+-- Occlusion: is the action in view, and is the middle of the frame clear?
+--
+-- Cam.occluders(park) lists the park's raised geometry (stands, decks, walls, ad boards,
+-- light towers, flags, scoreboards, landmarks: every polygon above 0.6 ft) once per park.
+-- Cam.blocked(park, eye, p) says what, if anything, stands between the eye and point p.
+-- Cam.clearOfAction(park, cam, pts) counts the action points (field coords) in the frame
+-- and how many of them are hidden. Cam.junkInMiddle(park, cam) measures how much of the
+-- frame's central half shows park geometry *in front of* the field (between the lens and
+-- the grass), not as the backdrop behind it.
+-- For checks and for picking a shot (e.g. idle "decision" angles), not per-frame work.
+
+local occCache = {}
+
+function Cam.occluders(park)
+  local pid = park and park.id or "park-farm"
+  local o = occCache[pid]
+  if o then return o end
+  o = {}
+  occCache[pid] = o
+  local bk = BallCast.Geo and BallCast.Geo.baked(park)
+  if not bk then return o end
+  local names = {}
+  for i, m in ipairs(bk.materials or {}) do names[i - 1] = m.name end
+  local P = bk.P
+  local i = 1
+  while i <= #P do
+    local m, ti, nv = P[i], P[i + 2], P[i + 3]
+    local stride = ti > 0 and 5 or 3
+    local j0 = i + 4
+    i = j0 + nv * stride
+    local pts, zmax = {}, -1e9
+    for k = 0, nv - 1 do
+      local j = j0 + k * stride
+      pts[#pts + 1] = { P[j], P[j + 1], P[j + 2] }
+      if P[j + 2] > zmax then zmax = P[j + 2] end
+    end
+    if zmax > 0.6 and nv >= 3 then
+      local cx, cy, cz = 0, 0, 0
+      for _, q in ipairs(pts) do cx, cy, cz = cx + q[1], cy + q[2], cz + q[3] end
+      cx, cy, cz = cx / nv, cy / nv, cz / nv
+      local r = 0
+      for _, q in ipairs(pts) do r = math.max(r, sqrt((q[1] - cx) ^ 2 + (q[2] - cy) ^ 2 + (q[3] - cz) ^ 2)) end
+      -- plane
+      local ax, ay, az = pts[2][1] - pts[1][1], pts[2][2] - pts[1][2], pts[2][3] - pts[1][3]
+      local bx, by, bz = pts[3][1] - pts[1][1], pts[3][2] - pts[1][2], pts[3][3] - pts[1][3]
+      local nx, ny, nz = ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx
+      o[#o + 1] = { pts = pts, c = { cx, cy, cz }, r = r, n = { nx, ny, nz }, mat = names[m] or "?" }
+    end
+  end
+  return o
+end
+
+-- first hit of the ray e + t*d (t in (t0, t1)) on polygon q, or nil
+local function hitPoly(q, ex, ey, ez, dx, dy, dz, t1)
+  -- bounding sphere first
+  local cx, cy, cz = q.c[1] - ex, q.c[2] - ey, q.c[3] - ez
+  local dd = dx * dx + dy * dy + dz * dz
+  local tc = (cx * dx + cy * dy + cz * dz) / dd
+  if tc < -q.r or tc > t1 + q.r then return nil end
+  local px, py, pz = cx - dx * tc, cy - dy * tc, cz - dz * tc
+  if px * px + py * py + pz * pz > q.r * q.r * 1.01 then return nil end
+  local n = q.n
+  local den = n[1] * dx + n[2] * dy + n[3] * dz
+  if den > -1e-9 and den < 1e-9 then return nil end
+  local p1 = q.pts[1]
+  local t = (n[1] * (p1[1] - ex) + n[2] * (p1[2] - ey) + n[3] * (p1[3] - ez)) / den
+  if t <= 1e-4 or t >= t1 then return nil end
+  local hx, hy, hz = ex + dx * t, ey + dy * t, ez + dz * t
+  local pts = q.pts
+  local sgn = 0
+  for k = 1, #pts do
+    local a, b = pts[k], pts[k % #pts + 1]
+    local ux, uy, uz = b[1] - a[1], b[2] - a[2], b[3] - a[3]
+    local vx, vy, vz = hx - a[1], hy - a[2], hz - a[3]
+    local s = (uy * vz - uz * vy) * n[1] + (uz * vx - ux * vz) * n[2] + (ux * vy - uy * vx) * n[3]
+    if s ~= 0 then
+      local sg = s > 0 and 1 or -1
+      if sgn == 0 then sgn = sg elseif sg ~= sgn then return nil end
+    end
+  end
+  return t
+end
+
+--- nearest occluder between eye e {x,y,z} and point p {x,y,z} (ignoring the last `slack` ft
+--- before p): material name, fraction along the segment; or nil when the view is clear
+function Cam.blocked(park, e, p, slack)
+  local dx, dy, dz = p[1] - e[1], p[2] - e[2], p[3] - e[3]
+  local len = sqrt(dx * dx + dy * dy + dz * dz)
+  if len < 1e-3 then return nil end
+  local t1 = 1 - (slack or 2) / len
+  local best, mat = nil, nil
+  for _, q in ipairs(Cam.occluders(park)) do
+    local t = hitPoly(q, e[1], e[2], e[3], dx, dy, dz, best or t1)
+    if t then best, mat = t, q.mat end
+  end
+  return mat, best
+end
+
+-- screen projection for a camera { ex, ey, ez, tx, ty, tz, fov }: sx, sy (nil if behind)
+local function basis(cam)
+  local fx, fy, fz = cam[4] - cam[1], cam[5] - cam[2], cam[6] - cam[3]
+  local fl = sqrt(fx * fx + fy * fy + fz * fz)
+  fx, fy, fz = fx / fl, fy / fl, fz / fl
+  local rx, ry = fy, -fx
+  local rl = sqrt(rx * rx + ry * ry)
+  if rl < 1e-6 then rx, ry, rl = 1, 0, 1 end
+  rx, ry = rx / rl, ry / rl
+  local ux, uy, uz = ry * fz, -rx * fz, rx * fy - ry * fx
+  return { fx, fy, fz, rx, ry, 0, ux, uy, uz, 200 / math.tan(math.rad(cam[7]) / 2) }
+end
+Cam.basis = basis
+function Cam.projectWith(cam, B, x, y, z)
+  local vx, vy, vz = x - cam[1], y - cam[2], z - cam[3]
+  local d = vx * B[1] + vy * B[2] + vz * B[3]
+  if d < 1 then return nil end
+  return 200 + (vx * B[4] + vy * B[5]) * B[10] / d, 120 - (vx * B[7] + vy * B[8] + vz * B[9]) * B[10] / d
+end
+
+--- pts: { {x, y, z, tag [, slack ft]}, ... } the action. Returns inFrame, hidden, the first hidden tag
+--- and what hid it. (A point counts when it projects inside the 400x240 frame.)
+function Cam.clearOfAction(park, cam, pts)
+  local B = basis(cam)
+  local inF, hid, firstTag, firstMat = 0, 0, nil, nil
+  local e = { cam[1], cam[2], cam[3] }
+  for _, p in ipairs(pts) do
+    local sx, sy = Cam.projectWith(cam, B, p[1], p[2], p[3])
+    if sx and sx >= 0 and sx < 400 and sy >= 0 and sy < 240 then
+      inF = inF + 1
+      -- (geometry within a few feet of the point is what it's touching, e.g. a ball against
+      -- the wall: not something in the way)
+      local mat = Cam.blocked(park, e, p, p[5] or 3)
+      if mat then
+        hid = hid + 1
+        if not firstTag then firstTag, firstMat = p[4], mat end
+      end
+    end
+  end
+  return inF, hid, firstTag, firstMat
+end
+
+--- share of the frame's central half (x 100-300, y 60-180; a 10x6 grid of rays) where park
+--- geometry stands between the lens and the field (the ray would reach the grass inside the
+--- fence, but hits geometry first). Also returns the most common material.
+function Cam.junkInMiddle(park, cam)
+  local B = basis(cam)
+  local e = cam
+  local n, junk, mats = 0, 0, {}
+  for gy = 0, 5 do
+    for gx = 0, 9 do
+      local sx, sy = 100 + (gx + 0.5) * 20 - 200, 120 - (60 + (gy + 0.5) * 20)
+      local dx = B[1] + (B[4] * sx + B[7] * sy) / B[10]
+      local dy = B[2] + (B[5] * sx + B[8] * sy) / B[10]
+      local dz = B[3] + (B[6] * sx + B[9] * sy) / B[10]
+      n = n + 1
+      if dz < -1e-6 then
+        local tg = -e[3] / dz                          -- where it meets the ground
+        local gx2, gy2 = e[1] + dx * tg, e[2] + dy * tg
+        -- (the field proper: ground within 12 ft of the stands line is backdrop territory)
+        if Cam.inField(park, gx2, gy2, 12) then
+          local best, mat = nil, nil
+          for _, q in ipairs(Cam.occluders(park)) do
+            local t = hitPoly(q, e[1], e[2], e[3], dx, dy, dz, best or tg * 0.999)
+            if t then best, mat = t, q.mat end
+          end
+          -- (a low wall just in front of the ground it hides is the field's edge seen
+          -- end-on, i.e. backdrop: junk is geometry well out in front of the grass)
+          local dl = sqrt(dx * dx + dy * dy + dz * dz)
+          if mat and (tg - best) * dl > 40 then junk = junk + 1; mats[mat] = (mats[mat] or 0) + 1 end
+        end
+      end
+    end
+  end
+  local top, topN = nil, 0
+  for k, v in pairs(mats) do if v > topN then top, topN = k, v end end
+  return junk / n, top
+end
+
+--- pull (x, y) toward (tx, ty) until it's on the field with `margin` ft to spare (same z):
+--- the nearest such point on the segment (8 halvings). Unchanged if it's already on it.
+function Cam.pullIn(park, x, y, tx, ty, margin)
+  margin = margin or 10
+  if Cam.inField(park, x, y, margin) then return x, y end
+  if not Cam.inField(park, tx, ty, margin) then tx, ty = 0, 60 end
+  local lo, hi = 0, 1
+  for _ = 1, 8 do
+    local m = (lo + hi) / 2
+    if Cam.inField(park, tx + (x - tx) * m, ty + (y - ty) * m, margin) then lo = m else hi = m end
+  end
+  return tx + (x - tx) * lo, ty + (y - ty) * lo
+end
+
+--- the intro menu's slow orbit at angle a (radians): over the field, high, looking across
+--- it (it used to circle 280 ft out, through the stands)
+function Cam.introOrbit(park, a)
+  local x, y = Cam.pullIn(park, math.sin(a) * 130, 150 - math.cos(a) * 130, 0, 150, 10)
+  return { x, y, 120, 0, 150, 0, 60 }
+end
+
+--- One call for shot pickers: true when none of the action points in frame are hidden and
+--- park geometry fills under 5 % of the frame's middle in front of the field.
+--- cam: { ex, ey, ez, tx, ty, tz, fov } (pass it through Cam.safeEye first, as Live does);
+--- pts: { {x, y, z [, tag [, slack]]}, ... }. Costs a few thousand ray/polygon tests: use it
+--- when choosing a shot (or offline), not every frame.
+function Cam.isClear(park, cam, pts)
+  local _, hidden = Cam.clearOfAction(park, cam, pts or {})
+  if hidden > 0 then return false, "hidden" end
+  local j = Cam.junkInMiddle(park, cam)
+  if j >= 0.05 then return false, "junk" end
+  return true
+end
+
+--- drop a park's occluder list (after the loader's checks; Cam.occluders rebuilds on demand)
+function Cam.releaseOccluders(park)
+  occCache[park and park.id or "park-farm"] = nil
+end

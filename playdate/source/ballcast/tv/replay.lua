@@ -88,7 +88,10 @@ local function arcCam(b, park, side)
   local mx, my = dx * F * 0.52, dy * F * 0.52
   local nx, ny = dy * side, -dx * side
   local D = F * 0.62
-  local cam = { mx + nx * D - dx * 30, my + ny * D - dy * 30, 30 + apex * 0.3, mx, my, apex * 0.48, 74 }
+  -- (kept on the field, over the foul ground: out in the stands their walls and ad boards
+  -- came between the lens and the ball)
+  local ex, ey = BallCast.Cam.pullIn(park or {}, mx + nx * D - dx * 30, my + ny * D - dy * 30, mx, my, 15)
+  local cam = { ex, ey, math.max(45, 30 + apex * 0.3), mx, my, apex * 0.48, 80 }
   return function() return cam end
 end
 

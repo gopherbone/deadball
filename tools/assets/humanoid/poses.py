@@ -338,6 +338,38 @@ if MC:
          "desc": "EXTRA 4-frame run cycle facing right: 1 pass, 2 stride, 3 pass (other leg), 4 stride (other leg)",
          "frames": [("pass_b", RUN["pass_b"]), ("a", RUN["a"]), ("pass_a", RUN["pass_a"]), ("b", RUN["b"])]},
     ]
+# ---------------------------------------------------------------- walker (walk-offs, changeovers)
+def walk(phase, slump=0.0, stride=1.0, drag=False):
+    """walking step (contact pose); phase 0 = left foot forward. slump 0..1: dejected (head
+    down, shoulders forward, arms dead). drag: right hand trails a bat behind him."""
+    s = 1 if phase == 0 else -1
+    fwd, back = ("L", "R") if phase == 0 else ("R", "L")
+    sg = {"L": 1, "R": -1}
+    st = 0.27 * stride
+    d = {"pelvis": V(0, 0.02, 0.85 - 0.02 * slump), "hips": (3 + 6 * slump, 0, 5 * s),
+         "spine": (3 + 9 * slump, 0, -7 * s), "chest": (5 * slump, 0, 0),
+         "neck": (-4 + 8 * slump, 0, 0), "head": (2 + 14 * slump, 0, 0),
+         "leg." + fwd: {"ik": V(sg[fwd] * 0.10, st, 0.10), "pole": V(sg[fwd] * 0.1, 1, 0)},
+         "foot." + fwd: {"abs": (-12, 0, 0)},
+         "leg." + back: {"ik": V(sg[back] * 0.10, -st * 0.85, 0.13), "pole": V(sg[back] * 0.1, 1, 0)},
+         "foot." + back: {"abs": (28, 0, 0)}}
+    sw = 0.35 * (1 - 0.6 * slump)       # arm swing, opposite to the legs
+    d.update({"upper_arm." + back: V(sg[back] * 0.16, sw, -1), "forearm." + back: V(sg[back] * 0.06, sw * 1.6 + 0.1, -0.9),
+              "upper_arm." + fwd: V(sg[fwd] * 0.16, -sw * 0.8, -1), "forearm." + fwd: V(sg[fwd] * 0.06, -sw * 0.4 + 0.1, -1)})
+    if drag:
+        d.update({"upper_arm.R": V(-0.22, -0.12, -1), "forearm.R": V(-0.14, -0.2, -1),
+                  "hand.R": V(0, -0.3, -1), "bat": V(-0.12, -0.75, -0.62)})
+    return d
+
+
+W_TABLE = {"name": "walker", "outfit": "player", "props": PLAYER, "view": SIDE, "variants": HOME_AWAY,
+           "desc": "EXTRA walk-offs / changeovers, side-on facing right: 1-2 walk (contact L, R), 3-4 dejected "
+                   "walk (head down), 5-6 dejected walk dragging the bat",
+           "frames": [("walk_a", walk(0)), ("walk_b", walk(1)),
+                      ("slump_a", walk(0, slump=1.0, stride=0.7)), ("slump_b", walk(1, slump=1.0, stride=0.7)),
+                      ("drag_a", P(walk(0, slump=0.8, stride=0.7, drag=True), _props=("bat",))),
+                      ("drag_b", P(walk(1, slump=0.8, stride=0.7, drag=True), _props=("bat",)))]}
+SEQ.append(W_TABLE)
 # ---------------------------------------------------------------- accent poses for silly incidents / celebrations
 A_CARTWHEEL = {"root": (0, 180, 0), "pelvis": V(0, 0, 0.89),
                "upper_arm.L": V(0.45, 0.05, 1), "forearm.L": V(0.35, 0.05, 1),
@@ -386,7 +418,7 @@ VIEWS = [(f"v{k}", ((k * 45 + 180) % 360) - 180, 6) for k in range(8)]
 # accent/streaker/mascot stay single-view (legacy art).
 VIEW_SETS = [("pitcher_seq", "pitcher_back_seq"), ("batter_seq", "batter_seq"), ("catcher", "catcher"),
              ("umpire", "umpire"), ("fielder", "fielder"), ("runner", "runner"), ("runner_seq", "runner_seq"),
-             ("catcher_reach", "catcher_reach")]
+             ("catcher_reach", "catcher_reach"), ("walker", "walker")]
 # sets drawn only from a few directions (index into VIEWS): the catcher is seen from the pitch cam
 # (front), behind the plate (back) and the side cams
 VIEW_SUBSET = {"catcher_reach": [0, 2, 4, 6]}

@@ -361,6 +361,114 @@ local Play -- set lazily (play.lua imports us)
 
 local function lerp(a, b, t) return a + (b - a) * t end
 
+-- Decision angles (scene.lua S:decisionCam): while a Pennant player decides, slow held angles on
+-- the batter and the pitcher. Each must keep both in the picture (projected with Cam: head and feet
+-- inside the frame with a margin) and pass the stands guard (Cam.safeEye); else the next one, and
+-- the classic CF "pitch" shot as the last resort.
+local DEC_ORDER <const> = { "overShoulder", "catcherView", "lowBox", "dugoutLook" }
+-- (No eye may have the catcher (0, -3.2) or the umpire (0, -6.6) between it and the batter: the
+-- behind-the-plate eyes sit high enough to look over them; the rest are in front of the plate.)
+local function decisionEye(kind, bs, side)
+  -- bs: 1 = right-handed batter (stands at x = -3.2); side: which way the angle leans
+  if kind == "overShoulder" then return { side * 6, 92, 8 }          -- over the pitcher's shoulder
+  elseif kind == "catcherView" then return { bs * 4, -60, 26 }       -- up behind the catcher and the ump, over their heads
+  elseif kind == "lowBox" then return { bs * 110, 26, 30 }           -- from over the far dugout: the batter faces us
+  end
+  return { -bs * 110, 26, 30 }                                      -- from over the batter's dugout, across at the mound
+end
+
+--- Aim so the batter and the pitcher (head to feet) both sit in the free strip of the screen
+--- x0..x1 (the panels cover the rest), with a margin. Returns target, fov or nil (someone behind
+--- the eye, or the lens would have to be absurdly wide).
+local function frameBoth(e, bs, x0, x1)
+  local pts = { { -bs * 3.2, 0.2, 0 }, { -bs * 3.2, 0.2, 6.4 }, { 0, 60, 0 }, { 0, 60, 6.4 } }
+  local cx, cy, cz = -bs * 1.6, 30.1, 3.2
+  local fx, fy, fz = cx - e[1], cy - e[2], cz - e[3]
+  local fl = sqrt(fx * fx + fy * fy + fz * fz)
+  fx, fy, fz = fx / fl, fy / fl, fz / fl
+  local rx, ry = fy, -fx
+  local rl = sqrt(rx * rx + ry * ry)
+  rx, ry = rx / rl, ry / rl
+  local ux, uy, uz = ry * fz, -rx * fz, rx * fy - ry * fx
+  local th, tv = 0, 0
+  for _, q in ipairs(pts) do
+    local vx, vy, vz = q[1] - e[1], q[2] - e[2], q[3] - e[3]
+    local d = vx * fx + vy * fy + vz * fz
+    if d < 2 then return nil end
+    th = max(th, math.abs(vx * rx + vy * ry) / d)
+    tv = max(tv, math.abs(vx * ux + vy * uy + vz * uz) / d)
+  end
+  -- the lens: both fit the strip's half-width and the picture's half-height, 22 % to spare
+  x0, x1 = x0 or 4, x1 or 396
+  local hw = (x1 - x0) / 2 - 8
+  local scale = math.min(hw * 0.78 / max(th, 1e-3), 98 * 0.78 / max(tv, 1e-3))
+  local fov = math.deg(2 * math.atan(200 / scale))
+  -- the aim: turned right by the strip's offset from the middle, so the pair sit in the strip
+  local phi = math.atan((200 - (x0 + x1) / 2) / scale)
+  local c, s = math.cos(phi), math.sin(phi)
+  local ax, ay, az = fx * c + rx * s, fy * c + ry * s, fz * c
+  return { e[1] + ax * fl, e[2] + ay * fl, e[3] + az * fl }, fov
+end
+R3.DECISIONS = DEC_ORDER
+
+-- Each decision eye is vetted once per park at load (Cam.isClear: the batter and the pitcher not
+-- behind park geometry, no junk in the middle of the frame), the way Play.changeoverPrepare does.
+-- decClear[park][kind/bs/side] = the eye to use, or false (that angle is skipped in this park).
+local decClear = {}
+--- The points a decision angle must see: the batter and the pitcher, feet and head.
+function R3.decisionPts(bs)
+  return { { -bs * 3.2, 0.2, 0.5, "batter" }, { -bs * 3.2, 0.2, 5.5, "batter" }, { 0, 60, 0.5, "pitcher" }, { 0, 60, 5.5, "pitcher" } }
+end
+local function decKey(kind, bs, side) return kind .. "/" .. bs .. "/" .. (kind == "overShoulder" and side or 0) end
+
+--- loader step: vet one decision eye in this park (the eye, then pulled in, then raised)
+function R3.decisionPrepare(park, kind, bs, side)
+  local pid = park and park.id or "park-farm"
+  decClear[pid] = decClear[pid] or {}
+  local e = decisionEye(kind, bs, side)
+  local x, y = Cam.pullIn(park, e[1], e[2], 0, 30, 12)
+  local pick = false
+  for _, c in ipairs({ e, { x, y, e[3] }, { x, y, e[3] + 20 } }) do
+    local g = Cam.safeEye(park, { c[1], c[2], c[3], 0, 30, 3, 40 })
+    local t, fov = frameBoth({ g[1], g[2], g[3] }, bs)
+    if t and fov <= 76 and Cam.isClear(park, { g[1], g[2], g[3], t[1], t[2], t[3], fov }, R3.decisionPts(bs)) then pick = c break end
+  end
+  decClear[pid][decKey(kind, bs, side)] = pick
+  return pick
+end
+function R3.decisionCombos()
+  local out = {}
+  for _, kind in ipairs(DEC_ORDER) do
+    for _, bs in ipairs({ 1, -1 }) do
+      if kind == "overShoulder" then out[#out + 1] = { kind, bs, 1 } out[#out + 1] = { kind, bs, -1 }
+      else out[#out + 1] = { kind, bs, 1 } end
+    end
+  end
+  return out
+end
+--- The vetted eye for an angle in this park: the eye, false (not clear here), or nil (not vetted).
+function R3.decisionEye(park, kind, bs, side)
+  local c = decClear[park and park.id or "park-farm"]
+  if c == nil then return nil end
+  local e = c[decKey(kind, bs, side)]
+  if e == nil then return nil end
+  return e
+end
+R3.DEBUG = false   -- (true: print each decision angle chosen)
+
+--- Are the batter and the pitcher both in frame for camera c {ex,ey,ez,tx,ty,tz,fov}?
+function R3.bothInFrame(c, bs, x0, x1)
+  x0, x1 = (x0 or 4) + 8, (x1 or 396) - 8
+  local cam = Cam.new({ eye = { c[1], c[2], c[3] }, target = { c[4], c[5], c[6] }, fov = c[7] })
+  for _, p in ipairs({ { -bs * 3.2, 0.2 }, { 0, 60 } }) do
+    for _, z in ipairs({ 0, 6.2 }) do
+      local x, y = Cam.project(cam, p[1], p[2], z)
+      if not x or x < x0 or x > x1 or y < 22 or y > 218 then return false end
+    end
+  end
+  return true
+end
+
 --- desired camera {ex,ey,ez,tx,ty,tz,fov} for a shot name at tau
 function R3.shot(r, b, tau, cc, out)
   Play = Play or BallCast.Play
@@ -373,6 +481,39 @@ function R3.shot(r, b, tau, cc, out)
     out[1], out[2], out[3], out[4], out[5], out[6], out[7] = e[1], e[2], e[3], t[1], t[2], t[3], fov
     return out
   end
+  if name == "decision" then
+    local opt = cc.opt
+    if opt.cam then return set({ opt.cam[1], opt.cam[2], opt.cam[3] }, { opt.cam[4], opt.cam[5], opt.cam[6] }, opt.cam[7]) end
+    local bs = Play.batSide(opt.bat or (b.pre and b.pre.bat))
+    -- the asked-for angle first, then the others in order
+    local first = 1
+    for i, k in ipairs(DEC_ORDER) do if k == opt.kind then first = i end end
+    for j = 0, #DEC_ORDER - 1 do
+      local kind = DEC_ORDER[(first - 1 + j) % #DEC_ORDER + 1]
+      local e = decisionEye(kind, bs, opt.side or 1)
+      local vetted = R3.decisionEye(r.park, kind, bs, opt.side or 1)
+      if vetted == false then e = nil elseif vetted then e = vetted end
+      -- (the stands guard may move the eye: frame from where it ends up)
+      local g = e and Cam.safeEye(r.park, { e[1], e[2], e[3], 0, 30, 3, 40 })
+      local t, fov0
+      if g then t, fov0 = frameBoth({ g[1], g[2], g[3] }, bs, opt.x0, opt.x1) end
+      if t and fov0 <= 76 then
+        -- the push-in: a step tighter every DEC_STEP (held between steps), inside the margin; if a
+        -- step would crop either man, the angle holds its wider framing
+        for _, fov in ipairs({ fov0 * (1 - 0.025 * math.min(6, opt.step or 0)), fov0 }) do
+          local c = { g[1], g[2], g[3], t[1], t[2], t[3], max(12, fov) }
+          if R3.bothInFrame(c, bs, opt.x0, opt.x1) then
+            if R3.DEBUG then print(string.format("[decision] asked %s -> %s fov %.1f eye %.0f,%.0f,%.0f", opt.kind, kind, c[7], c[1], c[2], c[3])) end
+            opt.cam = c
+            return set({ c[1], c[2], c[3] }, { c[4], c[5], c[6] }, c[7])
+          end
+        end
+      end
+    end
+    name = "pitch"
+    p = P.pitch
+    cc = { name = "pitch" }
+  end
   if name == "pitch" then
     -- classic CF shot, tighter than the static art: pitcher ~80 px, plate in frame
     local fov = p.fov * 0.76
@@ -382,11 +523,19 @@ function R3.shot(r, b, tau, cc, out)
     return set(p.eye, tgt, fov - push)
   end
   local opt = cc.opt or {}
+  -- the half-inning changeover's own angles (play.lua Play.changeoverShot)
+  if opt.changeover and Play.changeoverShot then
+    local e, t, fov = Play.changeoverShot(r, b, tau, opt.changeover)
+    return set(e, t, fov)
+  end
   if opt.establish then
-    -- slow orbit behind home: the stadium "beauty shot"
+    -- slow orbit high over home: the stadium "beauty shot". (It used to orbit 260 ft out
+    -- behind home at 95 ft, inside the backstop stands: their back wall filled the frame.)
+    -- Now high over the foul ground behind home, drifting side to side: the whole field, the
+    -- stands as the backdrop.
     local a = rad(-24 + tau * 7)
-    local e = { sin(a) * 260, -cos(a) * 260 + 40, 95 }
-    return set(e, { 0, 160, 10 }, 48)
+    local ex, ey = Cam.pullIn(r.park, sin(a) * 90, -25, 0, 150, 10)
+    return set({ ex, ey, 125 }, { 0, 165, 0 }, 62)
   end
   local hh = P.high
   -- extra live-only angles (the static rig falls back to "high" for unknown names) ----------

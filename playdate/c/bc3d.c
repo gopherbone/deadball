@@ -81,6 +81,10 @@ typedef struct {
 	float cax[BUCKETS], cay[BUCKETS];
 	float ccs[BUCKETS];      // cached bitmap px per 1x source px
 	int lastB;               // size-bucket hysteresis: a slow zoom doesn't flicker between sizes
+	float wx;                // body width factor (stocky > 1, lanky < 1), baked into the caches
+	uint8_t hasLm;           // landmarks for the look stamps (bc3d.sprite arg 9)
+	uint8_t faceCode, backCode;   // face: 0 away, 1 profile, 2 toward the camera; back: 1 = number shows
+	float lm[22];            // 1x px: head, nose, back, kneeL, ankleL, kneeR, ankleR, elbowL, wristL, elbowR, wristR
 } Sprite;
 
 typedef struct {
@@ -97,6 +101,7 @@ typedef struct {
 	float bias;             // ball: sort as if this many feet nearer (ball in a glove draws in front)
 	float sd;               // sort depth
 	uint8_t shadow;         // ball: draw the ground shadow
+	uint32_t look;          // sprite: per-player look stamps (see lookPass), 0 = none
 } Billboard;
 
 typedef struct { float depth; int16_t layer; int16_t idx; } DrawItem;
@@ -892,17 +897,18 @@ static void buildBucket(Sprite* s, int b)
 {
 	int which; float f;
 	bucketScale(s, b, &which, &f);
-	int nw = (int)(s->w[which] * f + 0.5f), nh = (int)(s->h[which] * f + 0.5f);
+	float fx = f * s->wx;      // body width (bc3d.sprite arg 8) is baked into the cached bitmap
+	int nw = (int)(s->w[which] * fx + 0.5f), nh = (int)(s->h[which] * f + 0.5f);
 	if ( nw < 1 ) nw = 1;
 	if ( nh < 1 ) nh = 1;
 	LCDBitmap* bmp = pd->graphics->newBitmap(nw, nh, kColorClear);
 	pd->graphics->pushContext(bmp);
-	if ( f == 1.0f ) pd->graphics->drawBitmap(s->src[which], 0, 0, kBitmapUnflipped);
-	else pd->graphics->drawScaledBitmap(s->src[which], 0, 0, f, f);
+	if ( f == 1.0f && s->wx == 1.0f ) pd->graphics->drawBitmap(s->src[which], 0, 0, kBitmapUnflipped);
+	else pd->graphics->drawScaledBitmap(s->src[which], 0, 0, fx, f);
 	pd->graphics->popContext();
 	s->cache[b] = bmp;
 	s->cw[b] = nw; s->ch[b] = nh;
-	s->cax[b] = s->ax[which] * f;
+	s->cax[b] = s->ax[which] * fx;
 	s->cay[b] = s->ay[which] * f;
 	s->ccs[b] = which ? f * 2.0f : f;
 }
@@ -1042,6 +1048,291 @@ static void blitXf(LCDBitmap* bmp, float pax, float pay, float PX, float PY, flo
 	pd->graphics->markUpdatedRows(y0, y1 - 1);
 }
 
+// ---------------------------------------------------------------------------
+// Per-player looks: small stamps on a puppet billboard, drawn right after it (so depth order
+// holds), in the source bitmap's pixel space through the same affine as the blit — they stick
+// to the figure through squash, rotation and flips. Only opaque pixels of the figure change;
+// "interior" ones (all 4 neighbours opaque) so the ink contour and the white halo survive.
+// Positions come from per-cell landmarks (tools/assets/humanoid sprites.py write_landmarks).
+// look bits: 0-1 skin dither (0 none, 25/50/75%), 2-3 facial hair (1 moustache, 2 beard,
+// 3 chin strap), 4-5 socks (1 stirrup stripe, 2 low: white to the shoe), 6 long dark sleeves,
+// 7 batting helmet, 8-14 jersey number (0 = keep the baked one), 15 hands bare (no skin dither).
+#define LOOK_MIN_PX 22.0f     // smaller figures: no stamps (nothing would read)
+static int statLookPx = 0;    // stamp pixels visited (bc3d.lookStats)
+static float lookMinPx = LOOK_MIN_PX;
+
+typedef struct {
+	const uint8_t* data; const uint8_t* mask; int w, h, rb;
+	float pax, pay, PX, PY, ksx, ksy, c, s, fs;
+	float iu, iv, ju, jv;
+} LookXf;
+
+static inline int lkOpaque(const LookXf* X, int i, int j)
+{
+	if ( (unsigned)i >= (unsigned)X->w || (unsigned)j >= (unsigned)X->h ) return 0;
+	return X->mask ? ((X->mask[j * X->rb + (i >> 3)] >> (7 - (i & 7))) & 1) : 1;
+}
+static inline int lkWhite(const LookXf* X, int i, int j) { return (X->data[j * X->rb + (i >> 3)] >> (7 - (i & 7))) & 1; }
+static inline int lkInterior(const LookXf* X, int i, int j)
+{
+	return lkOpaque(X, i - 1, j) && lkOpaque(X, i + 1, j) && lkOpaque(X, i, j - 1) && lkOpaque(X, i, j + 1);
+}
+
+// 3x5 digits, rows top to bottom, 3 bits each (bit 2 = left)
+static const uint8_t DIG[10][5] = {
+	{ 7, 5, 5, 5, 7 }, { 2, 6, 2, 2, 7 }, { 7, 1, 7, 4, 7 }, { 7, 1, 3, 1, 7 }, { 5, 5, 7, 1, 1 },
+	{ 7, 4, 7, 1, 7 }, { 7, 4, 7, 5, 7 }, { 7, 1, 1, 2, 2 }, { 7, 5, 7, 5, 7 }, { 7, 5, 7, 1, 1 } };
+
+enum { LK_SKIN, LK_BEARD, LK_MOUSTACHE, LK_CHIN, LK_SLEEVE, LK_SOCKLOW, LK_STRIPE, LK_NUMBER, LK_HELMET };
+typedef struct {
+	int type;
+	float i0, j0, i1, j1;            // source rect (bitmap px)
+	float ax, ay, bx, by, r, r2;     // circle centre / segment ends, radius
+	float t0, t1;                    // segment span (0 = a, 1 = b)
+	int arg;                         // skin level / number
+	float nx, ny;                    // nose (face side)
+	float g;                         // number glyph px
+} LookRule;
+
+static inline float segT(float px, float py, float ax, float ay, float bx, float by, float* d2)
+{
+	float vx = bx - ax, vy = by - ay;
+	float l2 = vx * vx + vy * vy;
+	float t = l2 > 1e-4f ? ((px - ax) * vx + (py - ay) * vy) / l2 : 0;
+	float cx = ax + vx * t, cy = ay + vy * t;
+	*d2 = (px - cx) * (px - cx) + (py - cy) * (py - cy);
+	return t;
+}
+
+// → -1 keep, 0 black, 1 white
+static int lookColor(const LookRule* R, const LookXf* X, int i, int j)
+{
+	float px = i + 0.5f, py = j + 0.5f;
+	int white = lkWhite(X, i, j);
+	switch ( R->type )
+	{
+	case LK_SKIN:
+	{
+		if ( !white ) return -1;
+		float dx = px - R->ax, dy = py - R->ay;
+		if ( dx * dx + dy * dy > R->r * R->r ) return -1;
+		int lv = R->arg;
+		int on = lv == 1 ? (((i + 2 * j) & 3) == 0) : lv == 2 ? (((i + j) & 1) == 0) : (((i + 2 * j) & 3) != 0);
+		return on ? 0 : -1;
+	}
+	case LK_BEARD: case LK_MOUSTACHE: case LK_CHIN:
+	{
+		if ( !white ) return -1;
+		float dx = px - R->ax, dy = py - R->ay;
+		if ( dx * dx + dy * dy > R->r * R->r ) return -1;
+		float r = R->r;
+		float rel = (py - R->ay) / r;         // 0 = head centre, 1 = chin
+		float fx = px - R->nx;                // across the face, from the nose line
+		if ( R->type == LK_MOUSTACHE )
+			return (rel > 0.3f && rel < 0.3f + (R->g) && fx * fx < 0.3f * r * r) ? 0 : -1;
+		if ( R->type == LK_CHIN ) return (rel > 0.66f) ? 0 : -1;
+		return (rel > 0.42f && fx * fx < 0.7f * r * r) ? 0 : -1;
+	}
+	case LK_SLEEVE:
+	{
+		if ( !white ) return -1;
+		float d2; float t = segT(px, py, R->ax, R->ay, R->bx, R->by, &d2);
+		return (t > 0.1f && t < 0.85f && d2 < R->r * R->r) ? 0 : -1;
+	}
+	case LK_SOCKLOW: case LK_STRIPE:
+	{
+		if ( white ) return -1;
+		float d2; float t = segT(px, py, R->ax, R->ay, R->bx, R->by, &d2);
+		return (t > R->t0 && t < R->t1 && d2 < R->r * R->r) ? 1 : -1;
+	}
+	case LK_NUMBER:
+	{
+		// a white patch with the player's number in black (clears the baked one); a mirrored
+		// figure (lefty) still reads left to right
+		if ( X->fs < 0 ) px = 2.0f * R->ax - px;
+		int n = R->arg;
+		int nd = n >= 10 ? 2 : 1;
+		float g = R->g;
+		float gw = (nd * 3 + (nd - 1)) * g;
+		float x0 = R->ax - gw * 0.5f, y0 = R->ay - 2.5f * g;
+		int gx = (int)floorf((px - x0) / g), gy = (int)floorf((py - y0) / g);
+		if ( gy < 0 || gy > 4 || gx < 0 || gx >= nd * 4 - 1 ) return 1;
+		int d = gx / 4, cx = gx % 4;
+		if ( cx == 3 ) return 1;
+		int digit = nd == 2 ? (d == 0 ? n / 10 : n % 10) : n;
+		return ((DIG[digit][gy] >> (2 - cx)) & 1) ? 0 : 1;
+	}
+	case LK_HELMET:
+	{
+		float dx = px - R->ax, dy = py - R->ay;
+		float d2 = dx * dx + dy * dy, r = R->r;
+		if ( d2 > r * r ) return -1;
+		// the shine on the shell
+		float hx = R->ax - (R->nx - R->ax) * 0.35f - r * 0.1f, hy = R->ay - r * 0.62f;
+		float sx = px - hx, sy = py - hy;
+		if ( !white && sx * sx + sy * sy < R->g * R->g ) return 1;
+		// the ear flap: the side of the head away from the face, down to the jaw
+		float side = (px - R->ax) * (R->nx - R->ax);
+		if ( white && side < -0.05f * r * r && dy > -0.2f * r && dy < 0.55f * r ) return 0;
+		return -1;
+	}
+	}
+	return -1;
+}
+
+static void runRule(const LookRule* R, const LookXf* X, int needInterior)
+{
+	// screen box of the rule's source rect
+	float minx = 1e9f, maxx = -1e9f, miny = 1e9f, maxy = -1e9f;
+	for ( int k = 0; k < 4; k++ )
+	{
+		float u = ((k & 1) ? R->i1 : R->i0) - X->pax, v = ((k & 2) ? R->j1 : R->j0) - X->pay;
+		u *= X->fs * X->ksx; v *= X->ksy;
+		float Xs = X->c * u - X->s * v, Ys = X->s * u + X->c * v;
+		if ( Xs < minx ) minx = Xs;
+		if ( Xs > maxx ) maxx = Xs;
+		if ( Ys < miny ) miny = Ys;
+		if ( Ys > maxy ) maxy = Ys;
+	}
+	int x0 = (int)floorf(X->PX + minx) - 1, x1 = (int)ceilf(X->PX + maxx) + 1;
+	int y0 = (int)floorf(X->PY + miny) - 1, y1 = (int)ceilf(X->PY + maxy) + 1;
+	if ( x0 < 0 ) x0 = 0;
+	if ( y0 < 0 ) y0 = 0;
+	if ( x1 > LCD_COLUMNS ) x1 = LCD_COLUMNS;
+	if ( y1 > LCD_ROWS ) y1 = LCD_ROWS;
+	if ( x0 >= x1 || y0 >= y1 ) return;
+	uint8_t* frame = pd->graphics->getFrame();
+	for ( int y = y0; y < y1; y++ )
+	{
+		uint8_t* drow = frame + y * LCD_ROWSIZE;
+		for ( int x = x0; x < x1; x++ )
+		{
+			float u = (float)x + 0.5f - X->PX, v = (float)y + 0.5f - X->PY;
+			int i = (int)floorf(X->pax + X->iu * u + X->iv * v);
+			int j = (int)floorf(X->pay + X->ju * u + X->jv * v);
+			if ( i < R->i0 || i >= R->i1 || j < R->j0 || j >= R->j1 ) continue;
+			if ( !lkOpaque(X, i, j) ) continue;
+			if ( needInterior && !lkInterior(X, i, j) ) continue;
+			statLookPx++;
+			int col = lookColor(R, X, i, j);
+			if ( col < 0 ) continue;
+			uint8_t db = (uint8_t)(0x80 >> (x & 7));
+			if ( col ) drow[x >> 3] |= db; else drow[x >> 3] &= (uint8_t)~db;
+		}
+	}
+}
+
+// stamps for billboard look `look` on sprite s, drawn with cached bitmap bmp (cs = its px per
+// 1x px); affine as blitXf: pivot (pax, pay) in bitmap px lands at (PX, PY), scale, rot, flip
+static void lookPass(const Sprite* s, LCDBitmap* bmp, float cs, uint32_t look, float pax, float pay,
+	float PX, float PY, float ksx, float ksy, float rotDeg, int flip)
+{
+	LookXf X;
+	uint8_t* mask = NULL; uint8_t* data = NULL;
+	pd->graphics->getBitmapData(bmp, &X.w, &X.h, &X.rb, &mask, &data);
+	if ( !data ) return;
+	X.data = data; X.mask = mask;
+	if ( ksx < 0.1f ) ksx = 0.1f;
+	if ( ksy < 0.1f ) ksy = 0.1f;
+	X.c = 1; X.s = 0;
+	if ( rotDeg != 0 ) { float r = rotDeg * 0.017453293f; X.c = cosf(r); X.s = sinf(r); }
+	X.fs = flip ? -1.0f : 1.0f;
+	X.pax = pax; X.pay = pay; X.PX = PX; X.PY = PY; X.ksx = ksx; X.ksy = ksy;
+	X.iu = X.fs * X.c / ksx; X.iv = X.fs * X.s / ksx; X.ju = -X.s / ksy; X.jv = X.c / ksy;
+	float csx = cs * s->wx, csy = cs;
+	const float* L = s->lm;
+	#define LX(k) (L[(k) * 2] * csx)
+	#define LY(k) (L[(k) * 2 + 1] * csy)
+	float hr = 2.45f * csy;                    // head radius (landmarks.json headR, 1x px)
+	float hx = LX(0), hy = LY(0), nx = LX(1);
+	LookRule R;
+	int skin = look & 3, hair = (look >> 2) & 3, socks = (look >> 4) & 3;
+	int num = (look >> 8) & 127;
+	if ( skin )
+	{
+		memset(&R, 0, sizeof R);
+		R.type = LK_SKIN; R.arg = skin;
+		if ( s->faceCode > 0 )
+		{
+			R.ax = hx; R.ay = hy + 0.1f * hr; R.r = hr * 0.95f;
+			R.i0 = hx - hr; R.i1 = hx + hr + 1; R.j0 = hy - hr; R.j1 = hy + hr + 1;
+			runRule(&R, &X, 1);
+		}
+		if ( !(look & 0x8000) )
+		{
+			for ( int k = 0; k < 2; k++ )   // hands: just past each wrist
+			{
+				int e = 7 + k * 2, w = 8 + k * 2;
+				float wx = LX(w), wy = LY(w);
+				float ax = wx + (wx - LX(e)) * 0.3f, ay = wy + (wy - LY(e)) * 0.3f;
+				R.ax = ax; R.ay = ay; R.r = 1.6f * csy;
+				R.i0 = ax - R.r; R.i1 = ax + R.r + 1; R.j0 = ay - R.r; R.j1 = ay + R.r + 1;
+				runRule(&R, &X, 1);
+			}
+		}
+	}
+	if ( (look & 64) )
+	{
+		memset(&R, 0, sizeof R);
+		R.type = LK_SLEEVE; R.r = 1.25f * csy;
+		for ( int k = 0; k < 2; k++ )
+		{
+			int e = 7 + k * 2, w = 8 + k * 2;
+			R.ax = LX(e); R.ay = LY(e); R.bx = LX(w); R.by = LY(w);
+			R.i0 = fminf(R.ax, R.bx) - R.r; R.i1 = fmaxf(R.ax, R.bx) + R.r + 1;
+			R.j0 = fminf(R.ay, R.by) - R.r; R.j1 = fmaxf(R.ay, R.by) + R.r + 1;
+			runRule(&R, &X, 1);
+		}
+	}
+	if ( hair && s->faceCode > 0 )
+	{
+		memset(&R, 0, sizeof R);
+		R.type = hair == 1 ? LK_MOUSTACHE : hair == 2 ? LK_BEARD : LK_CHIN;
+		R.ax = hx; R.ay = hy; R.r = hr * 1.02f;
+		R.nx = s->faceCode == 2 ? hx : hx + (nx - hx) * 0.55f;
+		R.g = fmaxf(0.22f, 1.2f / hr);       // moustache thickness (in head radii): ~1 px
+		R.i0 = hx - hr; R.i1 = hx + hr + 1; R.j0 = hy - hr; R.j1 = hy + hr + 1;
+		runRule(&R, &X, 1);
+	}
+	if ( socks )
+	{
+		memset(&R, 0, sizeof R);
+		R.type = socks == 1 ? LK_STRIPE : LK_SOCKLOW;
+		R.t0 = socks == 1 ? 0.5f : 0.32f; R.t1 = socks == 1 ? 0.63f : 0.9f;
+		R.r = 1.6f * csy;
+		for ( int k = 0; k < 2; k++ )
+		{
+			int kn = 3 + k * 2, an = 4 + k * 2;
+			R.ax = LX(kn); R.ay = LY(kn); R.bx = LX(an); R.by = LY(an);
+			R.i0 = fminf(R.ax, R.bx) - R.r; R.i1 = fmaxf(R.ax, R.bx) + R.r + 1;
+			R.j0 = fminf(R.ay, R.by) - R.r; R.j1 = fmaxf(R.ay, R.by) + R.r + 1;
+			runRule(&R, &X, 1);
+		}
+	}
+	if ( num > 0 && s->backCode && cs >= 0.95f )
+	{
+		memset(&R, 0, sizeof R);
+		R.type = LK_NUMBER; R.arg = num;
+		R.g = cs >= 1.9f ? floorf(cs * 0.8f + 0.5f) : 1.0f;
+		R.ax = LX(2); R.ay = LY(2) + 0.5f * R.g;
+		float gw = ((num >= 10 ? 7 : 3) * R.g) * 0.5f + R.g;
+		R.i0 = R.ax - gw; R.i1 = R.ax + gw; R.j0 = R.ay - 3.5f * R.g; R.j1 = R.ay + 3.5f * R.g;
+		runRule(&R, &X, 1);
+	}
+	if ( look & 128 )
+	{
+		memset(&R, 0, sizeof R);
+		R.type = LK_HELMET; R.ax = hx; R.ay = hy; R.r = hr * 1.05f; R.nx = nx;
+		R.g = fmaxf(0.6f, 0.28f * hr);
+		R.i0 = hx - hr - 1; R.i1 = hx + hr + 2; R.j0 = hy - hr - 1; R.j1 = hy + hr + 2;
+		runRule(&R, &X, 1);
+	}
+	#undef LX
+	#undef LY
+	int y0 = (int)PY - 220; if ( y0 < 0 ) y0 = 0;
+	pd->graphics->markUpdatedRows(y0, LCD_ROWS - 1);
+}
+
 static int cmpBB(const void* a, const void* b)
 {
 	const Billboard* p = a;
@@ -1108,6 +1399,8 @@ static void flushBillboards(float ox, float oy, int shadowSprite)
 				if ( sx + r < 0 || sx - r > LCD_COLUMNS || sy - pv + r < 0 || sy - pv - r > LCD_ROWS ) continue;
 				float rax = floorf(ax + 0.5f), ray = floorf(ay + 0.5f);
 				blitXf(bmp, rax, ray - pv, floorf(sx), floorf(sy) - pv, b->ksx, b->ksy, b->xf == 3 ? b->rot : 0, b->flip);
+				if ( b->look && s->hasLm && hpx >= lookMinPx )
+					lookPass(s, bmp, cs, b->look, rax, ray - pv, floorf(sx), floorf(sy) - pv, b->ksx, b->ksy, b->xf == 3 ? b->rot : 0, b->flip);
 				continue;
 			}
 			// snap the feet pixel like the field raster does (floor), anchor rounded once:
@@ -1117,6 +1410,8 @@ static void flushBillboards(float ox, float oy, int shadowSprite)
 			int y = (int)floorf(sy) - iay;
 			if ( x > LCD_COLUMNS || x + w < 0 || y > LCD_ROWS || y + h < 0 ) continue;
 			pd->graphics->drawBitmap(bmp, x, y, b->flip ? kBitmapFlippedX : kBitmapUnflipped);
+			if ( b->look && s->hasLm && hpx >= lookMinPx )
+				lookPass(s, bmp, cs, b->look, (float)iax, (float)iay, floorf(sx), floorf(sy), 1, 1, 0, b->flip);
 		}
 		else if ( b->kind == 1 )
 		{
@@ -1419,7 +1714,7 @@ static int l_diamond(lua_State* L) { diamondMode = pd->lua->getArgInt(1); return
 // bc3d.renderMs() → C park render time of the last bc3d.render (ms)
 static int l_renderMs(lua_State* L) { pd->lua->pushFloat(statRenderMs); return 1; }
 
-// bc3d.sprite(id, img1x, img2x|nil, anchorX1, anchorY1, figurePx1, figureFt)
+// bc3d.sprite(id, img1x, img2x|nil, anchorX1, anchorY1, figurePx1, figureFt [, widthFactor [, landmarks]])
 static int l_sprite(lua_State* L)
 {
 	int id = pd->lua->getArgInt(1);
@@ -1439,11 +1734,31 @@ static int l_sprite(lua_State* L)
 	s->ay[1] = s->ay[0] * 2;
 	s->figH = argIsNil(6) ? (float)s->h[0] : argf(6);
 	s->figFt = argIsNil(7) ? 6.2f : argf(7);
+	s->wx = argIsNil(8) ? 1.0f : argf(8);
+	if ( s->wx < 0.5f || s->wx > 2.0f ) s->wx = 1.0f;
+	if ( !argIsNil(9) )
+	{
+		// landmarks: 24 chars (sprites.py write_landmarks): x y pairs at half-px, char = 40 + 2v
+		const char* lm = pd->lua->getArgString(9);
+		if ( lm && strlen(lm) >= 24 )
+		{
+			static const int at[11] = { 0, 2, 5, 8, 10, 12, 14, 16, 18, 20, 22 };
+			for ( int k = 0; k < 11; k++ )
+			{
+				s->lm[k * 2] = ((float)lm[at[k]] - 40.0f) * 0.5f;
+				s->lm[k * 2 + 1] = ((float)lm[at[k] + 1] - 40.0f) * 0.5f;
+			}
+			s->faceCode = (uint8_t)(lm[4] - '0');
+			s->backCode = (uint8_t)(lm[7] - '0');
+			s->hasLm = 1;
+		}
+	}
 	sprites[id] = s;
 	return 0;
 }
 
-// bc3d.bb(spriteId, x, y, z [, flip [, hscale [, sx, sy, rot, dx, dy, pivot]]]) — queue a billboard.
+// bc3d.bb(spriteId, x, y, z [, flip [, hscale [, sx, sy, rot, dx, dy, pivot [, look]]]]) — queue a billboard.
+//   look: per-player stamps (see lookPass), drawn when the sprite has landmarks.
 //   sx, sy: squash/stretch about the pivot (1 = none); rot: degrees clockwise on screen;
 //   dx, dy: offset in 1x sprite pixels (scaled with the puppet); pivot: height of the
 //   pivot above the feet anchor in 1x sprite pixels (0 = feet, 20 = body centre).
@@ -1471,6 +1786,7 @@ static int l_bb(lua_State* L)
 		else if ( b->ksx != 1.0f || b->ksy != 1.0f ) b->xf = 2;
 		else if ( b->dx != 0 || b->dy != 0 ) b->xf = 1;
 	}
+	b->look = (pd->lua->getArgCount() >= 13 && !argIsNil(13)) ? (uint32_t)pd->lua->getArgInt(13) : 0;
 	return 0;
 }
 
@@ -1547,6 +1863,15 @@ static int l_dropCaches(lua_State* L)
 	return 0;
 }
 
+// bc3d.lookStats([minPx]) → stamp pixels visited since the last call (+ sets the min figure px)
+static int l_lookStats(lua_State* L)
+{
+	if ( !argIsNil(1) ) lookMinPx = argf(1);
+	pd->lua->pushInt(statLookPx);
+	statLookPx = 0;
+	return 1;
+}
+
 // bc3d.stats() → polys, verts, polysFilled, spans
 static int l_stats(lua_State* L)
 {
@@ -1618,6 +1943,7 @@ static const lua_reg bc3dLib[] = {
 	{ "collect", l_collect },
 	{ "warmNext", l_warmNext },
 	{ "stats", l_stats },
+	{ "lookStats", l_lookStats },
 	{ NULL, NULL }
 };
 

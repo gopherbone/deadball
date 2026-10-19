@@ -19,6 +19,7 @@ local function shot(name)
   if name:sub(1, 3) == "p12" or name == "p31_season_done" then
     local b = Tour.blank or { n = 0, bad = 0 }
     print(string.format("[tour] sim-screen frames %d, blank %d", b.n, b.bad))
+    print(string.format("[inputprobe] states probed %d OK, %d FAIL", Tour.probe.ok, Tour.probe.fail))
   end
   if name:sub(1, 1) == "p" and acc.n > 0 and not perfMode then
     -- (pennant screens: Simulator frame cost over the settled frames before the shot)
@@ -196,11 +197,23 @@ local function buildPennant()
       elseif u and u.kind == "pitch_scout" and src:caughtUp(s) then
         pn.pt = (pn.pt or 0) + 1
         if pn.pt == 4 then once(tag .. "_pitch") end
+        -- the first time: hold the decision ~5 s (the world idles, the camera takes a decision angle)
+        if not pn.idleShot then
+          if pn.pt == 150 then once(tag .. "_pitch_idle") pn.idleShot = true end
+          return false
+        end
         if pn.pt == 6 then src:input(s, "A") end
         if pn.pt >= 8 then pn.pt = 0 src:input(s, "AUp") pn.lastAt = pn.f pn.lastKind = "pitch" end
       elseif u and u.kind == "dugout" and src:caughtUp(s) then
         pn.df = (pn.df or 0) + 1
         if pn.df == 4 and withDugout then once("p27_dugout") end
+        -- the first call: hold ~15 s and shoot the decision angles as they come round
+        if withDugout and not pn.decDone then
+          if pn.df == 40 then once("p27b_decision_1") elseif pn.df == 175 then once("p27b_decision_2")
+          elseif pn.df == 310 then once("p27b_decision_3") elseif pn.df == 445 then once("p27b_decision_4") end
+          if pn.df >= 450 then pn.decDone = true end
+          return false
+        end
         if pn.df >= 6 then pn.df = 0 src:input(s, "A") end
       end
       -- the LAST card a few frames after a pitch the "player" handled
@@ -572,9 +585,50 @@ function Tour.start()
   print("[tour] writing to " .. outDir)
 end
 
+--- Pennant live games own every input: in each input state (first time seen), send every input the
+--- state does not allow, plus the crank everywhere, and assert BallCast's replay state didn't move
+--- (game clock, beat index, speed, play/pause, game log, highlights) and nothing opened or closed.
+Tour.probe = { seen = {}, ok = 0, fail = 0 }
+local function probeInputs()
+  local src = PennantLive and PennantLive.cur
+  local s = App.top()
+  if not src or not BallCast or s ~= BallCast.scene or s.mode ~= "watch" or not s.tl then return end
+  local st = src:inputState(s)
+  local key = (src.directBat and "play:" or "manage:") .. st
+  if Tour.probe.seen[key] then return end
+  Tour.probe.seen[key] = true
+  local allowed = PennantLive.Live.INPUT_MAP[st]
+  local function snap()
+    return { t = s.t, bi = s:curBeatIndex(), speed = s.speed, playing = s.playing, log = s.logOpen and true or false,
+      hl = s.highlights and true or false, aDown = s.aDownAt ~= nil, menu = src.menu ~= nil, ui = src.ui and src.ui.kind or "-",
+      help = src.help ~= nil, top = App.top(), n = #App.stack }
+  end
+  local a = snap()
+  local sent = {}
+  -- (B during a changeover skips it in local games: intended, so not probed then)
+  local cb = s.tl.beats[s:curBeatIndex() or 1]
+  local changeover = cb and cb.kind == "half"
+  for _, b in ipairs({ "up", "down", "left", "right", "A", "B" }) do
+    if not allowed[b] and not (b == "B" and changeover) then
+      s[b .. "ButtonDown"](s)
+      if b == "A" and not allowed.AUp then s:AButtonUp() end
+      sent[#sent + 1] = b
+    end
+  end
+  -- the crank never scrubs, even where it's an input (net zero turn there)
+  if allowed.crank then s:cranked(30) s:cranked(-30) else s:cranked(120) s:cranked(-45) end
+  sent[#sent + 1] = "crank"
+  local b = snap()
+  local bad = {}
+  for k, v in pairs(a) do if b[k] ~= v then bad[#bad + 1] = k .. " " .. tostring(v) .. "->" .. tostring(b[k]) end end
+  if #bad == 0 then Tour.probe.ok += 1 else Tour.probe.fail += 1 end
+  print(string.format("[inputprobe] %-20s sent %-26s %s", key, table.concat(sent, ","), #bad == 0 and "OK" or ("FAIL " .. table.concat(bad, "; "))))
+end
+
 --- Called after each frame is drawn (from Debug.update).
 function Tour.update()
   if not active then return end
+  if PennantLive and PennantLive.cur and not perfMode then probeInputs() end
   -- Pennant screens must show something every frame (main.lua clears the display each frame):
   -- sample the frame just drawn; the top bar's corner is black on every Pennant screen
   if PennantUI and App.top() and getmetatable(App.top()) == PennantUI.Advance and not perfMode then

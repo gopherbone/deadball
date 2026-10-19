@@ -50,6 +50,10 @@ function PM.grade(v)
 end
 
 --- Velocity rating -> fastball mph.
+--- A uniform number for BallCast's player looks: stable per player (derived from the id, so no save
+--- change), 1-59 like the online league's.
+function PM.uniform(p) return p.num or (1 + (p.id * 37 + 11) % 59) end
+
 function PM.mph(v) return math.floor(92.5 + (v - 50) * 0.15 + 0.5) end
 
 function PM.name(p) return p.fn .. " " .. p.ln end

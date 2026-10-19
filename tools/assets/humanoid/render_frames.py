@@ -20,6 +20,7 @@ importlib.reload(poses)
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 only = None
 debug = "--debug" in argv
+lmonly = "--landmarks" in argv      # no renders: posed joint positions per frame -> renders/landmarks.json
 if "--tables" in argv:
     only = set(argv[argv.index("--tables") + 1].split(","))
 
@@ -203,6 +204,55 @@ if debug:
         render_to(os.path.join(outd, nm + ".png"))
     json.dump([s[0] for s in shots], open(os.path.join(outd, "index.json"), "w"))
     print("DEBUG OK", len(shots))
+    sys.exit(0)
+
+# ---------------------------------------------------------------- landmarks (runtime overlays)
+# Per table frame, a few posed joints projected into the same hi-res canvas the data renders use
+# (sprites.py moves them with each cell's placement): head centre + a point 0.12 m in front of the
+# face, the upper back (jersey number), knees/ankles, elbows/wrists; plus whether the face and the
+# back are toward the camera. The runtime draws per-player details (facial hair, skin dither,
+# number, socks, sleeves, helmet) on the billboard with these (bc3d look stamps).
+def landmarks(Mp, right, up, fwd):
+    W = rig.matrix_world
+    R3 = W.to_3x3()
+    cam_loc = cam.matrix_world.translation
+    def px(P):
+        q = P - cam_loc
+        return [round(CW / 2 + q.dot(right) * PPM_HI, 1), round(CH / 2 - q.dot(up) * PPM_HI, 1)]
+    def head(n):
+        return W @ Mp[n].translation
+    def fwd_of(n):
+        D = Mp[n].to_3x3() @ solver.rest[n]["R"].inverted()
+        return (R3 @ (D @ Vector((0, -1, 0)))).normalized()
+    hc = (W @ (Mp["head"].translation)) * 0.45 + (W @ (Mp["head"] @ Vector((0, solver.rest["head"]["len"], 0)))) * 0.55
+    hf = fwd_of("head")
+    cf = fwd_of("chest")
+    toCam = -fwd
+    back = head("chest").lerp(head("neck"), 0.35)
+    out = {"head": px(hc), "nose": px(hc + hf * 0.12), "face": round(hf.dot(toCam), 2),
+           "back": px(back), "backv": round(-cf.dot(toCam), 2)}
+    for s in ("L", "R"):
+        out["knee" + s] = px(head("shin." + s)); out["ankle" + s] = px(head("foot." + s))
+        out["elbow" + s] = px(head("forearm." + s)); out["wrist" + s] = px(head("hand." + s))
+    return out
+
+
+if lmonly:
+    lm_path = os.path.join(hlib.RENDERS, "landmarks.json")
+    lmd = json.load(open(lm_path)) if (only and os.path.exists(lm_path)) else {}
+    for t in poses.ALL_TABLES:
+        if only and t["name"] not in only and not any(t["name"].startswith(o + "_") and t.get("multiview") for o in only):
+            continue
+        fr = []
+        for i, (label, pose) in enumerate(t["frames"]):
+            Mp = solver.apply(pose); ground(pose)
+            view = pose.get("_view", t["view"])
+            right, up, fwd = set_view(view[0], view[1])
+            bpy.context.view_layer.update()
+            fr.append(landmarks(Mp, right, up, fwd))
+        lmd[t["name"]] = fr
+    json.dump(lmd, open(lm_path, "w"), separators=(",", ":"))
+    print("LANDMARKS OK", len(lmd), "tables")
     sys.exit(0)
 
 # ---------------------------------------------------------------- data renders

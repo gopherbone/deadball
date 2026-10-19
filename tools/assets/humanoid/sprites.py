@@ -72,7 +72,7 @@ def dil8(m):
     return o
 
 
-def make_cell(bufs, k, meta, fr, variant):
+def make_cell(bufs, k, meta, fr, variant, place=None):
     A, cls, lit, dep = bufs
     SS = hlib.SS
     b = SS // k
@@ -100,6 +100,8 @@ def make_cell(bufs, k, meta, fr, variant):
         elif xs.max() + 1 > x_hi:
             X0 += int(np.ceil((xs.max() + 1 - x_hi) / b)) * b
     X0, Y0 = int(round(X0)), int(round(Y0))
+    if place is not None:
+        place.extend([X0, Y0, scale, ox, oy, b])
     E = depth_edges(A, dep)
 
     def blocks(a):
@@ -209,11 +211,77 @@ def build(install=True, verbose=True, only=None):
                 sheets[k].append((tname, cells))
     if not only:
         written += pack_views(views, sheets, install)
+        written.append(write_landmarks(meta, install))
     contact(sheets)
     contact_views(views)
     if verbose:
         print("sprites:", len(written), "tables")
     return written
+
+
+# ---------------------------------------------------------------- landmarks (runtime look overlays)
+LM_KEYS = ["head", "nose", "back", "kneeL", "ankleL", "kneeR", "ankleR", "elbowL", "wristL", "elbowR", "wristR"]
+
+
+def cell_landmarks(lm, place):
+    """hi-res canvas points -> 1x cell px, through the cell's placement (shift + fit shrink)"""
+    X0, Y0, scale, ox, oy, b = place
+    out = {}
+    for key in LM_KEYS:
+        x, y = lm[key]
+        if scale < 0.999:
+            x, y = (x - ox) * scale + ox, (y - oy) * scale + oy
+        out[key] = ((x - X0) / b, (y - Y0) / b)
+    return out
+
+
+def enc(v):
+    """half-pixel precision in one printable char: v in [-4, 43] 1x px"""
+    q = int(round(v * 2)) + 40
+    return chr(max(32, min(126, q)))
+
+
+def write_landmarks(meta, install=True):
+    """images/puppets/landmarks.json: per view set + view, one string of 24 chars per frame:
+    head, nose (x y), face code ('0' away, '1' profile, '2' toward camera), back (x y), back code
+    ('0'/'1' number visible), knee/ankle L, knee/ankle R, elbow/wrist L, elbow/wrist R (x y each).
+    Coordinates: 1x cell px (anchor 14,42), half-pixel steps, char = 40 + round(2v)."""
+    import poses
+    lmf = os.path.join(hlib.RENDERS, "landmarks.json")
+    if not os.path.exists(lmf):
+        print("  no landmarks (run render_frames.py --landmarks)"); return None
+    LM = json.load(open(lmf))
+    out = {}
+    for ps in poses.POSESETS:
+        for vid, _, _ in poses.VIEWS:
+            tname = f"{ps['name']}_{vid}"
+            t = poses.TABLE_BY_NAME.get(tname)
+            tm = meta["tables"].get(tname)
+            if not t or not tm or tname not in LM:
+                continue
+            s = ""
+            for fi, fr in enumerate(tm["frames"]):
+                bufs = load(os.path.join(hlib.RENDERS, fr["file"]))
+                place = []
+                make_cell(bufs, 1, meta, fr, "home", place)
+                lm = LM[tname][fi]
+                c = cell_landmarks(lm, place)
+                fc = lm["face"]
+                s += enc(c["head"][0]) + enc(c["head"][1]) + enc(c["nose"][0]) + enc(c["nose"][1])
+                s += "2" if fc > 0.25 else ("1" if fc > -0.3 else "0")
+                s += enc(c["back"][0]) + enc(c["back"][1]) + ("1" if lm["backv"] > 0.35 else "0")
+                for key in LM_KEYS[3:]:
+                    s += enc(c[key][0]) + enc(c[key][1])
+            out[ps["name"] + "#" + vid[1:]] = s
+    ppm1 = meta["ppm_hi"] / hlib.SS
+    doc = {"version": 1, "doc": "tools/assets/humanoid/sprites.py write_landmarks", "headR": round(0.115 * ppm1, 2),
+           "stride": 24, "cells": out}
+    d = hlib.PUPPETS_OUT if install else os.path.join(hlib.CACHE, "out")
+    p = os.path.join(d, "landmarks.json")
+    with open(p, "w") as f:
+        json.dump(doc, f, separators=(",", ":"))
+    print("  landmarks:", len(out), "view rows ->", p)
+    return p
 
 
 # ---------------------------------------------------------------- contact sheets
@@ -267,7 +335,7 @@ def pack(strips, maxw):
 
 
 # 2x view rows only for the sets that close cameras show big (memory + load time)
-CLOSE_2X = {"pitcher_seq", "batter_seq", "catcher", "umpire", "fielder", "catcher_reach"}
+CLOSE_2X = {"pitcher_seq", "batter_seq", "catcher", "umpire", "fielder", "catcher_reach", "walker"}
 # small single-view tables packed after the view rows (the face-less draws: celebrations, mascot, streaker)
 LEGACY_ROWS = ["accent", "accent_away", "fan", "mascot", "streaker"]
 CHUNK_CAP = {1: 112, 2: 46}     # cells per chunk file: each file loads in one ~40 ms loader slice on device

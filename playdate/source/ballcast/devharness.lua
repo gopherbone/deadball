@@ -719,6 +719,250 @@ elseif only == "tvcalls" then
     end
   end
   step(function() App.pop() end, 5)
+elseif only == "camaudit" then
+  -- Occlusion audit. Every camera the replay can cut to (each beat's own shots at many
+  -- moments, both batter hands; the replay angles; the open's flyover and the intro orbit),
+  -- in all nine parks, through the camera guard like Live:setCamera:
+  --   HIDDEN  an action point (ball, batter, pitcher, catcher, the fielder making the play,
+  --           runners and their bases) in the frame but behind park geometry
+  --   JUNK    park geometry between the lens and the field in the frame's central half
+  -- Then renders the blimp shots of every park (and the worst offenders) for contact sheets.
+  local Cam, R3, Play, Geo = BallCast.Cam, BallCast.Render, BallCast.Play, BallCast.Geo
+  local games = { HARNESS_GAME or "ultra" }
+  step(function() App.push(BC, { gameId = games[1], skipIntro = true }) end)
+  waitFor(function() return BC.mode == "watch" end, 900)
+  waitFor(function() return not BC:timelinePending() end, 3000)   -- (the whole game, every run)
+  local shots = {}           -- park id -> { {label, cam}, ... } to render
+  local summary = {}
+  step(function()
+    local pj = Cam.parksJson()
+    local tl = BC.tl
+    local origBatSide = Play.batSide
+    local RP = BallCast.TVReplay
+    local G = { tl = tl, meta = BC.meta, live3d = true, fielderId = function() return nil end }
+    local total, hidden, junk = 0, 0, 0
+    planIssues = {}
+    local byCam = {}
+    local function note(name, kind)
+      local e = byCam[name] or { n = 0, hid = 0, junk = 0 }
+      byCam[name] = e
+      if kind then e[kind] = e[kind] + 1 else e.n = e.n + 1 end
+    end
+    for pid, pk in pairs(pj.parks) do
+      local park = { id = pid, fences = pk.fences, walls = pk.walls, foulTerritory = pk.foulTerritory }
+      Cam.guardBuild(park)
+      local bk = Geo.baked(park)
+      local r = { park = park, presets = Cam.presets(park, bk.cams) }
+      shots[pid] = {}
+      junkCache = {}
+      -- the game re-planned in this park (fences, walls, foul ground: where the ball lands and
+      -- the fielders run depend on them)
+      -- (two games: this one and the dev fixture's, back to back in one timeline)
+      local tl = BallCast.Timeline.new({ people = BC.meta.people, park = park, home = BC.meta.home, away = BC.meta.away })
+      BallCast.Timeline.append(tl, BC.tl.log)
+      local dev = BCKit.readJson("fixtures_dev/ballcast/game-log.json")
+      if dev and dev.log then
+        local people = tl.meta.people
+        for id, p in pairs(dev.people or {}) do people[id] = people[id] or p end
+        BallCast.Timeline.append(tl, dev.log)
+      end
+      G.tl = tl
+      local printed = 0
+      local function audit(name, label, cam, pts, keep)
+        cam = Cam.safeEye(park, { cam[1], cam[2], cam[3], cam[4], cam[5], cam[6], cam[7] })
+        total = total + 1
+        note(name)
+        local inF, hid, tag, mat = 0, 0, nil, nil
+        if pts and #pts > 0 then inF, hid, tag, mat = Cam.clearOfAction(park, cam, pts) end
+        local jkey = string.format("%.0f,%.0f,%.0f,%.0f,%.0f,%.0f,%.1f", cam[1], cam[2], cam[3], cam[4], cam[5], cam[6], cam[7])
+        local jc = junkCache[jkey]
+        if not jc then jc = { Cam.junkInMiddle(park, cam) }; junkCache[jkey] = jc end
+        local jf, jm = jc[1], jc[2]
+        if hid > 0 and printed < 4 then
+          for _, p in ipairs(pts) do
+            local mat, t = Cam.blocked(park, { cam[1], cam[2], cam[3] }, p, 1.5)
+            if mat then
+              print(string.format("[camaudit]   %s at (%.0f,%.0f,%.0f) hidden by %s at (%.0f,%.0f,%.0f)", p[4], p[1], p[2], p[3], mat,
+                cam[1] + (p[1] - cam[1]) * t, cam[2] + (p[2] - cam[2]) * t, cam[3] + (p[3] - cam[3]) * t))
+              break
+            end
+          end
+        end
+        local bad = false
+        if hid > 0 then hidden = hidden + 1; note(name, "hid"); bad = true end
+        if jf >= 0.05 then junk = junk + 1; note(name, "junk"); bad = true end
+        if bad and printed < 40 then
+          printed = printed + 1
+          print(string.format("[camaudit] %-9s %-12s %-26s eye (%.0f,%.0f,%.0f) %s%s", pid, name, label, cam[1], cam[2], cam[3],
+            hid > 0 and string.format("HIDDEN %d/%d (%s behind %s) ", hid, inF, tag, mat) or "",
+            jf >= 0.05 and string.format("JUNK %.0f%% (%s)", jf * 100, jm) or ""))
+        end
+        if (bad or keep) and #shots[pid] < 10 then shots[pid][#shots[pid] + 1] = { label = name .. " " .. label, cam = cam, bad = bad } end
+      end
+      local function actionAt(b, tau, bs)
+        local plan = b.plan
+        local pts = {}
+        -- (6 ft of contact: a fielder against the wall is touching it, not hidden behind it)
+        local function fig(x, y, tag)
+          if not Cam.inField(park, x, y, -2) then
+            -- (a player planned off the field, past the fence: a play-planning issue, not the camera's)
+            planIssues[tag .. " b" .. b.n] = string.format("(%.0f,%.0f)", x, y)
+            return
+          end
+          pts[#pts + 1] = { x, y, 1, tag, 6 }; pts[#pts + 1] = { x, y, 3.5, tag, 6 }; pts[#pts + 1] = { x, y, 5.5, tag, 6 }
+        end
+        local bx, by, bz = Play.ballAt(plan, tau)
+        -- (the ball counts while it's over the field: not once it's over the seats)
+        if bx and bz >= 0 and Cam.inField(park, bx, by, 4) then
+          pts[#pts + 1] = { bx, by, math.max(0.3, bz), "ball", 6 }
+        end
+        if plan.pitch or b.kind == "pa" then
+          fig(-bs * 3.2, 0.6, "batter"); fig(0, 59, "pitcher")
+          pts[#pts + 1] = { 0, -3.5, 1, "catcher" }; pts[#pts + 1] = { 0, -3.5, 3, "catcher" }
+        end
+        for _, c in ipairs(plan.catches or {}) do
+          if tau > c.t0 - 0.8 and tau < c.ct + c.hold + 0.2 then
+            local x, y = Play.fielderAt(plan, c.pos, tau)
+            fig(x, y, "fielder " .. c.pos)
+          end
+        end
+        for _, rn in ipairs(plan.runners or {}) do
+          if tau >= rn.t0 - 0.2 and tau <= rn.t1 + 0.4 then
+            local x, y = Play.runnerPos(rn, tau)
+            pts[#pts + 1] = { x, y, 1, "runner" }; pts[#pts + 1] = { x, y, 3.5, "runner" }
+            local tx, ty = Play.basePos(rn.target)
+            pts[#pts + 1] = { tx, ty, 0.5, "base" }
+          end
+        end
+        return pts
+      end
+      for _, bs in ipairs({ 1, -1 }) do
+        Play.batSide = function() return bs end
+        for i, b in ipairs(tl.beats) do
+          if bs == 1 or b.plan.pitch or b.kind == "pa" then
+            local d = b.dur or 2
+            for k = 0, 3 do
+              local tau = d * (k + 0.5) / 4
+              local cc = Play.camAt(b.plan, tau)
+              if cc.name ~= "bleacher" then
+                local cam = R3.shot(r, b, tau, cc)
+                audit(cc.name .. (cc.opt and cc.opt.establish and "/est" or ""), "b" .. i .. " t" .. string.format("%.1f", tau) .. " h" .. bs,
+                  cam, actionAt(b, tau, bs), cc.name == "blimp" and k == 1 and bs == 1)
+              end
+            end
+          end
+        end
+        -- the replay angles
+        for i, b in ipairs(tl.beats) do
+          local tier, kind = RP.worthy(tl, i)
+          if tier then
+            local sc = RP.script(G, i, kind)
+            for _, sh in ipairs(sc and sc.shots or {}) do
+              for k = 0, 4 do
+                local tau = sh.from + (sh.to - sh.from) * k / 4
+                local cam
+                if type(sh.cam) == "function" then cam = sh.cam(sh.b, tau)
+                elseif type(sh.cam) == "table" and sh.cam.name then cam = R3.shot(r, sh.b, tau, sh.cam)
+                elseif type(sh.cam) == "table" then cam = sh.cam end
+                if cam then audit("replay " .. kind, "b" .. i .. " t" .. string.format("%.1f", tau) .. " h" .. bs, cam, actionAt(sh.b, tau, bs)) end
+              end
+            end
+          end
+        end
+      end
+      Play.batSide = origBatSide
+      for k = 0, 10 do audit("flyover", "k" .. k / 10, BallCast.TV.flyCam(k / 10), nil) end
+      -- every blimp and establishing-orbit moment, both sides, over a half-inning and a fly ball
+      local half, fly
+      for _, b in ipairs(tl.beats) do
+        if b.kind == "half" and not half then half = b end
+        if b.kind == "bip" and b.plan.catchPos and not fly then fly = b end
+      end
+      for _, side in ipairs({ 1, -1 }) do
+        for tau = 0, 6, 0.5 do
+          if half then audit("blimp", "half side" .. side .. " t" .. tau, R3.shot(r, half, tau, { name = "blimp", opt = { side = side } }), nil, tau == 1 and side == 1) end
+          if fly then audit("blimp", "fly side" .. side .. " t" .. tau, R3.shot(r, fly, tau, { name = "blimp", opt = { side = side } }), actionAt(fly, tau, 1)) end
+          if half and side == 1 then audit("high/est", "half t" .. tau, R3.shot(r, half, tau, { name = "high", opt = { establish = true } }), nil, tau == 1) end
+        end
+      end
+      -- the half-inning changeover's held shots (checked and cached as the loader does)
+      for _, top in ipairs({ true, false }) do
+        for k = 1, 2 do
+          if Play.changeoverPrepare then Play.changeoverPrepare(park, top, k) end
+          local e, t, fov = Play.changeoverShot(r, { pre = { top = top } }, 0, k)
+          audit("changeover", (top and "top" or "bot") .. " k" .. k, { e[1], e[2], e[3], t[1], t[2], t[3], fov }, Play.changeoverPts(), k == 1 and top)
+        end
+      end
+      -- Pennant's decision angles (vetted at load as the TV loader does), as R3.shot frames them in
+      -- each free strip of the screen (full, left of the dugout panel, between the pitch panels)
+      if R3.decisionPrepare then
+        for _, c in ipairs(R3.decisionCombos()) do
+          if R3.decisionPrepare(park, c[1], c[2], c[3]) then
+            for _, strip in ipairs({ { 4, 396 }, { 4, 224 }, { 96, 292 } }) do
+              local fakeB = { pre = { bat = nil }, plan = {} }
+              local savedBS = Play.batSide
+              Play.batSide = function() return c[2] end
+              local cam = R3.shot(r, fakeB, 0, { name = "decision", opt = { kind = c[1], side = c[3], step = 0, x0 = strip[1], x1 = strip[2] } })
+              Play.batSide = savedBS
+              audit("decision", c[1] .. " bs" .. c[2] .. " s" .. c[3] .. " " .. strip[1] .. "-" .. strip[2], cam, R3.decisionPts(c[2]), strip[2] == 396 and c[2] == 1)
+            end
+          end
+        end
+      end
+      for a = 0, 330, 30 do
+        local ar = math.rad(a)
+        audit("intro orbit", "a" .. a, Cam.introOrbit and not CAMAUDIT_BEFORE and Cam.introOrbit(park, ar)
+          or { math.sin(ar) * 280, -math.cos(ar) * 280 + 60, 110, 0, 170, 10, 50 }, nil)
+      end
+    end
+    for name, e in pairs(byCam) do
+      print(string.format("[camaudit] camera %-14s samples %5d  hidden %4d  junk %4d", name, e.n, e.hid, e.junk))
+    end
+    local np = 0
+    for k, v in pairs(planIssues) do np = np + 1; if np <= 10 then print("[camaudit] plan issue: " .. k .. " off the field at " .. v) end end
+    print(string.format("[camaudit] %d camera samples, %d with the action hidden, %d with junk in the middle (%d players planned off the field: not counted)", total, hidden, junk, np))
+    summary.total, summary.hidden, summary.junk = total, hidden, junk
+  end, 2)
+  -- render: per park, the blimp sample and the offenders (the park's own geometry uploaded)
+  step(function()
+    local pj = Cam.parksJson()
+    local list = {}
+    for pid in pairs(pj.parks) do list[#list + 1] = pid end
+    table.sort(list)
+    CAMAUDIT_LIST = list
+  end, 1)
+  for pi = 1, 9 do
+    step(function()
+      local pid = CAMAUDIT_LIST[pi]
+      if not pid then return end
+      local bk = Geo.baked({ id = pid })
+      Geo.uploadBaked(bk)
+      CAMAUDIT_PID = pid
+    end, 2)
+    for si = 1, 10 do
+      step(function()
+        local pid = CAMAUDIT_PID
+        local s = pid and shots[pid] and shots[pid][si]
+        if not s then return end
+        BC.mode = "watch"
+        local c = s.cam
+        bc3d.camera(c[1], c[2], c[3], c[4], c[5], c[6], c[7])
+        if bc3d.quality then bc3d.quality(0) end
+        bc3d.render(0, 0)
+        bc3d.flush(0, 0)
+        BallCast.TVArt.drawText("tiny", pid .. "  " .. s.label .. (s.bad and "  [OFFENDER]" or ""), 4, 228, nil, "wo")
+        CAMAUDIT_IMG = gfx.getWorkingImage()
+      end, 1)
+      step(function()
+        local pid = CAMAUDIT_PID
+        local s = pid and shots[pid] and shots[pid][si]
+        if s and CAMAUDIT_IMG then
+          playdate.simulator.writeToFile(CAMAUDIT_IMG, OUT .. string.format("camaudit_%s_%02d.png", pid, si))
+        end
+      end, 1)
+    end
+  end
+  step(function() App.pop() end, 5)
 elseif only == "tvunit" then
   -- DBN art at 3x (digits, K card, radar gun, logo, bug) on one screen
   step(function()
@@ -940,7 +1184,7 @@ step(function() timingTag = nil; App.pop() end, 5)
 end
 
 -- Cards ----------------------------------------------------------------------
-if Cards and Cards.debugScript and only ~= "ballcast" and only ~= "anim" and only ~= "fix" and not (only or ""):match("^tv") then
+if Cards and Cards.debugScript and only ~= "ballcast" and only ~= "anim" and only ~= "fix" and not (only or ""):match("^tv") and only ~= "camaudit" then
   Cards.debugScript(step, waitFor, shot)
 end
 

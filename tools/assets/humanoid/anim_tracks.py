@@ -118,6 +118,21 @@ TRACKS = {
         K("accent", 4, 4, **ST, dy=-5, fx={"vibrate": [1, 4]}), K("accent", 4, 3, **SQ), K("fan", 2, 4, flip=True)]},
     "turn": {"loop": False, "keys": [K("runner", 1, 2, sx=0.6), K("runner", 1, 2, sx=0.6, flip=True),
                                       K("runner", 1, 4, flip=True)]},
+    # walk-offs / changeovers (walker table): a plain walk, the dejected walk back after a K (head
+    # down), the same dragging the bat; a light jog (the run cycle, longer holds, less bounce); and
+    # the on-deck hitter's practice cut (half swing, back to the stance)
+    "walk": {"loop": True, "keys": [
+        K("walker", 1, 8, sx=0.97, sy=1.03, dy=-1), K("walker", 2, 8, sx=1.02, sy=0.98)]},
+    "slump": {"loop": True, "keys": [
+        K("walker", 3, 11), K("walker", 4, 11, sx=1.03, sy=0.97)]},
+    "drag": {"loop": True, "keys": [
+        K("walker", 5, 11), K("walker", 6, 11, sx=1.03, sy=0.97)]},
+    "jog": {"loop": True, "keys": [
+        K("runner_seq", 1, 4), K("runner_seq", 2, 5, sx=0.97, sy=1.03, dy=-1),
+        K("runner_seq", 3, 4), K("runner_seq", 4, 5, sx=0.97, sy=1.03, dy=-1)]},
+    "practice": {"loop": False, "keys": [
+        K("batter_seq", 1, 6), K("batter_seq", 2, 5, sx=0.95, sy=1.05), K("batter_seq", 3, 2),
+        K("batter_seq", 5, 3, **STH), K("batter_seq", 6, 6), K("batter_seq", 1, 8, **SQ), K("batter_seq", 1, 4)]},
 }
 META = {"fps": 30, "anchor_1x": [14, 42], "center_1x": [14, 22],
         "shake_decay": 0.55, "boil": {"every": [6, 14], "len": [1, 2], "px": 1},
