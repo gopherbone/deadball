@@ -43,6 +43,7 @@ export async function story(c: Ctx) {
   const r = await c.db.prepare("SELECT *, 0 AS comments FROM stories WHERE id = ? AND publish_at <= ?").bind(c.params[0], c.now).first<StoryRow>();
   if (!r) fail("not_found", "no such story");
   const s = JSON.parse(r!.data) as Story;
+  c.L.noteSeen(c.acct.id, `story:${r!.id}`, c.now);  // odd jobs: "read a story" reports check this
   return { story: { ...s, id: r!.id, gameId: r!.game_id ?? undefined, at: r!.publish_at }, comments: await latestComments(c, `story:${r!.id}`, 20) };
 }
 

@@ -28,7 +28,7 @@ function Desktop:sources()
   return {
     me = "/me", events = o("/events"), news = o("/news"), today = o("/today"), ops = o("/ops"),
     watch = o("/watchlist"), gossip = o("/gossip"), mail = o("/mail"), syn = o("/syndicate"),
-    bulletins = o("/bulletins"),
+    bulletins = o("/bulletins"), bonus = o("/bonus"),
   }
 end
 
@@ -158,6 +158,13 @@ function Desktop:buildTodo()
         action = function() Sites.News.open() end, hint = "SportsWire Online" })
     end
   end
+  -- Bobby's loyalty card and odd jobs: last, and only if there's room (they never push out a deadline)
+  if Bonus and Bonus.todoRows then
+    for _, r in ipairs(Bonus.todoRows(d.bonus)) do
+      if #rows >= MAX_ROWS then break end
+      add(r)
+    end
+  end
   self.todo = rows
 end
 
@@ -250,8 +257,15 @@ function Desktop:refreshFromCache()
   self.digestDay = day
 end
 
---- After the haul: a decision that's waiting, else an EXTRA! that hasn't slammed in yet.
+--- After the haul: today's loyalty-card punch (once a UTC day), then the rest.
 function Desktop:afterDigest()
+  if App.top() ~= self then return end
+  if Sites.PunchCard and Sites.PunchCard.maybeShow(function() self:afterPunch() end) then return end
+  self:afterPunch()
+end
+
+--- A decision that's waiting, else an EXTRA! that hasn't slammed in yet.
+function Desktop:afterPunch()
   if App.top() ~= self then return end
   local ev = Nav.pendingEvents or {}
   if #ev > 0 then Sites.EventCard.show(ev[1]) return end
@@ -306,6 +320,10 @@ local function glyphBox(g, x, y)
     gfx.drawLine(x + 3, y + 9, x + 8, y + 3)
     gfx.drawLine(x + 8, y + 3, x + 9, y + 5)
     gfx.drawLine(x + 2, y + 9, x + 3, y + 10)
+  elseif g == "o" then
+    -- a punch-card hole: the loyalty card
+    gfx.drawCircleAtPoint(x + 6, y + 6, 4)
+    gfx.drawCircleAtPoint(x + 6, y + 6, 3)
   elseif g == "^" then
     -- a flag: the auction
     gfx.drawLine(x + 3, y + 2, x + 3, y + 10)
@@ -481,6 +499,7 @@ function Desktop.startMenu(x, y)
     { label = "Syndicate", action = function() Sites.Syndicate.open() end },
     { label = "Card Shop", action = function() Nav.cards("shop") end },
     { label = "Crew & Recruits", action = function() Sites.Recruit.open() end },
+    { label = "Odd Jobs & Loyalty Card", action = function() Sites.OddJobs.open() end },
     "-",
     { label = "Pennant '96 (offline)", action = function() if Pennant then Pennant.open() end end },
     { label = "Settings", action = function() Sites.Settings.open() end },

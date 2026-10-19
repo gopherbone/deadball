@@ -30,6 +30,18 @@ local FIX_DAY_S <const> = 1800
 local FIX_BET_S <const> = 270     -- first pitch 4:30 after the fixtures load
 local FIX_SCALE <const> = FIX_DAY_S // 40
 local function retime(name, data)
+  if name:find("^bonus") then
+    -- odd jobs run on the game day: the captured 40 s board lasts a live-length day offline
+    local function walk(t, depth)
+      if depth > 5 then return end
+      for k, v in pairs(t) do
+        if type(v) == "table" then walk(v, depth + 1)
+        elseif (k == "endsIn" or k == "claimUntilIn") and type(v) == "number" and v < 600 then t[k] = v * FIX_SCALE end
+      end
+    end
+    walk(data, 0)
+    return
+  end
   if name == "clock" then
     data.msPerDay = FIX_DAY_S * 1000
     data.nextDayIn = FIX_BET_S + FIX_DAY_S * 3 // 4
@@ -137,6 +149,7 @@ local GET = {
   { "^/syndicate$", function() return { "syndicate" } end },
   { "^/watchlist$", function() return { "watchlist" } end },
   { "^/bulletins$", function() return { "bulletins" } end },
+  { "^/bonus$", function() return { "bonus" } end },
 }
 
 local function routeGet(path)
@@ -239,7 +252,100 @@ local function threadList(thread)
   return d.comments
 end
 
+-- Odd jobs offline: the session copy of /bonus moves when you do the things it asks.
+local function bonusJobs(b)
+  local out = {}
+  for _, k in ipairs({ "leftovers", "jobs" }) do for _, j in ipairs(b[k] or {}) do out[#out + 1] = j end end
+  if b.week then out[#out + 1] = b.week end
+  return out
+end
+
+local function bonusClaimable(b)
+  local n = 0
+  local left = b.pettyCash and b.pettyCash.left or 0
+  for _, j in ipairs(bonusJobs(b)) do if j.status == "done" and (j.weekly or left > 0) then n += 1 end end
+  b.claimable = n
+end
+
+--- Something the odd jobs count happened: kinds = { "bet", ... } (any matching open job moves).
+local function bonusProgress(kinds, n)
+  local b = load("bonus")
+  if not b then return end
+  for _, j in ipairs(bonusJobs(b)) do
+    for _, k in ipairs(kinds) do
+      if j.kind == k and j.status == "open" then
+        j.have = math.min(j.need or 1, (j.have or 0) + (n or 1))
+        if j.have >= (j.need or 1) then j.status = "done" end
+      end
+    end
+  end
+  bonusClaimable(b)
+end
+Fixtures.bonusProgress = bonusProgress
+
+local function withBonus(out)
+  local b = load("bonus")
+  if b then for k, v in pairs(b) do if out[k] == nil then out[k] = v end end end
+  return out
+end
+
 local POST = {
+  { "^/bonus/punch$", function()
+    local b = load("bonus")
+    if not (b and b.card) then return err(404, "not_found", "no bonus fixture") end
+    local card = b.card
+    local acct = account()
+    if card.punchedToday then
+      return nil, withBonus({ punched = false, hole = card.hole, line = "Already punched today. Bobby remembers faces.", account = acct })
+    end
+    local hole = card.lapsed and 1 or ((card.hole or 0) % #card.holes + 1)
+    if hole == 1 then for _, h in ipairs(card.holes) do h.stamped = false h.today = nil end end
+    local h = card.holes[hole]
+    h.stamped, h.today = true, true
+    card.hole, card.punchedToday, card.lapsed = hole, true, nil
+    card.streak = (card.streak or 0) + 1
+    card.total = (card.total or 0) + 1
+    if card.streak > (card.best or 0) then card.best = card.streak end
+    if acct then acct.money += h.cash or 0 end
+    local fx = load("bonus-punch")
+    local line = (h.packs or 0) > 0 and "Full card! Bobby slid a free pack across the counter. Pick it up at the Card Shop."
+      or (fx and fx.line) or "Bobby punched your card without looking up."
+    return nil, withBonus({ punched = true, hole = hole, streak = card.streak, reward = { cash = h.cash or 0, packs = h.packs or 0, label = h.reward }, line = line, account = acct })
+  end },
+  { "^/bonus/jobs/(.+)/claim$", function(body, id)
+    local b = load("bonus")
+    local acct = account()
+    for _, j in ipairs(b and bonusJobs(b) or {}) do
+      if j.id == id then
+        if j.status == "claimed" then return nil, withBonus({ claimed = true, again = true, job = j, line = "Already paid. Bobby doesn't pay twice.", account = acct }) end
+        if j.status ~= "done" then return err(400, "bad_request", "not done yet (" .. (j.have or 0) .. "/" .. (j.need or 1) .. ")") end
+        local pc = b.pettyCash or {}
+        if not j.weekly then
+          if (pc.left or 0) <= 0 then return err(429, "rate_limited", "Bobby's petty-cash drawer is empty until midnight (UTC).") end
+          pc.left -= 1
+        end
+        j.status = "claimed"
+        local r = j.reward or {}
+        if acct then
+          acct.money += r.cash or 0
+          acct.heat = math.max(0, (acct.heat or 0) - (r.heat or 0))
+        end
+        bonusClaimable(b)
+        local claimFx = load("bonus-claim")
+        local line = (r.heat or 0) > 0 and "Bobby made a phone call downtown. Somebody lost a file."
+          or ((r.packs or 0) > 0 and "Bobby threw in a pack. It's at the Card Shop, under your name.")
+          or (claimFx and claimFx.line) or "Bobby paid you from a cigar box marked PETTY."
+        return nil, withBonus({ claimed = true, job = j, line = line, account = acct })
+      end
+    end
+    return err(404, "not_found", "no such job on your board")
+  end },
+  { "^/bonus/report$", function(body)
+    local kind = body.kind
+    if kind ~= "replay" and kind ~= "read" then return err(400, "bad_request", "kind must be one of replay, read") end
+    bonusProgress({ kind })
+    return nil, withBonus({ marked = true })
+  end },
   { "^/register$", function(body)
     local name = tostring(body.name or "")
     if #name < 3 or #name > 16 or name:find("[^%w_%-%. ]") then
@@ -282,6 +388,9 @@ local POST = {
     local bet = { id = newId("b"), gameId = game.id, side = body.side, amount = amt, placedAt = Api.now(), status = "open", game = game,
       label = (body.side == "home" and game.home.abbr or game.away.abbr) .. " to win", pays = pool.pays[body.side] }
     table.insert(bets.bets, 1, bet)
+    bonusProgress({ "bet", "bet3", "w_bets" })
+    local other = body.side == "home" and "away" or "home"
+    if (pool.pays[body.side] or 0) > (pool.pays[other] or 0) then bonusProgress({ "underdog" }) end
     return nil, { bet = bet, pool = pool, account = acct }
   end },
   { "^/props/bets$", function(body)
@@ -330,6 +439,7 @@ local POST = {
       for i = #list, 1, -1 do if list[i].propId == p.id then table.remove(list, i) end end
       table.insert(list, 1, bet)
     end
+    bonusProgress({ "prop", "w_props" })
     return nil, { bet = bet, prop = p, account = acct }
   end },
   { "^/comments$", function(body)
@@ -339,6 +449,8 @@ local POST = {
     local c = { id = newId("c"), author = acct and acct.name or "you", authorRank = acct and acct.rank or "Rube", text = text, at = Api.now(), reactions = { agree = 0, lol = 0, rat = 0 } }
     local list = threadList(body.thread or "misc")
     table.insert(list, 1, c)
+    local th = tostring(body.thread or "")
+    bonusProgress({ th:find("^story:") and "story" or (th:find("^bbs:") and "bbs" or (th:find("^person:") and "guestbook" or "-")), "w_posts" })
     return nil, { comment = c }
   end },
   { "^/comments/([^/]+)/react$", function(body, id)
@@ -347,6 +459,7 @@ local POST = {
     local k = body.kind
     if k ~= "agree" and k ~= "lol" and k ~= "rat" then return err(400, "bad_request", "bad kind") end
     c.reactions[k] = (c.reactions[k] or 0) + 1
+    bonusProgress({ "react" })
     return nil, { comment = c }
   end },
   { "^/crew/recruit$", function(body)
@@ -423,6 +536,7 @@ local POST = {
     local ops = load("ops") or { ops = {} }
     db["ops"] = ops
     table.insert(ops.ops, 1, op)
+    bonusProgress({ "job" })
     return nil, { op = op, account = acct }
   end },
   { "^/ops/([^/]+)/chipin$", function(body, id)
@@ -491,6 +605,7 @@ local POST = {
     for _, p in ipairs(shop and shop.packs or {}) do if p.kind == body.kind then price = p.price end end
     if acct and acct.money < price then return err(400, "insufficient_funds", "Not enough cash for that pack.") end
     if acct then acct.money -= price end
+    if price > 0 then bonusProgress({ "pack" }) end
     local opened = load("pack-open") or load("cards") or { cards = {} }
     return nil, { cards = opened.cards, account = acct }
   end },
@@ -513,6 +628,7 @@ local POST = {
     local acct = account()
     local l = { id = newId("l"), card = { id = body.cardId }, price = body.price, seller = acct and acct.name or "you", at = Api.now() }
     table.insert(m.listings, 1, l)
+    bonusProgress({ "market" })
     return nil, { listing = l }
   end },
   -- Syndicates

@@ -8,7 +8,7 @@ export default defineConfig(async () => {
       cloudflareTest({
         wrangler: { configPath: "./wrangler.jsonc" },
         miniflare: {
-          bindings: { TEST_MIGRATIONS: migrations, ADMIN_TOKEN: "test-admin", GAME_DAY_MS: "600000", WORLD_SEED: "test-world", BATCH_MAX_BYTES: "65536" },
+          bindings: { TEST_MIGRATIONS: migrations, ADMIN_TOKEN: "test-admin", GAME_DAY_MS: "600000", WORLD_SEED: "test-world", BATCH_MAX_BYTES: "65536", BONUS_REPLAY_MIN_MS: "0" },
         },
       }),
     ],

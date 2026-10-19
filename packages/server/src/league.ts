@@ -137,7 +137,7 @@ export class League extends DurableObject<Env> {
   /** Wipe everything (DO storage, D1 tables, R2 logs) and start a fresh world. */
   async reset(seed: string, wipe = true) {
     if (wipe) {
-      const tables = ["accounts", "ledger", "games", "bets", "crew", "hired", "ops", "mail", "events", "card_defs", "serials", "cards", "listings", "threads", "comments", "reactions", "stories", "visitors", "syndicates", "syndicate_invites", "redemptions", "redeem_mods", "retired_people", "bids", "holds", "watches", "sales", "props", "prop_bets", "known_storylines", "op_shares"];
+      const tables = ["accounts", "ledger", "games", "bets", "crew", "hired", "ops", "mail", "events", "card_defs", "serials", "cards", "listings", "threads", "comments", "reactions", "stories", "visitors", "syndicates", "syndicate_invites", "redemptions", "redeem_mods", "retired_people", "bids", "holds", "watches", "sales", "props", "prop_bets", "known_storylines", "op_shares", "punches", "odd_jobs", "bonus_marks"];
       await this.db.batch(tables.map(t => this.db.prepare(`DELETE FROM ${t}`)));
       for (;;) {
         const list = await this.env.LOGS.list({ prefix: "logs/", limit: 500 });
@@ -152,6 +152,7 @@ export class League extends DurableObject<Env> {
     this.stats.clear();
     this.ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS moves (team_id TEXT NOT NULL, day INTEGER NOT NULL, season INTEGER NOT NULL, text TEXT NOT NULL)");
     this.ctx.storage.sql.exec("DELETE FROM moves");
+    this.ctx.storage.sql.exec("DROP TABLE IF EXISTS seen");
     this.seed = this.salted(seed);
     this.serials.clear();
     this.defsSeason = 0;
@@ -228,6 +229,24 @@ export class League extends DurableObject<Env> {
     keep.push(seq);
     sql.exec("INSERT OR REPLACE INTO sigseq (acct, hi, seen) VALUES (?, ?, ?)", acct, nhi, keep.join(","));
     return true;
+  }
+
+  /**
+   * First time an account fetched something (a game's log, a story), kept in DO SQLite: the odd
+   * jobs' client reports (routes/bonus.ts) check that the replay or story was actually loaded.
+   * Cheap enough to call on every log poll (one local upsert, no D1 write).
+   */
+  noteSeen(acct: string, key: string, now: number) {
+    const sql = this.ctx.storage.sql;
+    sql.exec("CREATE TABLE IF NOT EXISTS seen (acct TEXT NOT NULL, k TEXT NOT NULL, at INTEGER NOT NULL, PRIMARY KEY (acct, k))");
+    sql.exec("INSERT OR IGNORE INTO seen (acct, k, at) VALUES (?, ?, ?)", acct, key, now);
+    // forget fetches older than two real days now and then
+    if (Math.random() < 0.01) sql.exec("DELETE FROM seen WHERE at < ?", now - 2 * 86_400_000);
+  }
+  firstSeen(acct: string, key: string): number | undefined {
+    const sql = this.ctx.storage.sql;
+    sql.exec("CREATE TABLE IF NOT EXISTS seen (acct TEXT NOT NULL, k TEXT NOT NULL, at INTEGER NOT NULL, PRIMARY KEY (acct, k))");
+    return sql.exec<{ at: number }>("SELECT at FROM seen WHERE acct = ? AND k = ?", acct, key).toArray()[0]?.at;
   }
 
   /** A new signing key starts a fresh replay window. */

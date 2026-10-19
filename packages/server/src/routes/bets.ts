@@ -1,7 +1,7 @@
 import type { Ctx } from "../router.ts";
 import type { GameRow } from "../league.ts";
 import { decCursor, encCursor, fail, int, newId, oneOf, str } from "../http.ts";
-import { accountView, gate, gameRow, limitParam, moneyMove, page, slateGame, slateGames } from "./common.ts";
+import { accountView, gamePool, gate, gameRow, limitParam, moneyMove, page, slateGame, slateGames } from "./common.ts";
 
 export const MIN_BET = 5;
 
@@ -18,6 +18,9 @@ export async function place(c: Ctx) {
   }
   const existing = await c.db.prepare("SELECT side FROM bets WHERE account_id = ? AND game_id = ?").bind(c.acct.id, gameId).first<{ side: string }>();
   if (existing && existing.side !== side) fail("bad_request", "you already bet the other side of this game");
+  // odd jobs: an underdog is the side the pool pays more on before this bet lands
+  const before = gamePool(c.L, row, c.now).view.pays;
+  const underdog = before[side] > before[side === "home" ? "away" : "home"];
   const betId = newId("b");
   const { ok } = await moneyMove(c, {
     delta: -amount, reason: "bet",
@@ -29,6 +32,7 @@ export async function place(c: Ctx) {
           ON CONFLICT (account_id, game_id) DO UPDATE SET amount = amount + excluded.amount, placed_at = excluded.placed_at`)
         .bind(betId, c.acct.id, gameId, side, amount, c.now, tx),
       c.db.prepare(`UPDATE games SET pool_${side} = pool_${side} + ? WHERE id = ? AND ${gate()}`).bind(amount, gameId, tx),
+      ...(underdog ? [c.db.prepare(`INSERT OR IGNORE INTO bonus_marks (account_id, kind, ref, at) SELECT ?, 'underdog', ?, ? WHERE ${gate()}`).bind(c.acct.id, gameId, c.now, tx)] : []),
     ],
   });
   if (!ok) {

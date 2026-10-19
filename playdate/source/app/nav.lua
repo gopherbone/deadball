@@ -206,6 +206,7 @@ function Nav.tick()
   -- (Nav.offline: an offline program such as Pennant is up; no background polling)
   if not Nav.ready or Nav.offline or Api.isBlocked() then return end
   Pager.tick()
+  if Bonus and Bonus.tick then Bonus.tick() end
   local now = playdate.getCurrentTimeMilliseconds()
   if now - lastPoll > POLL_MS then
     lastPoll = now

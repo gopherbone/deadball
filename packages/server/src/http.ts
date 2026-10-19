@@ -22,6 +22,8 @@ export interface Env {
   HOUSE_SCALE?: string;
   /** Oldest client build (X-Build, pdxinfo buildNumber) allowed online; older ones get 426. Unset = no gate. */
   MIN_BUILD?: string;
+  /** odd jobs: how long before a "watched to the final out" report the log must have been fetched (default 30 s) */
+  BONUS_REPLAY_MIN_MS?: string;
 }
 
 export type ErrorCode =

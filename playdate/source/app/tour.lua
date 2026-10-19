@@ -226,6 +226,52 @@ local function build()
     Sites.Extra.show(s, Fixtures.peek("/gossip"))
   end, "02h_extra")
   S(4, function() press("B") end, nil)
+  -- Bobby's loyalty card and odd jobs (sites/bonus.lua): the To Do rows, the punch, the back room
+  S(30, function()
+    home()
+    local dt = Sites.Desktop.instance
+    -- a quiet day: just the card and the jobs (the fixture's other rows would fill the window)
+    Tour.saved = { ev = Nav.pendingEvents, d = dt.data }
+    Nav.pendingEvents = {}
+    dt.data = { me = dt.data.me, news = dt.data.news, bonus = Fixtures.peek("/bonus") }
+    dt:render(true)
+  end, "02i_todo_bonus")
+  S(4, function()
+    local dt = Sites.Desktop.instance
+    dt.data = Tour.saved.d
+    Nav.pendingEvents = Tour.saved.ev
+    dt:render(true)
+  end, nil)
+  S(24, function() Sites.PunchCard.open({ doc = Fixtures.peek("/bonus") }) end, "02j_punch_card")
+  U(function() local t = top() return t.state == "punch" end, 60, function() press("A") end, "02k_punch_slam", 6)
+  U(function() local t = top() return t.state == "done" end, 90, nil, "02l_punch_paid", 2)
+  S(4, function() press("A") end, nil)
+  S(30, function()
+    -- the seventh hole: a free pack
+    local b = Fixtures.peek("/bonus")
+    local card = {}
+    for k, v in pairs(b.card) do card[k] = v end
+    card.holes, card.hole, card.punchedToday, card.streak = {}, 6, false, 13
+    for i, h in ipairs(b.card.holes) do card.holes[i] = { n = h.n, reward = h.reward, cash = h.cash, packs = h.packs, stamped = i <= 6 } end
+    b.card = card
+    Sites.PunchCard.open({ doc = b })
+  end, nil)
+  U(function() local t = top() return t.state == "done" end, 120, function() press("A") end, "02m_punch_full_card", 2)
+  S(4, function() press("A") end, nil)
+  S(40, function() home(); Sites.OddJobs.open() end, "02n_odd_jobs")
+  S(10, function()
+    local t = top()
+    for _, l in ipairs(t.links or {}) do
+      if l.id and l.id:find("^job:") and l.hint and l.hint:find("^A: claim") then focusId(l.id) break end
+    end
+  end, "02o_odd_jobs_focus")
+  U(function() local t = top() return t.paidFx ~= nil end, 60, function() local t = top() if t.activate then t:activate() end end, "02p_odd_jobs_paid", 3)
+  S(30, function() crank(300) end, "02q_odd_jobs_week")
+  S(10, function()
+    home()
+    Pager.note("PAGE  ODD JOB DONE", "Back an underdog. Somebody has to.", "CLAIM $10 \u{25b6}A", function() Sites.OddJobs.open() end)
+  end, nil)
+  S(12, function() end, "02r_pager_odd_job")
   S(40, function() Sites.Bets.open() end, "03_bets")
   S(10, function() press("down", 2) end, "03b_bets_focus")
   S(10, function() local t = top() t.scroll:jump(0) t.focus = 1 press("up", 3) end, "03c_toolbar")
@@ -400,9 +446,19 @@ end
 function Tour.start()
   if playdate.file.exists("perftour.flag") then
     -- hardware perf run: same steps, no screenshots; logs frame times per screen
+    -- (a first line "pennant" in the flag runs only the Pennant section)
     perfMode = true
     outDir = "perf"
-    build()
+    local pf = playdate.file.open("perftour.flag", playdate.file.kFileRead)
+    local only = pf and pf:readline()
+    if pf then pf:close() end
+    if only and only:match("^pennant") then
+      S(40, function() end, nil)
+      buildPennant()
+      S(10, function() Tour.finish() end, nil)
+    else
+      build()
+    end
     active = true
     idx = 0
     wait = 0

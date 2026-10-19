@@ -1,0 +1,153 @@
+{
+ "card": {
+  "hole": 3,
+  "punchedToday": false,
+  "streak": 3,
+  "best": 3,
+  "total": 3,
+  "graceLeft": true,
+  "holes": [
+   {
+    "n": 1,
+    "reward": "$10",
+    "cash": 10,
+    "packs": 0,
+    "stamped": true
+   },
+   {
+    "n": 2,
+    "reward": "$15",
+    "cash": 15,
+    "packs": 0,
+    "stamped": true
+   },
+   {
+    "n": 3,
+    "reward": "$20",
+    "cash": 20,
+    "packs": 0,
+    "stamped": true
+   },
+   {
+    "n": 4,
+    "reward": "$25",
+    "cash": 25,
+    "packs": 0,
+    "stamped": false
+   },
+   {
+    "n": 5,
+    "reward": "$30",
+    "cash": 30,
+    "packs": 0,
+    "stamped": false
+   },
+   {
+    "n": 6,
+    "reward": "$40",
+    "cash": 40,
+    "packs": 0,
+    "stamped": false
+   },
+   {
+    "n": 7,
+    "reward": "Free pack",
+    "cash": 0,
+    "packs": 1,
+    "stamped": false
+   }
+  ],
+  "nextAt": 1792454400000,
+  "nextIn": 71171,
+  "utcDay": "2026-10-19"
+ },
+ "day": 5,
+ "endsAt": 1792383267406,
+ "endsIn": 39,
+ "jobs": [
+  {
+   "id": "s1d5:0",
+   "kind": "replay",
+   "text": "Watch a game on BallCast to the final out.",
+   "need": 1,
+   "have": 0,
+   "status": "open",
+   "reward": {
+    "cash": 10,
+    "packs": 0,
+    "heat": 0,
+    "label": "$10"
+   },
+   "go": "scores",
+   "endsAt": 1792383267406,
+   "endsIn": 39,
+   "claimUntilAt": 1792383307406,
+   "claimUntilIn": 79
+  },
+  {
+   "id": "s1d5:1",
+   "kind": "story",
+   "text": "Leave a comment under a SportsWire story.",
+   "need": 1,
+   "have": 1,
+   "status": "claimed",
+   "reward": {
+    "cash": 5,
+    "packs": 0,
+    "heat": 0,
+    "label": "$5"
+   },
+   "go": "news",
+   "endsAt": 1792383267406,
+   "endsIn": 39,
+   "claimUntilAt": 1792383307406,
+   "claimUntilIn": 79
+  },
+  {
+   "id": "s1d5:2",
+   "kind": "pack",
+   "text": "Open a pack at the Card Shop. Smell the gum.",
+   "need": 1,
+   "have": 1,
+   "status": "done",
+   "reward": {
+    "cash": 10,
+    "packs": 0,
+    "heat": 0,
+    "label": "$10"
+   },
+   "go": "shop",
+   "endsAt": 1792383267406,
+   "endsIn": 39,
+   "claimUntilAt": 1792383307406,
+   "claimUntilIn": 79
+  }
+ ],
+ "week": {
+  "id": "w2964:9",
+  "kind": "w_posts",
+  "text": "Post 6 comments this week. Anywhere. About anything.",
+  "need": 6,
+  "have": 1,
+  "status": "open",
+  "reward": {
+   "cash": 40,
+   "packs": 1,
+   "heat": 0,
+   "label": "Free pack + $40"
+  },
+  "go": "news",
+  "endsAt": 1792972800000,
+  "endsIn": 589571,
+  "claimUntilAt": 1793059200000,
+  "claimUntilIn": 675971,
+  "weekly": true
+ },
+ "pettyCash": {
+  "left": 3,
+  "max": 4,
+  "refillAt": 1792454400000,
+  "refillIn": 71171
+ },
+ "claimable": 1
+}

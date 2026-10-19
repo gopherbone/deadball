@@ -20,9 +20,10 @@ Prefetch.PATHS = {
   "/gossip",                                                -- gossip / props
   "/schedule",                                              -- Scoreboard (optional source)
 }
--- The desktop's own sources (sites/desktop.lua: the To Do, badges, ticker) ride along at boot.
--- With /clock and PATHS that's 15 paths: one /batch (the server takes up to 16).
-Prefetch.DESKTOP = { "/me", "/events", "/news", "/today", "/ops", "/watchlist", "/gossip", "/mail", "/syndicate", "/bulletins" }
+-- The desktop's own sources (sites/desktop.lua: the To Do, badges, ticker, the loyalty card and
+-- odd jobs) ride along at boot. With /clock, the digest and PATHS that's 17 paths: one /batch
+-- (the server takes up to 20, BATCH_MAX_ITEMS).
+Prefetch.DESKTOP = { "/me", "/events", "/news", "/today", "/ops", "/watchlist", "/gossip", "/mail", "/syndicate", "/bulletins", "/bonus" }
 
 local IDLE_FRAMES <const> = 45          -- ~1.5 s without input on the desktop
 local DAY_GRACE_MS <const> = 20000      -- let the server finish the day's run first

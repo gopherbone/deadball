@@ -90,3 +90,21 @@ export async function grudge(c: Ctx) {
   c.L.store.saveField("world", w, "relationships");
   return { faction: team.factionId, party, level: grudgeOf(w, team.factionId, party) };
 }
+
+/**
+ * POST /v1/admin/bonus { account, shiftDays } (dev, tests): moves an account's loyalty-card punches
+ * and odd-job claim days `shiftDays` real days into the past, as if they had happened earlier
+ * (streaks, the forgiven day and the petty-cash drawer without waiting for midnight).
+ */
+export async function bonus(c: Ctx) {
+  const name = str(c.body, "account", 64);
+  const days = int(c.body, "shiftDays", 0, 400);
+  const a = await c.db.prepare("SELECT id FROM accounts WHERE name = ?").bind(name).first<{ id: string }>();
+  if (!a) fail("not_found", "no such account");
+  const ms = days * 86_400_000;
+  await c.db.batch([
+    c.db.prepare("UPDATE punches SET utc_day = utc_day - ?, at = at - ? WHERE account_id = ?").bind(days, ms, a!.id),
+    c.db.prepare("UPDATE odd_jobs SET claim_day = claim_day - ? WHERE account_id = ? AND claim_day IS NOT NULL").bind(days, a!.id),
+  ]);
+  return { ok: true, account: a!.id, shiftDays: days };
+}

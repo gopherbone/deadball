@@ -1,6 +1,7 @@
 import type { Ctx } from "../router.ts";
 import { decCursor, encCursor, fail, newId, oneOf, str, strArray } from "../http.ts";
 import { commentTemplates, sim } from "../sim.ts";
+import { markStmt } from "./bonus.ts";
 import { COMMENT_SELECT, commentView, limitParam, page, type CommentRow } from "./common.ts";
 
 export const BOARDS = ["general", "trades", "rumors", "crime", "help"];
@@ -82,6 +83,7 @@ export async function react(c: Ctx) {
   await c.db.batch([
     c.db.prepare("INSERT OR IGNORE INTO reactions (comment_id, account_id, kind) VALUES (?,?,?)").bind(id, c.acct.id, kind),
     c.db.prepare(`UPDATE comments SET ${kind} = (SELECT COUNT(*) FROM reactions WHERE comment_id = ? AND kind = ?) WHERE id = ?`).bind(id, kind, id),
+    markStmt(c, "react", id),  // odd jobs: "rate somebody's comment"
   ]);
   const fresh = await c.db.prepare(`${COMMENT_SELECT} WHERE c.id = ?`).bind(id).first<CommentRow>();
   return { comment: commentView(fresh!) };

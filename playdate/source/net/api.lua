@@ -74,7 +74,7 @@ local BATCH_TIMEOUT_MS <const> = 20000
 local KEY_RETRY_MS <const> = 60000
 local SECURE_PATHS <const> = { ["/register"] = true, ["/auth/key"] = true }
 local DEFAULT_TTL <const> = 20000
-local MAX_BATCH <const> = 16   -- server cap (packages/server/src/router.ts BATCH_MAX_ITEMS)
+local MAX_BATCH <const> = 20   -- server cap (packages/server/src/router.ts BATCH_MAX_ITEMS)
 
 local queue = {}        -- pending requests
 local active = {}       -- in-flight requests
@@ -230,6 +230,7 @@ local function finish(req, err, data, raw)
   elseif not err and req.path ~= "/auth/key" then
     -- any successful write may change what GETs return
     Api.invalidate("")
+    for _, fn in ipairs(Api.writeObservers) do later(fn, req.path, data) end
   end
   if err then print("[api] " .. req.method .. " " .. req.path .. " -> " .. tostring(err.code) .. ": " .. tostring(err.message)) end
   for _, cb in ipairs(req.cbs) do
@@ -243,6 +244,12 @@ local function finish(req, err, data, raw)
 end
 
 Api.observers = {}
+Api.writeObservers = {}
+
+--- fn(path, data) runs (next frame) after every successful POST/DELETE (odd jobs: sites/bonus.lua).
+function Api.observeWrites(fn)
+  Api.writeObservers[#Api.writeObservers + 1] = fn
+end
 
 --- fn(data, path) runs (next frame) after every successful GET of exactly `path`, whoever asked.
 function Api.observe(path, fn)

@@ -44,6 +44,27 @@ local function inBallCast()
   return BallCast and BallCast.scene and t == BallCast.scene
 end
 
+--- The pager's body with three lines on the LCD (prerendered once per page).
+local function pagerImage(l1, l2, l3)
+  local img = gfx.image.new(W + 3, H + 3, gfx.kColorClear)
+  gfx.pushContext(img)
+  gfx.setColor(gfx.kColorBlack)
+  gfx.fillRoundRect(3, 3, W, H, 6)
+  gfx.fillRoundRect(0, 0, W, H, 6)
+  -- the LCD
+  gfx.setColor(gfx.kColorWhite)
+  gfx.fillRect(5, 5, W - 30, H - 10)
+  gfx.setColor(gfx.kColorBlack)
+  Text.draw(Text.ellipsize(l1, UI.fonts.bold, W - 40), 9, 6, UI.fonts.bold)
+  Text.draw(Text.ellipsize(l2, UI.fonts.bold, W - 40), 9, 19, UI.fonts.bold)
+  Text.draw(Text.ellipsize(l3, UI.fonts.bold, W - 40), 9, 32, UI.fonts.bold)
+  -- the buttons on the side
+  gfx.setColor(gfx.kColorWhite)
+  for i = 0, 2 do gfx.drawRoundRect(W - 21, 7 + i * 13, 15, 10, 3) end
+  gfx.popContext()
+  return img
+end
+
 local function render(g, kind)
   local sc = g.score or {}
   local mine = g.myBet.side
@@ -63,23 +84,7 @@ local function render(g, kind)
     local state = myRuns > theirRuns and "WINNING" or (myRuns < theirRuns and "LOSING" or "TIED")
     l3 = "YOU: " .. Fmt.money(g.myBet.amount) .. " " .. abbr .. " " .. state
   end
-  local img = gfx.image.new(W + 3, H + 3, gfx.kColorClear)
-  gfx.pushContext(img)
-  gfx.setColor(gfx.kColorBlack)
-  gfx.fillRoundRect(3, 3, W, H, 6)
-  gfx.fillRoundRect(0, 0, W, H, 6)
-  -- the LCD
-  gfx.setColor(gfx.kColorWhite)
-  gfx.fillRect(5, 5, W - 30, H - 10)
-  gfx.setColor(gfx.kColorBlack)
-  Text.draw(l1, 9, 6, UI.fonts.bold)
-  Text.draw(l2, 9, 19, UI.fonts.bold)
-  Text.draw(Text.ellipsize(l3, UI.fonts.bold, W - 40), 9, 32, UI.fonts.bold)
-  -- the buttons on the side
-  gfx.setColor(gfx.kColorWhite)
-  for i = 0, 2 do gfx.drawRoundRect(W - 21, 7 + i * 13, 15, 10, 3) end
-  gfx.popContext()
-  return { img = img, gameId = g.id, t = 0, final = g.status == "final", won = myRuns > theirRuns }
+  return { img = pagerImage(l1, l2, l3), gameId = g.id, t = 0, final = g.status == "final", won = myRuns > theirRuns }
 end
 
 --- A /today copy came in (ours or anyone's): page for every change in a game you're on.
@@ -115,8 +120,10 @@ function Pager.tick()
   end
   if not cur and #queue > 0 and not inBallCast() then
     local g = table.remove(queue, 1)
-    cur = render(g, nil)
-    if cur.final then
+    cur = g.note and g or render(g, nil)
+    if cur.note then
+      Sfx.pager()
+    elseif cur.final then
       if cur.won then Sfx.kaching() else Sfx.trombone() end
     else
       Sfx.pager()
@@ -140,14 +147,19 @@ end
 --- A while the pager shows: watch that game. Returns true if it took the press.
 function Pager.onA()
   if not cur or cur.t < 4 then return false end
-  local id = cur.gameId
+  local id, onA = cur.gameId, cur.onA
   cur = nil
   Sfx.select()
-  Nav.watch(id)
+  if onA then onA() else Nav.watch(id) end
   return true
 end
 
 --- For the tour: page a game right now.
 function Pager.page(g)
   queue[#queue + 1] = g
+end
+
+--- A page that isn't a score (odd jobs: "ODD JOB DONE"): three LCD lines; A runs onA.
+function Pager.note(l1, l2, l3, onA)
+  queue[#queue + 1] = { note = true, img = pagerImage(l1, l2, l3), onA = onA, t = 0 }
 end

@@ -24,6 +24,7 @@ export async function detail(c: Ctx) {
   // ?lite=1: just what the BallCast replay needs (teams, status, your bet, payouts); skips the
   // box score so a Playdate decodes a few hundred bytes instead of ~8 KB
   if (c.q.get("lite") === "1") {
+    c.L.noteSeen(c.acct.id, `log:${row.id}`, c.now);  // BallCast's first fetch (odd jobs: replay reports)
     const gl = g as Record<string, unknown>;
     return { id: gl.id, status, home: gl.home, away: gl.away, myBet: gl.myBet, pool: gl.pool };
   }
@@ -105,6 +106,8 @@ const LOGC_PAGE_CHARS = 36_000;
 
 export async function log(c: Ctx) {
   const { row, status, doc, cut } = await loadLog(c);
+  // odd jobs: a "watched to the final out" report must follow a real fetch of this log
+  c.L.noteSeen(c.acct.id, `log:${row.id}`, c.now);
   const from = Math.max(0, Number(c.q.get("from") ?? 0) | 0);
   const compact = c.q.get("fmt") === "c";
   let to = Math.min(cut, from + LOG_PAGE);

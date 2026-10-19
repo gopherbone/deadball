@@ -18,6 +18,7 @@ import * as market from "./routes/market.ts";
 import * as props from "./routes/props.ts";
 import * as chipin from "./routes/chipin.ts";
 import * as digest from "./routes/digest.ts";
+import * as bonus from "./routes/bonus.ts";
 
 export interface AccountRow {
   id: string; name: string; money: number; heat: number; joined_day: number; free_packs: number; syndicate_id: string | null; sign_key: string | null;
@@ -51,6 +52,11 @@ add("GET", "/me", "user", account.me);
 add("GET", "/digest", "user", digest.digest);
 add("GET", "/clock", "none", account.clock);
 add("POST", "/auth/key", "user", account.authKey);
+
+add("GET", "/bonus", "user", bonus.get);
+add("POST", "/bonus/punch", "user", bonus.punch);
+add("POST", "/bonus/jobs/:id/claim", "user", bonus.claim);
+add("POST", "/bonus/report", "user", bonus.report);
 
 add("GET", "/today", "user", games.today);
 add("GET", "/games/:id", "user", games.detail);
@@ -123,6 +129,7 @@ add("POST", "/admin/reset", "admin", admin.reset);
 add("POST", "/admin/house", "admin", admin.house);
 add("POST", "/admin/card", "admin", admin.grantCard);
 add("POST", "/admin/grudge", "admin", admin.grudge);
+add("POST", "/admin/bonus", "admin", admin.bonus);
 
 export async function route(L: League, req: Request): Promise<Response> {
   const url = new URL(req.url);
@@ -178,7 +185,7 @@ async function dispatch(L: League, req: Request, url: URL, path: string, text: s
 // so it fetches several GETs in one request. Each item runs through the same route table,
 // auth and relative-time rewrite as a lone GET; failures are per item.
 
-export const BATCH_MAX_ITEMS = 16;
+export const BATCH_MAX_ITEMS = 20;
 export const BATCH_MAX_PATH = 512;
 /** Response budget (serialized item bodies; env BATCH_MAX_BYTES overrides). Items past it come back 413 `too_large`; fetch those alone. */
 export const BATCH_MAX_BYTES = 256 * 1024;

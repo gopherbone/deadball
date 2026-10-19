@@ -344,6 +344,7 @@ async function run(L: Awaited<ReturnType<typeof startLocal>>) {
   save("standings-EL", await ok("GET", "/standings?level=EL", undefined, A));
   save("schedule-EL", await ok("GET", "/schedule?level=EL", undefined, A));
   save("me", await ok("GET", "/me", undefined, A));
+  await captureBonus(L, A, B, draft);
   save("crew-after", await ok("GET", "/crew", undefined, A));
   save("syndicate", await ok("GET", "/syndicate", undefined, A));
   save("syndicate-leaderboard", await ok("GET", "/syndicates/leaderboard", undefined, A));
@@ -378,6 +379,48 @@ async function run(L: Awaited<ReturnType<typeof startLocal>>) {
   save("gossip", await ok("GET", "/gossip", undefined, A));
   // A's inbox now has the prop results (Bets By Bobby bank mail)
   save("mail-props", await ok("GET", "/mail", undefined, A));
+}
+
+/**
+ * Loyalty card & odd jobs: A has punched three days running (the admin knob moves the punches
+ * back a day at a time), does a few things the odd jobs count, claims one, and then the board
+ * (bonus.json: today not punched yet, so the client shows the punch moment) and the punch.
+ */
+export async function captureBonus(L: Awaited<ReturnType<typeof startLocal>>, A: string, B: string, draft: (seed: number) => { template: string; words: string[] }, out = save) {
+  const { ok, call } = L;
+  const name = (await ok("GET", "/me", undefined, A)).account.name as string;
+  for (let i = 0; i < 3; i++) {
+    await ok("POST", "/bonus/punch", undefined, A);
+    await ok("POST", "/admin/bonus", { account: name, shiftDays: 1 }, undefined, true);
+  }
+  const board0 = await ok("GET", "/bonus", undefined, A);
+  // do what the board asks where it's quick: a bet, a post, a reaction, a pack
+  const games = (await ok("GET", "/today", undefined, A)).games.filter((g: { status: string }) => g.status === "scheduled");
+  for (const j of board0.jobs as { kind: string }[]) {
+    if ((j.kind === "bet" || j.kind === "bet3" || j.kind === "underdog") && games.length) {
+      for (const g of games.slice(0, j.kind === "bet3" ? 3 : 1)) {
+        const side = j.kind === "underdog" && g.pool.pays.away > g.pool.pays.home ? "away" : "home";
+        await call("POST", "/bets", { gameId: g.id, side, amount: 10 }, A);
+      }
+    } else if (j.kind === "bbs" || j.kind === "story") {
+      const thread = j.kind === "bbs" ? "bbs:general" : `story:${(await ok("GET", "/news", undefined, A)).stories[0].id}`;
+      await sleep(1100);
+      await call("POST", "/comments", { thread, ...draft(11) }, A);
+    } else if (j.kind === "react") {
+      await sleep(1100);
+      const c = await call("POST", "/comments", { thread: "bbs:general", ...draft(12) }, B);
+      if (c.status === 200) await call("POST", `/comments/${c.body.comment.id}/react`, { kind: "agree" }, A);
+    } else if (j.kind === "pack") {
+      const paid = (await ok("GET", "/shop", undefined, A)).packs.find((p: { price: number }) => p.price > 0);
+      if (paid) await call("POST", "/packs/buy", { kind: paid.kind }, A);
+    }
+  }
+  const board1 = await ok("GET", "/bonus", undefined, A);
+  const done = (board1.jobs as { id: string; status: string }[]).filter(j => j.status === "done");
+  if (done[0]) out("bonus-claim", await ok("POST", `/bonus/jobs/${done[0].id}/claim`, undefined, A));
+  else console.warn("no odd job finished for the fixtures");
+  out("bonus", await ok("GET", "/bonus", undefined, A));
+  out("bonus-punch", await ok("POST", "/bonus/punch", undefined, A));
 }
 
 main().catch(e => {

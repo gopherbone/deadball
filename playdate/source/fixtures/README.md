@@ -36,6 +36,9 @@ pretty-printed. Times are epoch ms from the run, so for the clock offset use `cl
 | error-prop-closed.json | POST /v1/props/bets | `window_closed` on a closed question (only written when the run had one) |
 | mail-props.json | GET /v1/mail | A's inbox at the end, with "Prop won/lost/refunded" bank mail |
 | digest.json | GET /v1/digest?sinceDay= | A's "While You Were Out" after the bets and jobs of the betting day settled |
+| bonus.json | GET /v1/bonus | A's loyalty card (three days punched, today not yet) and odd jobs (one claimed, one done, one open; the week's job) |
+| bonus-punch.json | POST /v1/bonus/punch | the fourth punch: `{ punched, hole, streak, reward, line, account, ...the bonus doc }` |
+| bonus-claim.json | POST /v1/bonus/jobs/:id/claim | `{ claimed, job, line, account, ...the bonus doc }` |
 | thread-bbs-rumors.json | GET /v1/threads/bbs:rumors | NPC rumour-mill chatter |
 | bet-place.json | POST /v1/bets | `{ bet, pool, account }` |
 | bets-open.json, bets.json | GET /v1/bets?status=open / settled | each bet carries its `game` |
