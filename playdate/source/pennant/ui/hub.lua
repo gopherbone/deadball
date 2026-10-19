@@ -351,7 +351,7 @@ function Hub:playBall()
       end })
     return
   end
-  PennantLive.start(s.playMode or "manage")
+  PennantLive.start()
 end
 
 function Hub:layoutVerbs(Lb, x, y, w)
@@ -359,20 +359,24 @@ function Hub:layoutVerbs(Lb, x, y, w)
   local s = L.settings
   local day = PL.today(L)
   local g = PL.gameFor(L, L.user)
-  local label, hint = "PLAY BALL", "A: play today's game (" .. ((s.playMode == "play") and "you bat and pitch" or "you manage") .. ")"
+  local db, dp = s.directBat, s.directPitch
+  if db == nil then db, dp = s.playMode == "play", s.playMode == "play" end
+  local who = (db and dp) and "you bat and pitch" or db and "you bat, the coaches pitch" or dp and "you pitch, the coaches bat" or "you manage"
+  local label, hint = "PLAY BALL", "A: play today's game (" .. who .. ")"
   if L.phase == "awards" then label, hint = "AWARDS", "A: awards night, then the offseason"
   elseif day and day.off then label, hint = "NEXT DAY", "A: the off day (travel, rest, training)"
   elseif not g then label, hint = "SIM DAY", "A: the rest of the league plays today" end
   local function remember(id) return function() s.verb = id end end
   local l = Lb:button(label, x, y, 108, 22, function() s.verb = "play" self:playBall() end, { id = "play", hint = hint, font = UI.fonts.head })
   if L.phase ~= "awards" then
-    local mode = (s.playMode == "play") and "Bat & pitch" or "Manage"
+    local mode = (db and dp) and "Bat & pitch" or db and "Bat" or dp and "Pitch" or "Manage"
     Lb:button(mode, x + 112, y + 3, 82, 17, function()
-      s.playMode = (s.playMode == "play") and "manage" or "play"
+      s.playMode = (db or dp) and "manage" or "play"
+      s.directBat, s.directPitch = s.playMode == "play", s.playMode == "play"
       s.offered = true
       Sfx.select()
       self:render(true)
-    end, { id = "mode", hint = (s.playMode == "play") and ("You bat (" .. PScheme.NAME[s.batScheme or "arcade"] .. ") and pitch (" .. PScheme.NAME[s.pitchScheme or "arcade"] .. "). A: manage instead") or "You manage from the dugout. A: bat and pitch yourself too" })
+    end, { id = "mode", hint = (db or dp) and ("You bat (" .. PScheme.NAME[s.batScheme or "arcade"] .. ") and pitch (" .. PScheme.NAME[s.pitchScheme or "arcade"] .. "). A: manage instead") or "You manage from the dugout. A: bat and pitch yourself too" })
     Lb:button("Sim day", x + 198, y + 3, 64, 17, function() s.verb = "simday" PennantUI.Advance.open({ days = 1 }) end, { id = "simday", hint = "A: let the coaches play today" })
     local list = self:targets()
     local t = list[1]

@@ -90,6 +90,10 @@ function Live:cycleControl(side)
   else on = false end
   if side == "bat" then self.directBat = on else self.directPitch = on end
   self:setScheme(side, sch)
+  -- kept for the next game too
+  local st = self.L.settings
+  st.directBat, st.directPitch = self.directBat == true, self.directPitch == true
+  st.playMode = (st.directBat or st.directPitch) and "play" or "manage"
   if on then Toast.show((side == "bat" and "Batting" or "Pitching") .. ": you, " .. PScheme.NAME[sch], nil) end
 end
 

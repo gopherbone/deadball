@@ -25,9 +25,18 @@ local function nid(s) return PEng.nid(s) end
 local function P(id) local L = Pennant.L return L.players[nid(id) or -1] end
 local function short(id) local p = P(id) return p and PM.short(p) or tostring(id) end
 
---- mode: "manage" (dugout calls, coaches bat and pitch) | "play" (you bat and pitch too)
+--- mode: "manage" (dugout calls, coaches bat and pitch) | "play" (you bat and pitch too), or nil
+--- to keep the batting/pitching choices from the last game (settings.directBat / directPitch).
 function PennantLive.start(mode)
   local L = Pennant.L
+  local st = L.settings
+  if mode then
+    st.directBat, st.directPitch = mode == "play", mode == "play"
+    st.playMode = mode
+  elseif st.directBat == nil then
+    st.directBat = st.playMode == "play"
+    st.directPitch = st.playMode == "play"
+  end
   local g = PL.gameFor(L, L.user)
   if not g or g.done then return end
   if not (BallCast and BallCast.scene) then
@@ -39,7 +48,7 @@ function PennantLive.start(mode)
   PRoster.validate(L, T)
   local ctrl = { [L.user] = { manage = true, bat = true, pitch = true } }
   local h = PEng.newGame(L, g, ctrl)
-  local src = setmetatable({ L = L, g = g, h = h, pub = {}, mode = mode, directBat = mode == "play", directPitch = mode == "play",
+  local src = setmetatable({ L = L, g = g, h = h, pub = {}, mode = (st.directBat or st.directPitch) and "play" or "manage", directBat = st.directBat == true, directPitch = st.directPitch == true,
     user = L.user, side = g.h == L.user and "home" or "away", id = "pennant-" .. L.season .. "-" .. L.day }, Live)
   -- the rest of the league plays in the background (sliced)
   PJobs.simDay(L, g)
