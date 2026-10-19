@@ -39,6 +39,19 @@ Deploying your own league needs your own Cloudflare D1 database and R2 bucket (e
 `wrangler.jsonc`) and two secrets: `wrangler secret put ADMIN_TOKEN` and
 `wrangler secret put SIM_SALT` (any long random string; it keeps results unpredictable).
 
+## AI disclosure
+
+DEADBALL is built with heavy use of generative AI. Nearly all of the code (the Playdate client,
+the C renderer and engine, the TypeScript sim and server, and the asset and audio pipelines) and
+the in-game writing were produced by Anthropic's Claude, working through Claude Code under the
+direction of the human developer, who set the design, reviewed and playtested the results on
+hardware, and drew the launcher art.
+
+No generative image, music or voice models were used. Photos and faces come from public-domain
+and openly licensed archives (see `docs/CREDITS.md`) and are cropped and dithered by scripts; the
+3D player puppets are rendered from a CC0 mesh and CMU motion capture; the music is public-domain
+tunes arranged and synthesized by scripts in `tools/audio/`.
+
 ## License
 
 Code: MIT (see `LICENSE`). Art, photos, fonts, music and sound effects keep their own licenses and
