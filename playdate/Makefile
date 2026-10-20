@@ -13,7 +13,8 @@
 #   make clean      remove build products (also source/pdex.*)
 #
 # C sources live in c/ (BallCast 3D renderer, owned by the ballcast agent; pdsim*.c: the Pennant
-# game engine, docs/PENNANT_ENGINE.md, host tests in c/pdsim_test/).
+# game engine, docs/PENNANT_ENGINE.md, host tests in c/pdsim_test/; globe.c: the Pennant road map's
+# planet, baked by tools/bake_globe.py).
 #
 # Every build compiles a staged copy of source/ (build/stage), not source/ itself: the device's
 # data disk is very slow per file, so the ~4,800 loose face/archive PNGs and ~160 fixture JSONs
@@ -51,7 +52,7 @@ DEVICE_EXCLUDE := --exclude '/pdex.dylib' $(if $(filter 0,$(DEV_FIXTURES)),--exc
 HEAP_SIZE  = 8388208
 STACK_SIZE = 61800
 PRODUCT    = $(PDX)
-SRC        = c/main.c c/bc3d.c c/crypto.c c/pdsim.c c/pdsim_core.c
+SRC        = c/main.c c/bc3d.c c/globe.c c/crypto.c c/pdsim.c c/pdsim_core.c
 UINCDIR    = c
 UDEFS      =
 ASRC       = setup.s

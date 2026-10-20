@@ -1,7 +1,9 @@
-// DEADBALL C extension entry: registers the BallCast 3D renderer (`bc3d`), request
-// signing (`dbcrypto`, crypto.c) and the Pennant game engine (`pdsim`, pdsim.c) for Lua.
+// DEADBALL C extension entry: registers the BallCast 3D renderer (`bc3d`), the road map's planet
+// (`globe`, globe.c), request signing (`dbcrypto`, crypto.c) and the Pennant game engine (`pdsim`,
+// pdsim.c) for Lua.
 #include "pd_api.h"
 #include "bc3d.h"
+#include "globe.h"
 #include "crypto.h"
 #include "pdsim.h"
 
@@ -12,6 +14,7 @@ int eventHandler(PlaydateAPI* playdate, PDSystemEvent event, uint32_t arg)
 {
 	if ( event == kEventInitLua ) {
 		bc3d_register(playdate);
+		globe_register(playdate);
 		dbcrypto_register(playdate);
 		pdsim_register(playdate);
 	}
