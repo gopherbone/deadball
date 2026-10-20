@@ -324,7 +324,7 @@ end
 ---------------------------------------------------------------------------
 -- world rendering for segments (the replay's own camera)
 
-local camCur, camShot
+local camCur, camShot, camVel
 --- the open's flyover camera at k = 0..1: from high over the outfield, round and down to a
 --- low angle behind the first-base side, where the warmups are
 function TV.flyCam(k)
@@ -337,7 +337,7 @@ function TV.flyCam(k)
   return { x, y, z, -20 * k, 150 - 130 * k, 3 * k, 54 - 2 * k }
 end
 
-local function renderWorld(beat, tau, cam)
+local function renderWorld(beat, tau, cam, dt)
   local scene = G.scene
   local R = scene.R
   if not R then return nil end
@@ -349,10 +349,12 @@ local function renderWorld(beat, tau, cam)
     elseif type(cam) == "table" then want = cam
     else want = BallCast.Render.shot(R, beat, tau, BallCast.Play.camAt(beat.plan, tau), G.camWant); G.camWant = want end
     if not camCur or camShot ~= cam then
-      camCur = camCur or {}
-      for k = 1, 7 do camCur[k] = want[k] end
+      camCur, camVel = camCur or {}, camVel or {}
+      for k = 1, 7 do camCur[k], camVel[k] = want[k], 0 end
     else
-      for k = 1, 7 do camCur[k] = camCur[k] + (want[k] - camCur[k]) * 0.3 end
+      -- (the scene's critically damped follow, by the clock: see ballcast/scene.lua)
+      local cd = BallCast.scene.smoothCD
+      for k = 1, 7 do camCur[k], camVel[k] = cd(camCur[k], camVel[k], want[k], 0.1, dt or (1 / 30)) end
     end
     camShot = cam
     R:setCamera(camCur)
@@ -576,7 +578,7 @@ D.shot = function(st, u, dt)
   local prevTau = st.tau
   if u > 0 then st.tau = min(sh.to, st.tau + dt * sh.rate) end
   if sh.freeze and not st.thawed and st.tau >= sh.freeze then st.tau = sh.freeze end
-  renderWorld(sh.b, st.tau, sh.cam)
+  renderWorld(sh.b, st.tau, sh.cam, dt)
   -- the sounds of the play, once more
   local cues = sh.b.plan.sfx
   for i = 1, #cues do

@@ -83,20 +83,50 @@ local function newPlan()
 end
 
 -- walk-offs: someone heading for his dugout (variant v's) from (x0, y0), starting at plan time
--- t0 at `speed` on animatic `track`; carried into the following beats until he's down the steps
+-- t0 at `speed` on animatic `track`; carried into the following beats until he's down the steps.
+-- Nobody walks through the lane between the mound and the plate (the next pitches go through
+-- it, and a walk-off lasts several of them): a path that would cross it goes round behind the
+-- plate (behind the catcher and the ump), or behind the mound if it crosses up there.
+local LANE_X <const>, LANE_Y0 <const>, LANE_Y1 <const> = 2.5, -2, 66
+Play.LANE = { LANE_X, 2, 54 }   -- (the harness's check: |x| < 2.5, 2 < y < 54 while a pitch is on)
+local function exitRoute(x0, y0, x1, y1)
+  local pts = { x0, y0 }
+  if (x0 < -LANE_X and x1 > LANE_X) or (x0 > LANE_X and x1 < -LANE_X) then
+    local yc = y0 + (y1 - y0) * (0 - x0) / (x1 - x0)          -- where the straight line crosses x = 0
+    if yc > LANE_Y0 and yc < LANE_Y1 then
+      local wy = yc < 50 and -14 or 80
+      pts[#pts + 1], pts[#pts + 2] = (x0 < 0) and -2 or 2, wy
+      pts[#pts + 1], pts[#pts + 2] = (x0 < 0) and 2 or -2, wy
+    end
+  end
+  pts[#pts + 1], pts[#pts + 2] = x1, y1
+  local D = 0
+  for i = 3, #pts, 2 do D = D + sqrt((pts[i] - pts[i - 2]) ^ 2 + (pts[i + 1] - pts[i - 1]) ^ 2) end
+  return pts, D
+end
 local function exit(plan, id, v, track, x0, y0, t0, speed, seed, helmet)
   local d = DUGOUT[v] or DUGOUT.home
+  local route, D = exitRoute(x0, y0, d[1], d[2])
   local e = { id = id, v = v, track = track, x0 = x0, y0 = y0, x1 = d[1], y1 = d[2], t0 = t0, speed = speed,
-    D = sqrt((d[1] - x0) ^ 2 + (d[2] - y0) ^ 2), seed = seed, helmet = helmet }
+    D = D, route = route, seed = seed, helmet = helmet }
   plan.exits[#plan.exits + 1] = e
   return e
 end
+--- where a walk-off is at tau (nil: not started, or gone) and the point he's walking toward
 local function exitPos(e, tau)
   if tau < e.t0 then return nil end
   local d = (tau - e.t0) * e.speed
   if d >= e.D then return nil end
-  local u = d / e.D
-  return e.x0 + (e.x1 - e.x0) * u, e.y0 + (e.y1 - e.y0) * u
+  local p = e.route
+  for i = 3, #p, 2 do
+    local ax, ay, bx, by = p[i - 2], p[i - 1], p[i], p[i + 1]
+    local l = sqrt((bx - ax) ^ 2 + (by - ay) ^ 2)
+    if d <= l or i == #p - 1 then
+      local u = l > 0 and min(1, d / l) or 1
+      return ax + (bx - ax) * u, ay + (by - ay) * u, bx, by
+    end
+    d = d - l
+  end
 end
 Play.exitPos = exitPos
 local function offVariant(b) return b.pre.top and "away" or "home" end
@@ -105,10 +135,11 @@ local function defVariant(b) return b.pre.top and "home" or "away" end
 local function cam(plan, t, name, opt) plan.cams[#plan.cams + 1] = { t = t, name = name, opt = opt } end
 local function sfx(plan, t, kind, v) plan.sfx[#plan.sfx + 1] = { t = t, kind = kind, v = v } end
 local function pop(plan, t, text, x, y, z, dur) plan.pops[#plan.pops + 1] = { t = t, text = text, x = x, y = y, z = z or 8, dur = dur or 1.2 } end
-local function fmove(plan, pos, t0, t1, x0, y0, x1, y1)
+-- (ease: decelerate to a stop, quadratic ease-out: a slide along the ground)
+local function fmove(plan, pos, t0, t1, x0, y0, x1, y1, ease)
   local l = plan.fmoves[pos]
   if not l then l = {}; plan.fmoves[pos] = l end
-  l[#l + 1] = { t0 = t0, t1 = t1, x0 = x0, y0 = y0, x1 = x1, y1 = y1 }
+  l[#l + 1] = { t0 = t0, t1 = t1, x0 = x0, y0 = y0, x1 = x1, y1 = y1, ease = ease }
 end
 local function fpose(plan, pos, t0, t1, pose)
   local l = plan.fposes[pos]
@@ -122,13 +153,14 @@ local function ftrack(plan, pos, t0, t1, track, vib)
   l[#l + 1] = { t0 = t0, t1 = t1, track = track, vib = vib }
 end
 -- a fielder gloving the ball at t: kind "high" (reach, glove up), "throw" (reach at chest),
--- "low" (scoop), "dive" (the dive track). hold = how long the ball stays in the glove.
-local GLOVE_Z = { high = 6.4, throw = 5.6, low = 1.0, dive = 1.4 }
+-- "low" (scoop), or a fly-catch style (planFlyCatch gives it its track). hold = how long the ball
+-- stays in the glove; face = the way he faces (toward the ball coming in)
+local GLOVE_Z = { high = 6.4, throw = 5.6, low = 1.0 }
 Play.GLOVE_Z = GLOVE_Z
-local function fcatch(plan, pos, t, kind, hold)
+local function fcatch(plan, pos, t, kind, hold, face)
   local l = plan.fposes[pos]
   if not l then l = {}; plan.fposes[pos] = l end
-  local c = { t0 = t - (kind == "dive" and 0.2 or 0.28), t1 = t + (hold or 0.4), catch = kind, ct = t, pos = pos, hold = hold or 0.4 }
+  local c = { t0 = t - 0.28, t1 = t + (hold or 0.4), catch = kind, ct = t, pos = pos, hold = hold or 0.4, face = face }
   l[#l + 1] = c
   plan.catches[#plan.catches + 1] = c
   plan.lastCatch = c
@@ -574,8 +606,20 @@ local function deepCamFor(sp) if sp < -14 then return "deepL" elseif sp > 14 the
 -- pick the pose for the geometry (how far he has to go vs. the hang time, how low the ball is,
 -- the wall), find the moment the ball comes down to that glove height, then put his feet at
 -- ball - rotate(glove offset, his facing). Whole-body "IK" from prerendered poses: no drawn limbs.
+-- The glove is the one the catch KEY draws (its squash, lean and offset included, keyGlove), the
+-- moment is interpolated between the 0.1 s path samples (crossDown: the ball meets the glove, it
+-- doesn't drop past it and get pulled back up), and after the catch the ball rides in the glove of
+-- whatever key he's showing (ballDrawn), every kind of catch.
 local REACH = nil
+local PXFT <const> = 0.155            -- 6.2 ft = 40 px at 1x
+-- pose sets with no glove anchors: the glove hand's landmark (the left wrist, + a px for the mitt)
+local WRIST_SET <const> = { fielder = "fielder", runner_seq = "runner_seq", runner = "runner",
+  pitcher_side_seq = "pitcher_seq", pitcher_back_seq = "pitcher_seq", catcher = "catcher" }
+local GMEMO = {}
 local function gloveOf(set, f)
+  local key = set .. "#" .. f
+  local m = GMEMO[key]
+  if m then return m[1], m[2], m[3] end
   if not REACH then Anim.load(); REACH = Anim.reach or {} end
   local r = REACH[set]
   local g = r and r.glove and r.glove[f]
@@ -584,34 +628,143 @@ local function gloveOf(set, f)
   -- forward and up as the sprite actually shows them (the side view, after the pipeline's fit
   -- shrink of the long poses: the layout is drawn smaller than life): 6.2 ft = 40 px at 1x
   local cx, cy = Pup.gloveCell(set, f)
-  if cx then gy, gz = (cx - 14) * 0.155, (42 - cy) * 0.155 end
+  if cx then gy, gz = (cx - 14) * PXFT, (42 - cy) * PXFT
+  elseif WRIST_SET[set] and Pup.wristCell then
+    local wx, wy = Pup.wristCell(WRIST_SET[set], 6, f)
+    if wx then
+      gy, gz = (wx + 1 - 14) * PXFT, (42 - wy) * PXFT
+      local x0 = Pup.wristCell(WRIST_SET[set], 0, f)
+      gx = x0 and -(x0 - 14) * PXFT or 0
+    end
+  end
+  GMEMO[key] = { gx, gy, gz }
   return gx, gy, gz
 end
 Play.gloveOf = gloveOf
+--- the glove of pose (set, f) drawn with a key's transform (squash/stretch sx, sy about the pivot
+--- piv px above the feet, rot degrees clockwise, dx, dy 1x px) → his right, forward, up (ft)
+local function keyGlove(tn, f, sx, sy, rot, dx, dy, piv)
+  local gx, gy, gz = gloveOf(tn, f)
+  local p = -(piv or 0)
+  local u, v = gy / PXFT * (sx or 1), (-gz / PXFT - p) * (sy or 1)
+  if rot and rot ~= 0 then
+    local r = math.rad(rot)
+    local c, s = cos(r), sin(r)
+    u, v = u * c - v * s, u * s + v * c
+  end
+  return gx, (u + (dx or 0)) * PXFT, -(v + p + (dy or 0)) * PXFT
+end
+Play.keyGlove = keyGlove
+--- the glove of a track at track time tt (as drawn: seed 0) → right, forward, up
+local function trackKeyGlove(track, tt)
+  local tn, f, sx, sy, rot, dx, dy, _, piv = Anim.sample(track, tt, 0)
+  if not tn then return 0, 1.5, 4 end
+  return keyGlove(tn, f, sx, sy, rot, dx, dy, piv)
+end
+-- (right, forward) of a man facing `face` → field x, y
+local function faceOff(face, gr, gf)
+  local fx, fy = cos(face), sin(face)
+  return gr * fy + gf * fx, -gr * fx + gf * fy
+end
+-- the generic catches (no track: "low" scoop, "high" / "throw" reach, on the fielder set): the
+-- held key at k = tau - catch time → set, frame, sx, sy, rot
+local function genericKey(kind, k)
+  local f, sx, sy, rot = 4, 1, 1, 0
+  if kind == "low" then
+    f = 1
+    if k < 0 then sx, sy = 1.12, 0.86
+    elseif k < 0.1 then sx, sy, rot = 1.22, 0.8, (floor(k * 30) % 2 == 0) and 4 or -4
+    else sx, sy = 1.06, 0.94 end
+  else
+    if k < 0 then sx, sy = 0.9, 1.12
+    elseif k < 0.1 then sx, sy, rot = 1.14, 0.88, (floor(k * 30) % 2 == 0) and 5 or -5
+    end
+  end
+  return "fielder", f, sx, sy, rot
+end
+--- where a generic catch's glove is at the catch, from his feet (he faces `face`) → dx, dy, z
+local function genericGlove(kind, face)
+  local tn, f, sx, sy, rot = genericKey(kind, 0.001)
+  local gr, gf, gu = keyGlove(tn, f, sx, sy, rot, 0, 0, 0)
+  local x, y = faceOff(face, gr, gf)
+  return x, y, gu
+end
 -- style → animatic track, fieldx frame holding the glove at the catch, the track key that's the catch
 local CATCH <const> = {
   basket = { "basket", 4, 2 }, stab = { "stab_high", 5, 2 }, side = { "reach_side", 6, 2 },
   backhand = { "backhand", 7, 2 }, shoe = { "shoestring", 8, 3 }, layout = { "dive_layout", 9, 3 },
-  slide = { "slide_catch", 10, 4 }, leap = { "leap_wall", 12, 4 }, crash = { "crash", 13, 1 },
+  slide = { "slide_catch", 10, 5 }, leap = { "leap_wall", 12, 4 }, crash = { "crash", 13, 1 },
   juggle = { "juggle", 5, 2 }, bobble = { "bobble", 5, 2 },
 }
 Play.CATCH = CATCH
 local AIRBORNE <const> = { layout = true, leap = true }
+-- the sliding catch's ground travel (slide_catch track time): he hits the ground at SLIDE_T0 still
+-- at a run and decelerates to a stop at SLIDE_T0 + SLIDE_T (a quadratic ease-out: fmove .ease)
+local SLIDE_T0 <const>, SLIDE_T <const> = 2 / 30, 18 / 30
+-- the layout (dive_layout keys: 1 push, 2 off the ground, 3 the catch, 4 coming down, 5 belly
+-- down, 6 the skid, 7 up on a knee, 8 pops up): he leaves the ground at a run, flies on at it
+-- through the catch with the glove out on the ball's line, lands and skids to a stop decelerating
+-- (all world motion: no sprite offsets), the glove LAYOUT_UP ft higher than it lies on the grass
+local LAYOUT_V <const>, LAYOUT_UP <const> = FSPEED * 1.15, 1.6
+local LEAP_UP <const> = 1.5           -- the least a wall leap gets him off the warning track (ft)
 local CALLS <const> = { layout = "WHAT A GRAB!", slide = "SLIDING CATCH!", shoe = "SHOESTRING!", leap = "AT THE WALL!",
   crash = "CRASHES INTO THE WALL!", juggle = "JUGGLES IT... HELD!", basket = "BASKET CATCH" }
 
---- the descending index where the ball has come down to z (else the last point)
-local function downTo(p, z)
-  return catchIndex(p, z)
+--- the ball on its path at time t (s, between the 0.1 s samples) → x, y, z
+local function pathAt(p, t)
+  local n = #p // 3
+  local fi = K.clamp(t / 0.1, 0, n - 1)
+  local i0 = min(floor(fi), n - 2)
+  local u = fi - i0
+  local a, b = i0 * 3, (i0 + 1) * 3
+  return p[a + 1] + (p[b + 1] - p[a + 1]) * u, p[a + 2] + (p[b + 2] - p[a + 2]) * u, p[a + 3] + (p[b + 3] - p[a + 3]) * u
+end
+--- the moment the descending ball comes down to height z, interpolated between the samples (the
+--- ball covers 6-9 ft a sample coming down: the first sample under z can be on the grass), and
+--- where it is then → t, x, y, z (the landing when it never gets that low)
+local function crossDown(p, z)
+  local n = #p // 3
+  local apexI, apexZ = 0, -1
+  for i = 0, n - 1 do
+    local zz = p[i * 3 + 3]
+    if zz > apexZ then apexZ, apexI = zz, i end
+  end
+  for i = apexI + 1, n - 1 do
+    local z1 = p[i * 3 + 3]
+    if z1 <= z then
+      local z0 = p[i * 3]
+      local u = z0 > z1 and K.clamp((z0 - z) / (z0 - z1), 0, 1) or 1
+      local t = (i - 1 + u) * 0.1
+      local x, y, zz = pathAt(p, t)
+      return t, x, y, zz
+    end
+  end
+  local a = (n - 1) * 3
+  return (n - 1) * 0.1, p[a + 1], p[a + 2], p[a + 3]
+end
+--- the first moment the ball is r ft from home plate (interpolated), or nil
+local function crossOut(p, r)
+  local n = #p // 3
+  local d0 = nil
+  for i = 0, n - 1 do
+    local x, y = p[i * 3 + 1], p[i * 3 + 2]
+    local d = sqrt(x * x + y * y)
+    if d >= r then
+      local u = (d0 and d > d0) and K.clamp((r - d0) / (d - d0), 0, 1) or 1
+      return (i - 1 + u) * 0.1
+    end
+    d0 = d
+  end
+  return nil
 end
 
 --- Plan a caught fly: style, timing, where he stands. → fx, fy (ball at the catch), tc, done
-local function planFlyCatch(b, plan, f, fa, path, fence, park)
+--- (force: a style the caller wants, e.g. LEAP_CATCH short of the wall)
+local function planFlyCatch(b, plan, f, fa, path, fence, park, force)
   local n = #path // 3
-  local i6 = downTo(path, 6)
-  local bx6, by6 = path[i6 * 3 + 1], path[i6 * 3 + 2]
+  local t6, bx6, by6 = crossDown(path, 6)
   local need = dist2(fa[1], fa[2], bx6, by6)
-  local avail = max(0.3, i6 * 0.1 - 0.35) * FSPEED
+  local avail = max(0.3, t6 - 0.35) * FSPEED
   local m = need / avail
   local apex = pathMaxZ(path)
   local lx, ly = path[(n - 1) * 3 + 1], path[(n - 1) * 3 + 2]
@@ -630,46 +783,89 @@ local function planFlyCatch(b, plan, f, fa, path, fence, park)
     style = (need < 12) and "stab" or ((cross > 0) == (fa[1] < 0) and "side" or "backhand")
   end
   if (style == "stab" or style == "side" or style == "basket") and K.hash01(b.i, 137) < 0.07 then style = "juggle" end
-  local C = CATCH[style]
-  local gx, gy, gz = gloveOf("fieldx", C[2])
-  -- the catch moment: the ball comes down to the glove (a dive reaches it low; at the wall, the
-  -- crossing of the warning track)
-  local ci
-  if style == "leap" or style == "crash" then
-    ci = n - 1
-    for i = 0, n - 1 do
-      local x, y = path[i * 3 + 1], path[i * 3 + 2]
-      if sqrt(x * x + y * y) >= fence - 4 then ci = i break end
+  if force then style = force end
+  if Play.forceCatchStyle then style = Play.forceCatchStyle end     -- (dev harness: tvcatch)
+  -- the catch moment: the ball comes down to the glove of the catch key (a layout reaches it a
+  -- little off the grass; at the wall, the crossing of the warning track unless it's down first)
+  local C, tk, gx, gy, gz, tc, bx, by, bz
+  local function pick()
+    C = CATCH[style]
+    tk = Anim.keyTime(C[1], C[3])
+    gx, gy, gz = trackKeyGlove(C[1], tk + 0.002)
+    if style == "leap" then
+      -- (he always gets up off the track: at least LEAP_UP)
+      local tw = crossOut(path, fence - 4)
+      tc, bx, by, bz = crossDown(path, gz + LEAP_UP)
+      if tw and tw < tc then tc = tw; bx, by, bz = pathAt(path, tw) end
+    elseif style == "layout" then
+      tc, bx, by, bz = crossDown(path, gz + LAYOUT_UP)
+    else
+      tc, bx, by, bz = crossDown(path, gz)
     end
-  else
-    ci = downTo(path, max(1.2, gz))
   end
-  local tc = ci * 0.1
-  local bx, by, bz = path[ci * 3 + 1], path[ci * 3 + 2], path[ci * 3 + 3]
-  -- his facing: the way he runs (camped under it: toward home)
-  local camp = style == "basket" or style == "stab" or style == "juggle"
-  local face = (need > 10 and not camp) and atan2(by - fa[2], bx - fa[1]) or atan2(-by, -bx)
-  if style == "leap" or style == "crash" then face = atan2(by, bx) end      -- back to the plate, at the wall
+  -- his facing: the way he runs (camped under it: toward home); his feet: the ball - his glove
+  local camp, face, wx, wy, px, py, pd
+  local function place()
+    camp = style == "basket" or style == "stab" or style == "juggle"
+    face = (need > 10 and not camp) and atan2(by - fa[2], bx - fa[1]) or atan2(-by, -bx)
+    if style == "leap" or style == "crash" then face = atan2(by, bx) end      -- back to the plate, at the wall
+    wx, wy = faceOff(face, gx, gy)
+    px, py = bx - wx, by - wy
+    pd = sqrt(px * px + py * py)
+  end
+  pick(); place()
+  -- (crashing into the wall: it has to come down to his glove on this side of it, else he goes up)
+  if style == "crash" and pd > fence - 3 then style = "leap"; pick(); place() end
   local fx, fy = cos(face), sin(face)
-  local rx, ry = fy, -fx                                                    -- his right
-  local wx, wy = gx * rx + gy * fx, gx * ry + gy * fy
-  local px, py = bx - wx, by - wy
-  local pd = sqrt(px * px + py * py)
   if pd > fence - 3 then px, py = px * (fence - 3) / pd, py * (fence - 3) / pd end
-  local lift = max(0, bz - gz)
-  if not AIRBORNE[style] then lift = 0 end
-  local tk = Anim.keyTime(C[1], C[3])
-  local tTrack = tc - tk
-  local run = dist2(fa[1], fa[2], px, py)
-  local tStart = max(0.25, tTrack - run / FSPEED - (camp and 0.6 or 0.25))
-  local tArrive = camp and max(tStart + 0.1, tc - 0.6) or max(tStart + 0.1, tTrack)
-  fmove(plan, f, tStart, tArrive, fa[1], fa[2], px, py)
+  local lift = 0
+  if style == "leap" then lift = max(0, bz - gz) elseif style == "layout" then lift = max(0, bz - gz) end
+  local tTrack = tc - tk - 0.002            -- (the catch key is up AT tc, not a frame late)
+  -- the slide: he goes down short of the ball (sx, sy) at a run and slides through the catch
+  -- spot (px, py: the glove meets it there) to a stop (ex, ey), decelerating all the way
+  local ex, ey, sx, sy = px, py, px, py
+  local tDown = tTrack
+  local air = nil
+  if style == "slide" then
+    local D = FSPEED * SLIDE_T * 0.5                    -- (ease-out from run speed: v0 = 2D/T)
+    local u = K.clamp((tk - SLIDE_T0) / SLIDE_T, 0, 1)
+    local q = 1 - (1 - u) * (1 - u)                     -- the share of it behind him at the catch
+    sx, sy = px - fx * D * q, py - fy * D * q
+    ex, ey = px + fx * D * (1 - q), py + fy * D * (1 - q)
+    tDown = tTrack + SLIDE_T0
+  elseif style == "layout" then
+    -- take-off (sx, sy) at tA, through the catch spot at tc, belly down (lx, ly) at tL, the skid
+    -- easing out to (ex, ey) at tS
+    local tA = tTrack + Anim.keyTime(C[1], 2)
+    local tL = tTrack + Anim.keyTime(C[1], 5)
+    local tS = tTrack + Anim.keyTime(C[1], 7)
+    sx, sy = px - fx * LAYOUT_V * (tc - tA), py - fy * LAYOUT_V * (tc - tA)
+    local lx2, ly2 = px + fx * LAYOUT_V * (tL - tc), py + fy * LAYOUT_V * (tL - tc)
+    local D = LAYOUT_V * (tS - tL) * 0.5
+    ex, ey = lx2 + fx * D, ly2 + fy * D
+    local u = (tc - tA) / (tL - tA)
+    air = { t0 = tA, t1 = tL, h = lift / max(0.2, 4 * u * (1 - u)), lx = lx2, ly = ly2, tS = tS }
+    tDown = tA
+  end
+  local run = dist2(fa[1], fa[2], sx, sy)
+  local tStart = max(0.25, tDown - run / FSPEED - (camp and 0.6 or 0.25))
+  local tArrive = camp and max(tStart + 0.1, tc - 0.6) or max(tStart + 0.1, tDown)
+  fmove(plan, f, tStart, tArrive, fa[1], fa[2], sx, sy)
+  if style == "slide" then fmove(plan, f, tArrive, tArrive + SLIDE_T, sx, sy, ex, ey, true) end
+  if air then
+    fmove(plan, f, tArrive, air.t1, sx, sy, air.lx, air.ly)
+    fmove(plan, f, air.t1, air.tS, air.lx, air.ly, ex, ey, true)
+  end
   if run > 55 then plan.chase = { pos = f, t0 = tStart, t1 = tArrive, glove = tArrive - 0.45 } end
   local hold = AIRBORNE[style] and 1.0 or ((style == "slide" or style == "shoe") and 0.9 or 0.6)
-  local c = fcatch(plan, f, tc, style, hold)
-  c.track, c.t0, c.t1 = C[1], min(tTrack, tc - 0.05), max(tc + hold, tTrack + Anim.length(C[1]))
-  c.face, c.gx, c.gy, c.gz, c.lift, c.style = face, wx, wy, gz, lift, style
+  local done = tc + hold + (AIRBORNE[style] and 0.3 or 0)
+  if style == "layout" then done = max(done, tTrack + Anim.keyTime(C[1], 9) + 0.1) end
+  -- (the ball stays in his glove until the throw back in: no gap where it's nowhere)
+  local c = fcatch(plan, f, tc, style, done - tc)
+  c.track, c.t0, c.t1 = C[1], tTrack, max(done, tTrack + Anim.length(C[1]))
+  c.face, c.gx, c.gy, c.gz, c.lift, c.style, c.air = face, wx, wy, gz, lift, style, air
   c.fx, c.fy = px, py
+  c.ex, c.ey = ex, ey                     -- where he ends up (the throw back in starts there)
   plan.flyCatch = c
   plan.catchStyle, plan.catchM, plan.catchNeed = style, m, need
   plan.catchZ = max(2, bz - 1)
@@ -685,11 +881,27 @@ local function planFlyCatch(b, plan, f, fa, path, fence, park)
   plan.juiceX = plan.juiceX or {}
   local JX = plan.juiceX
   local dx, dy = fx, fy
-  if style == "layout" or style == "slide" or style == "shoe" then
-    local tl = tc + (style == "layout" and 0.1 or 0.0)
-    JX[#JX + 1] = { k = "dust", t0 = tl, t1 = tl + 0.55, x = px + fx * 2, y = py + fy * 2, z = 0, s = 1.25 }
-    JX[#JX + 1] = { k = "skid", t0 = tl, t1 = tl + 0.8, x = px, y = py, z = 0, s = 1.1, dx = dx, dy = dy, len = 9 }
-    JX[#JX + 1] = { k = "dust", t0 = tl + 0.25, t1 = tl + 0.7, x = px + fx * 6, y = py + fy * 6, z = 0, s = 0.8 }
+  if style == "slide" then
+    -- the dirt flies as he goes down, the skid mark grows behind him as he slides (the same
+    -- ease-out), a puff at the glove on the catch and one where he stops
+    local D = dist2(sx, sy, ex, ey)
+    JX[#JX + 1] = { k = "dust", t0 = tDown, t1 = tDown + 0.5, x = sx + fx * 1.5, y = sy + fy * 1.5, z = 0, s = 1.1 }
+    JX[#JX + 1] = { k = "skid", t0 = tDown, t1 = tDown + SLIDE_T + 0.5, x = sx, y = sy, z = 0, s = 1.1, dx = fx, dy = fy, len = D, grow = SLIDE_T }
+    JX[#JX + 1] = { k = "dust", t0 = tc, t1 = tc + 0.5, x = px + fx * 2, y = py + fy * 2, z = 0, s = 1.25 }
+    JX[#JX + 1] = { k = "dust", t0 = tDown + SLIDE_T - 0.1, t1 = tDown + SLIDE_T + 0.45, x = ex + fx * 1.5, y = ey + fy * 1.5, z = 0, s = 0.8 }
+  elseif style == "layout" then
+    -- the turf kicked up at the take-off, a cloud as he belly-flops, the skid mark growing behind
+    -- him as he slides (the same ease-out), a puff where he stops
+    local D = dist2(air.lx, air.ly, ex, ey)
+    local T = air.tS - air.t1
+    JX[#JX + 1] = { k = "dust", t0 = air.t0, t1 = air.t0 + 0.35, x = sx, y = sy, z = 0, s = 0.6 }
+    JX[#JX + 1] = { k = "dust", t0 = air.t1, t1 = air.t1 + 0.55, x = air.lx + fx * 2, y = air.ly + fy * 2, z = 0, s = 1.25 }
+    JX[#JX + 1] = { k = "skid", t0 = air.t1, t1 = air.tS + 0.6, x = air.lx, y = air.ly, z = 0, s = 1.1, dx = fx, dy = fy, len = D, grow = T }
+    JX[#JX + 1] = { k = "dust", t0 = air.tS - 0.1, t1 = air.tS + 0.45, x = ex + fx * 1.5, y = ey + fy * 1.5, z = 0, s = 0.8 }
+  elseif style == "shoe" then
+    JX[#JX + 1] = { k = "dust", t0 = tc, t1 = tc + 0.55, x = px + fx * 2, y = py + fy * 2, z = 0, s = 1.25 }
+    JX[#JX + 1] = { k = "skid", t0 = tc, t1 = tc + 0.8, x = px, y = py, z = 0, s = 1.1, dx = dx, dy = dy, len = 9 }
+    JX[#JX + 1] = { k = "dust", t0 = tc + 0.25, t1 = tc + 0.7, x = px + fx * 6, y = py + fy * 6, z = 0, s = 0.8 }
   end
   if style == "leap" or style == "crash" then
     local tw = tc + (style == "leap" and 0.13 or 0.0)
@@ -709,7 +921,7 @@ local function planFlyCatch(b, plan, f, fa, path, fence, park)
     sfx(plan, tc + 0.05, "roar", 0.9)
     plan.crowdPop = tc + 0.05
   end
-  return bx, by, tc, tc + hold + (AIRBORNE[style] and 0.3 or 0), style
+  return bx, by, tc, done, style
 end
 
 -- the bunt in play: deadened off the bat into a short roll with a little hop; the fielder the
@@ -738,13 +950,16 @@ local function planBuntBip(b, plan, throws)
     -- popped up: a soft looper the catcher or the pitcher gets under
     local px, py = fx * 0.6, max(4, fy * 0.6)
     ta = 1.25
-    seg(plan, { kind = "line", t0 = 0, t1 = ta, ax = -bs * 0.6, ay = 1.2, az = 2.6, bx = px, by = py, bz = 4.5, arc = 13 })
+    -- under it facing the plate, the ball dropping into the glove of the reach
+    local face = atan2(-py, -px)
+    local ox, oy, oz = genericGlove("high", face)
+    seg(plan, { kind = "line", t0 = 0, t1 = ta, ax = -bs * 0.6, ay = 1.2, az = 2.6, bx = px, by = py, bz = oz, arc = 13 })
     local st = start[f] or ALIGN[f] or { 0, 30 }
-    fmove(plan, f, 0.15, ta - 0.25, st[1], st[2], px, py - 1)
-    fcatch(plan, f, ta, "high", 0.6)
-    seg(plan, { kind = "hold", t0 = ta, t1 = ta + 0.6, ax = px, ay = py - 1, az = 5.6 })
+    fmove(plan, f, 0.15, ta - 0.25, st[1], st[2], px - ox, py - oy)
+    fcatch(plan, f, ta, "high", 0.6, face)
+    seg(plan, { kind = "hold", t0 = ta, t1 = ta + 0.6, ax = px, ay = py, az = oz })
     pop(plan, ta + 0.1, "POPPED IT UP", px, py, 12, 1.1)
-    fx, fy, tDone = px, py - 1, ta + 0.6
+    fx, fy, tDone = px - ox, py - oy, ta + 0.6
   else
     -- off the bat: dead, a little hop, a short roll
     local x0, y0 = -bs * 0.8, 1.6
@@ -776,9 +991,16 @@ local function planBuntBip(b, plan, throws)
       plan.barehand = { pos = f, t = ta }
       pop(plan, ta + 0.05, "BAREHANDED!", fx, fy, 10, 1.0)
     else
+      -- he gloves it facing his charge: the glove of the scoop on the ball, the last of the roll
+      -- coming up into it
+      local face = atan2(uy, ux)
+      local ox, oy, oz = genericGlove("low", face)
+      gx, gy = fx - ox, fy - oy
       fmove(plan, f, 0.05, ta - 0.08, st[1], st[2], gx, gy)
-      fcatch(plan, f, ta, "low", 0.3)
-      seg(plan, { kind = "hold", t0 = ta, t1 = ta + 0.3, ax = fx, ay = fy, az = 2 })
+      fcatch(plan, f, ta, "low", 0.3, face)
+      plan.ball[#plan.ball].t1 = ta - 0.08
+      seg(plan, { kind = "line", t0 = ta - 0.08, t1 = ta, ax = fx, ay = fy, az = 0, bx = fx, by = fy, bz = oz, arc = 0.3 })
+      seg(plan, { kind = "hold", t0 = ta, t1 = ta + 0.3, ax = fx, ay = fy, az = oz })
       tDone = ta + 0.3
     end
     fx, fy = gx, gy
@@ -862,30 +1084,34 @@ local function planBip(b, tl, plan)
     local hang = (n - 1) * 0.1
     local caught = (res == "OUT" or res == "SF" or res == "FOUL_OUT" or res == "DP" and e.out ~= "DP") and not isHit
     if res == "DP" and e.out ~= "DP" then caught = true end
-    if caught and not uL then
+    -- LEAP_CATCH: he climbs the wall and takes it back at the fence line (when it gets there;
+    -- short of the wall it's an ordinary catch: laid out for when he had a long way to go)
+    local wi, force = nil, nil
+    if caught and uL then
+      local fence = Cam.fenceAt(park, sp)
+      for i = 0, n - 1 do
+        local x, y = path[i * 3 + 1], path[i * 3 + 2]
+        if sqrt(x * x + y * y) >= fence - 3 then wi = i break end
+      end
+      if not wi then
+        local ci = catchIndex(path, 6)
+        force = dist2(fa[1], fa[2], path[ci * 3 + 1], path[ci * 3 + 2]) > 70 and "layout" or "stab"
+      end
+    end
+    if caught and not wi then
       local fence = Cam.fenceAt(park, sp)
       local tc
-      fx, fy, tc, tBallDone = planFlyCatch(b, plan, f, fa, path, fence, park)
+      fx, fy, tc, tBallDone = planFlyCatch(b, plan, f, fa, path, fence, park, force)
       tFielded = tc
       plan.catchT, plan.catchPos = tc, { fx, fy }
       local c = plan.flyCatch
       sfx(plan, tc, "pop")
       local tx, ty = basePos(res == "SF" and 0 or 2)
       if res ~= "SF" then tx, ty = 0, 118 end
-      throws[#throws + 1] = { t0 = tBallDone, ax = c.fx, ay = c.fy, bx = tx, by = ty, from = f }
-      fx, fy = c.fx, c.fy
+      throws[#throws + 1] = { t0 = tBallDone, ax = c.ex or c.fx, ay = c.ey or c.fy, bx = tx, by = ty, from = f }
+      fx, fy = c.ex or c.fx, c.ey or c.fy
     elseif caught then
-      local ci = catchIndex(path, 6)
-      local fence = Cam.fenceAt(park, sp)
-      local wi = nil
-      if uL then
-        -- LEAP_CATCH: he climbs the wall and takes it back at the fence line
-        for i = 0, n - 1 do
-          local x, y = path[i * 3 + 1], path[i * 3 + 2]
-          if sqrt(x * x + y * y) >= fence - 3 then wi = i break end
-        end
-        if wi then ci = wi end
-      end
+      local ci = wi
       local tc = ci * 0.1
       seg(plan, { kind = "path", t0 = 0, t1 = tc, pts = path })
       fx, fy = path[ci * 3 + 1], path[ci * 3 + 2]
@@ -895,31 +1121,22 @@ local function planBip(b, tl, plan)
       local need = dist2(fa[1], fa[2], fx, fy)
       local tRun = need / FSPEED
       local tStart = max(0.25, tc - tRun - 0.4)
-      if wi then
-        local zc = path[ci * 3 + 3]
-        local t0 = tc - 0.5
-        fmove(plan, f, tStart, max(tStart + 0.1, t0 - 0.05), fa[1], fa[2], fx, fy)
-        plan.leap = { pos = f, t0 = t0, tc = tc, z = zc, land = tc + 0.55 }
-        plan.catchZ = max(4, zc - 4)
-        -- ball rides down with him
-        seg(plan, { kind = "line", t0 = tc, t1 = tc + 0.55, ax = fx, ay = fy, az = zc, bx = fx, by = fy, bz = 5 })
-        seg(plan, { kind = "hold", t0 = tc + 0.55, t1 = tc + 1.1, ax = fx, ay = fy, az = 5 })
-        ftrack(plan, f, tc + 0.55, tc + 1.6, "celebrate", 1)
-        pop(plan, tc + 0.1, "ROBBED!", fx, fy, zc + 8, 1.4)
-        sfx(plan, tc, "roar", 1.0)
-        plan.slo = { tc - 0.7, tc + 0.35 }
-        b.big = "LEAP CATCH! ROBBED!"
-        plan.bannerT = tc + 0.6
-        plan.shake = tc + 0.55
-        tBallDone = tc + 1.1
-      else
-        fmove(plan, f, tStart, max(tStart + 0.1, tc - 0.15), fa[1], fa[2], fx, fy)
-        fcatch(plan, f, tc, need > 70 and "dive" or "high", 0.6)
-        seg(plan, { kind = "hold", t0 = tc, t1 = tc + 0.6, ax = fx, ay = fy, az = 6 })
-        pop(plan, tc + 0.1, "CAUGHT", fx, fy, 14, 1.0)
-        if need > 70 then plan.slo = { tc - 0.6, tc + 0.25 }; b.big = b.big or "WHAT A CATCH" end
-        tBallDone = tc + 0.6
-      end
+      local zc = path[ci * 3 + 3]
+      local t0 = tc - 0.5
+      fmove(plan, f, tStart, max(tStart + 0.1, t0 - 0.05), fa[1], fa[2], fx, fy)
+      plan.leap = { pos = f, t0 = t0, tc = tc, z = zc, land = tc + 0.55 }
+      plan.catchZ = max(4, zc - 4)
+      -- ball rides down with him
+      seg(plan, { kind = "line", t0 = tc, t1 = tc + 0.55, ax = fx, ay = fy, az = zc, bx = fx, by = fy, bz = 5 })
+      seg(plan, { kind = "hold", t0 = tc + 0.55, t1 = tc + 1.1, ax = fx, ay = fy, az = 5 })
+      ftrack(plan, f, tc + 0.55, tc + 1.6, "celebrate", 1)
+      pop(plan, tc + 0.1, "ROBBED!", fx, fy, zc + 8, 1.4)
+      sfx(plan, tc, "roar", 1.0)
+      plan.slo = { tc - 0.7, tc + 0.35 }
+      b.big = "LEAP CATCH! ROBBED!"
+      plan.bannerT = tc + 0.6
+      plan.shake = tc + 0.55
+      tBallDone = tc + 1.1
       sfx(plan, tc, "pop")
       -- throw it back in
       local tx, ty = basePos(res == "SF" and 0 or 2)
@@ -991,13 +1208,29 @@ local function planBip(b, tl, plan)
         else
           fmove(plan, fpos, 0.3, tGet, fa2[1], fa2[2], rx, ry)
           if dist2(fa2[1], fa2[2], lx, ly) < 25 and res == "ROE" then
-            ftrack(plan, fpos, hang - 0.2, hang + 0.9, "dive")
+            -- he lays out for it and it squirts out as he hits the grass (the layout's dive, his run
+            -- carrying him on along the ground)
+            local t0 = hang - Anim.keyTime("dive_layout", 5)
+            ftrack(plan, fpos, t0, hang + 0.45, "dive_layout")
             pop(plan, hang, "E-" .. (f or "?"), lx, ly, 10, 1.4)
             sfx(plan, hang, "ooh")
           end
         end
-        seg(plan, { kind = "hold", t0 = tGet, t1 = tGet + 0.35, ax = rx, ay = ry, az = 3 })
-        fcatch(plan, fpos, tGet, "low", 0.35)
+        -- he picks it up facing his run, the glove of the scoop on the ball (the last of the roll
+        -- comes up into it); his feet a glove's reach short of it
+        do
+          local m = plan.fmoves[fpos]
+          local mv = m and m[#m]
+          local face = mv and atan2(mv.y1 - mv.y0, mv.x1 - mv.x0) or atan2(ry - fa2[2], rx - fa2[1])
+          local ox, oy, oz = genericGlove("low", face)
+          if mv then mv.x1, mv.y1 = rx - ox, ry - oy end
+          local rs = plan.ball[#plan.ball]
+          if rs.kind == "roll" then rs.t1 = tGet - 0.08 end
+          seg(plan, { kind = "line", t0 = tGet - 0.08, t1 = tGet, ax = rx, ay = ry, az = 0, bx = rx, by = ry, bz = oz, arc = 0.3 })
+          seg(plan, { kind = "hold", t0 = tGet, t1 = tGet + 0.35, ax = rx, ay = ry, az = oz })
+          fcatch(plan, fpos, tGet, "low", 0.35, face)
+          rx, ry = rx - ox, ry - oy
+        end
         fx, fy, tFielded = rx, ry, tGet
         plan.catchT, plan.catchPos = tGet, { rx, ry }
         tBallDone = tGet + 0.35
@@ -1067,13 +1300,19 @@ local function planBip(b, tl, plan)
     if ta ~= ta or ta > 4 then ta = 2.0 end
     ta = max(0.35, ta)
     fx, fy = dx * d, dy * d
-    seg(plan, { kind = "roll", t0 = 0, t1 = ta, ax = 0, ay = 2, bx = fx, by = fy, hop = (e.la or 0) < -10 and 9 or 3, hops = (e.la or 0) < -10 and 3 or 5 })
+    -- he fields it facing the plate, square to the ball: the glove of the scoop on its line, his
+    -- feet a glove's reach behind; the last hop comes up into the glove
+    local face = atan2(-fy, -fx)
+    local ox, oy, oz = genericGlove("low", face)
+    seg(plan, { kind = "roll", t0 = 0, t1 = ta - 0.08, ax = 0, ay = 2, bx = fx, by = fy, hop = (e.la or 0) < -10 and 9 or 3, hops = (e.la or 0) < -10 and 3 or 5 })
+    seg(plan, { kind = "line", t0 = ta - 0.08, t1 = ta, ax = fx, ay = fy, az = 0, bx = fx, by = fy, bz = oz, arc = 0.4 })
     local fa2 = ALIGN[fpos] or fa
-    fmove(plan, fpos, 0.15, ta, fa2[1], fa2[2], fx, fy)
-    fcatch(plan, fpos, ta, "low", 0.3)
+    fmove(plan, fpos, 0.15, ta, fa2[1], fa2[2], fx - ox, fy - oy)
+    fcatch(plan, fpos, ta, "low", 0.3, face)
     plan.groundFielder = fpos
     tFielded = ta
-    seg(plan, { kind = "hold", t0 = ta, t1 = ta + 0.3, ax = fx, ay = fy, az = 2 })
+    seg(plan, { kind = "hold", t0 = ta, t1 = ta + 0.3, ax = fx, ay = fy, az = oz })
+    fx, fy = fx - ox, fy - oy
     tBallDone = ta + 0.3
     sfx(plan, 0, "crack")
     if res == "OUT" or res == "FC" or res == "DP" then
@@ -1115,7 +1354,20 @@ local function planBip(b, tl, plan)
     local rcv = (not th.wild) and (th.rcv or receiverFor(th.bx, th.by, from)) or nil
     local gz = GLOVE_Z.throw
     if rcv and rcv ~= "C" then th.bx, th.by = cover(plan, rcv, th.bx, th.by, th.ax, th.ay, t1) end
-    seg(plan, { kind = "line", t0 = th.t0, t1 = t1, ax = th.ax, ay = th.ay, az = 5, bx = th.bx, by = th.by, bz = rcv and gz or 4, arc = d / 14 / (spd / THROW), throw = true })
+    -- the receiver faces the throw and it ends in the glove of his reach (the catcher where he
+    -- is: behind the plate unless he's been sent somewhere)
+    local ex, ey, rface = th.bx, th.by, nil
+    if rcv then
+      local px, py = th.bx, th.by
+      if rcv == "C" then
+        if plan.fmoves.C then px, py = posAt(plan, "C", t1) else px, py = 0, -3.2 end
+      end
+      rface = atan2(th.ay - py, th.ax - px)
+      local ox, oy, oz = genericGlove("throw", rface)
+      ex, ey, gz = px + ox, py + oy, oz
+      th.rx, th.ry = px, py
+    end
+    seg(plan, { kind = "line", t0 = th.t0, t1 = t1, ax = th.ax, ay = th.ay, az = 5, bx = ex, by = ey, bz = rcv and gz or 4, arc = d / 14 / (spd / THROW), throw = true })
     if not plan.leap and not th.noTrack then ftrack(plan, from, th.t0 - 0.27, th.t0 + 0.46, "fielder_throw") end
     if th.base then outAt[th.base] = t1 end
     lastT = t1
@@ -1125,20 +1377,22 @@ local function planBip(b, tl, plan)
       local f1 = rcv == "1B" and "P" or "1B"
       bx2, by2 = cover(plan, f1, bx2, by2, th.bx, th.by, t1 + 0.6)
       local t2 = t1 + 0.35 + dist2(th.bx, th.by, bx2, by2) / throwSpeed
-      fcatch(plan, rcv, t1, "throw", 0.35)
-      seg(plan, { kind = "hold", t0 = t1, t1 = t1 + 0.35, ax = th.bx, ay = th.by, az = gz })
-      seg(plan, { kind = "line", t0 = t1 + 0.35, t1 = t2, ax = th.bx, ay = th.by, az = 5, bx = bx2, by = by2, bz = gz, arc = 3, throw = true })
+      fcatch(plan, rcv, t1, "throw", 0.35, rface)
+      seg(plan, { kind = "hold", t0 = t1, t1 = t1 + 0.35, ax = ex, ay = ey, az = gz })
+      local f1face = atan2(th.by - by2, th.bx - bx2)
+      local ox, oy, oz = genericGlove("throw", f1face)
+      seg(plan, { kind = "line", t0 = t1 + 0.35, t1 = t2, ax = th.bx, ay = th.by, az = 5, bx = bx2 + ox, by = by2 + oy, bz = oz, arc = 3, throw = true })
       ftrack(plan, rcv, t1 + 0.35 - 0.27, t1 + 0.8, "fielder_throw")
-      fcatch(plan, f1, t2, "throw", 0.5)
-      seg(plan, { kind = "hold", t0 = t2, t1 = t2 + 0.5, ax = bx2, ay = by2, az = gz })
+      fcatch(plan, f1, t2, "throw", 0.5, f1face)
+      seg(plan, { kind = "hold", t0 = t2, t1 = t2 + 0.5, ax = bx2 + ox, ay = by2 + oy, az = oz })
       outAt[1] = t2
       lastT = t2
     elseif th.wild then
       seg(plan, { kind = "roll", t0 = t1, t1 = t1 + 1.0, ax = th.bx, ay = th.by, bx = th.bx + 30, by = th.by - 40, hop = 2, hops = 3 })
       lastT = t1 + 1.0
     else
-      if rcv then fcatch(plan, rcv, t1, "throw", 0.5) end
-      seg(plan, { kind = "hold", t0 = t1, t1 = t1 + 0.5, ax = th.bx, ay = th.by, az = gz })
+      if rcv then fcatch(plan, rcv, t1, "throw", 0.5, rface) end
+      seg(plan, { kind = "hold", t0 = t1, t1 = t1 + 0.5, ax = ex, ay = ey, az = gz })
     end
   end
 
@@ -1542,6 +1796,7 @@ local function fielderAt(plan, pos, tau)
       if tau >= m.t1 then x, y = m.x1, m.y1; ddx, ddy = m.x1 - m.x0, m.y1 - m.y0
       elseif tau > m.t0 then
         local u = (tau - m.t0) / (m.t1 - m.t0)
+        if m.ease then u = 1 - (1 - u) * (1 - u) end
         x, y = m.x0 + (m.x1 - m.x0) * u, m.y0 + (m.y1 - m.y0) * u
         moving = true
         dir = m.x1 - m.x0
@@ -1774,46 +2029,102 @@ end
 
 -- a catch: held keys around the moment the ball hits the glove (t = pe.ct)
 --   reach: stretch up · SQUASH + shake on the pop · settle     scoop: crouch · squash · rise
--- airborne catches: untweened lift steps around the catch (the dive's flight, the leap)
+-- airborne catches: how high his feet are off the grass (the leap: untweened lift steps; the
+-- layout: a flight arc from the take-off to the belly-flop, the glove on the ball at the catch)
 local function catchLift(pe, tau)
   local L = pe.lift or 0
   local style = pe.style
   if style == "leap" then
     local k = tau - pe.ct
-    if k < -0.2 then return 0 elseif k < -0.1 then return 0.45 * (L + 1.5) elseif k < 0.12 then return L + 1.5
-    elseif k < 0.2 then return 0.5 * (L + 1.5) end
+    -- (L: planned so his glove is on the ball at the top, planFlyCatch)
+    if k < -0.2 then return 0 elseif k < -0.1 then return 0.45 * L elseif k < 0.12 then return L
+    elseif k < 0.2 then return 0.5 * L end
     return 0
-  elseif style == "layout" then
-    local k = tau - pe.ct
-    if k < -0.17 then return 0 elseif k < -0.07 then return 0.5 + L * 0.6 elseif k < 0.06 then return 0.4 + L
-    elseif k < 0.13 then return 0.25 end
-    return 0
+  elseif style == "layout" and pe.air then
+    local a = pe.air
+    if tau <= a.t0 or tau >= a.t1 then return 0 end
+    local u = (tau - a.t0) / (a.t1 - a.t0)
+    return 4 * a.h * u * (1 - u)
   end
   return 0
 end
 Play.catchLift = catchLift
 
-local function drawCatch(R, variant, pe, x, y, tau, flip, seed, face)
+-- the catcher is behind the plate unless he's been sent somewhere (a pop-up, a bunt, a throw)
+local function fielderSpot(plan, pos, tau)
+  local x, y, moving, pe, dir, ddx, ddy = fielderAt(plan, pos, tau)
+  if pos == "C" and not plan.fmoves.C then x, y = 0, -3.2 end
+  return x, y, moving, pe, dir, ddx, ddy
+end
+-- which way a fielder showing pose entry pe faces
+local function peFace(pe, x, y, ddx, ddy)
+  if pe.face then return pe.face end
+  local fc = yawOf(ddx, ddy, yawTo(x, y, 0, 0))
+  if pe.track == "fielder_throw" then return yawOf(-x, 60 - y, fc) end
+  if pe.track == "barehand_throw" then local tx, ty = basePos(1); return yawTo(x, y, tx, ty) end
+  return fc
+end
+--- the pose a catch shows at tau → set, frame, sx, sy, rot, dx, dy, pivot, lift (ft), kflip
+local function catchPose(pe, tau, seed)
   if pe.track then
-    putTrack(R, variant, pe.track, tau - pe.t0, x, y, catchLift(pe, tau), flip, seed, nil, nil, pe.face or face)
-    return
+    local tn, f, sx, sy, rot, dx, dy, kflip, piv = Anim.sample(pe.track, tau - pe.t0, seed or 0)
+    return tn, f, sx, sy, rot, dx, dy, piv, catchLift(pe, tau), kflip
   end
-  local k = tau - pe.ct
-  if pe.catch == "dive" then
-    putTrack(R, variant, "dive", k + 0.2, x, y, 0, flip, seed, nil, nil, face)
-    return
+  local tn, f, sx, sy, rot = genericKey(pe.catch, tau - pe.ct)
+  return tn, f, sx, sy, rot, 0, 0, 0, 0, false
+end
+--- the pose a fielder shows at tau when it's a catch or a track (nil otherwise) → set, frame, sx,
+--- sy, rot, dx, dy, pivot, x, y, z, face
+local function poseAt(plan, pos, tau)
+  local x, y, _, pe, _, ddx, ddy = fielderSpot(plan, pos, tau)
+  if not pe or not (pe.catch or pe.track) then return nil end
+  local face = peFace(pe, x, y, ddx, ddy)
+  if pe.catch then
+    local tn, f, sx, sy, rot, dx, dy, piv, z = catchPose(pe, tau)
+    return tn, f, sx, sy, rot, dx, dy, piv, x, y, z, face
   end
-  local f, sx, sy, rot = 4, 1, 1, 0
-  if pe.catch == "low" then
-    f = 1
-    if k < 0 then sx, sy = 1.12, 0.86
-    elseif k < 0.1 then sx, sy, rot = 1.22, 0.8, (floor(k * FPS) % 2 == 0) and 4 or -4
-    else sx, sy = 1.06, 0.94 end
-  else
-    if k < 0 then sx, sy = 0.9, 1.12
-    elseif k < 0.1 then sx, sy, rot = 1.14, 0.88, (floor(k * FPS) % 2 == 0) and 5 or -5
+  local tn, f, sx, sy, rot, dx, dy, _, piv = Anim.sample(pe.track, tau - pe.t0, 0)
+  if not tn then return nil end
+  return tn, f, sx, sy, rot, dx, dy, piv, x, y, 0, face
+end
+Play.poseAt = poseAt
+--- the glove of catch c's pose at tau, as a world offset from his feet (+ his lift), or nil
+local function trackGlove(c, tau)
+  local tn, f, sx, sy, rot, dx, dy, piv, z = catchPose(c, tau)
+  if not tn then return nil end
+  local gr, gf, gu = keyGlove(tn, f, sx, sy, rot, dx, dy, piv)
+  local ox, oy = faceOff(c.face or 0, gr, gf)
+  return ox, oy, gu + z
+end
+Play.trackGlove = trackGlove
+--- the ball as drawn at tau: on its segments, or in the glove of whoever has just caught it (the
+--- glove of the key he's showing: through the squash, the dive, the skid, the get-up and the
+--- wind-up for the throw) → x, y, z, inGlove
+local function ballDrawn(plan, tau)
+  local cs = plan.catches
+  for i = #cs, 1, -1 do
+    local c = cs[i]
+    if tau >= c.ct and tau < c.ct + c.hold and not (c.ct2 and tau < c.ct2) then
+      local tn, f, sx, sy, rot, dx, dy, piv, x, y, z, face = poseAt(plan, c.pos, tau)
+      if tn then
+        local gr, gf, gu = keyGlove(tn, f, sx, sy, rot, dx, dy, piv)
+        local ox, oy = faceOff(face, gr, gf)
+        return x + ox, y + oy, z + gu, true
+      end
     end
   end
+  local bx, by, bz = ballAt(plan, tau)
+  return bx, by, bz, false
+end
+Play.ballDrawn = ballDrawn
+
+local function drawCatch(R, variant, pe, x, y, tau, flip, seed, face)
+  face = pe.face or face
+  if pe.track then
+    putTrack(R, variant, pe.track, tau - pe.t0, x, y, catchLift(pe, tau), flip, seed, nil, nil, face)
+    return
+  end
+  local _, f, sx, sy, rot = genericKey(pe.catch, tau - pe.ct)
   if face then R:puppetT(variant, "fielder", f, x, y, 0, false, sx, sy, rot, 0, 0, 0, face, seed, false); return end
   if flip then rot = -rot end
   R:puppetT(variant, "fielder", f, x, y, 0, flip, sx, sy, rot, 0, 0, 0)
@@ -2385,7 +2696,7 @@ function Play.drawWorld(R, view, b, tau)
         if tau < t0 then putIdle(R, defV, "set", x, y, 0, L.lefty, seed, n, vib, pf)
         elseif tau < relT + 0.8 then putTrack(R, defV, "pitch_back", tau - t0, x, y, 0, L.lefty, seed, vib, nil, pf)
         else putIdle(R, defV, "ready", x, y, 0, L.lefty, seed, n, big, pf) end
-      elseif pos == "C" and not pe then
+      elseif pos == "C" and not pe and not plan.fmoves.C then
         x, y = 0, -3.2
         if plan.reach and tau >= plan.receive - 0.25 and tau < plan.receive + 0.75 then
           drawReach(R, defV, plan, x, y, tau, seed, big)
@@ -2397,18 +2708,15 @@ function Play.drawWorld(R, view, b, tau)
           putIdle(R, defV, "catcher", x, y, 0, false, seed, n, big, FACE_CF)
         end
       elseif pe and pe.catch then
-        if pos == "C" then x, y = 0, -3.2 end
-        drawCatch(R, defV, pe, x, y, tau, false, seed, yawOf(ddx, ddy, yawTo(x, y, 0, 0)))
+        if pos == "C" and not plan.fmoves.C then x, y = 0, -3.2 end
+        drawCatch(R, defV, pe, x, y, tau, false, seed, peFace(pe, x, y, ddx, ddy))
       elseif pe and pe.track then
-        if pos == "C" then x, y = 0, -3.2 end
-        local fc = yawOf(ddx, ddy, yawTo(x, y, 0, 0))
-        if pe.track == "fielder_throw" then fc = yawOf(-x, 60 - y, fc) end
-        if pe.track == "barehand_throw" then local tx, ty = basePos(1); fc = yawTo(x, y, tx, ty) end
-        putTrack(R, defV, pe.track, tau - pe.t0, x, y, 0, false, seed, pe.vib or big, nil, fc)
+        if pos == "C" and not plan.fmoves.C then x, y = 0, -3.2 end
+        putTrack(R, defV, pe.track, tau - pe.t0, x, y, 0, false, seed, pe.vib or big, nil, peFace(pe, x, y, ddx, ddy))
       else
         local frame = (pe and pe.pose) or (moving and runFrame(tau + i * 0.05)) or "ready"
         if pos == "P" and not pe and not moving then frame = (b.kind == "pa" or b.kind == "sub") and "set" or "ready" end
-        if pos == "C" then x, y = 0, -3.2; if not pe then frame = "catcher" end end
+        if pos == "C" and not plan.fmoves.C then x, y = 0, -3.2; if not pe then frame = "catcher" end end
         local ch = plan.chase
         if moving and ch and ch.pos == pos then
           -- running it down: looking back over his shoulder, the glove up late
@@ -2617,10 +2925,10 @@ function Play.drawWorld(R, view, b, tau)
       local list = li == 1 and plan.exits or plan.carry
       for i = 1, #list do
         local e = list[i]
-        local x, y = exitPos(e, tau)
+        local x, y, tx, ty = exitPos(e, tau)
         if x then
           look(Looks.of(e.id, people), e.helmet and HELMET or 0)
-          putTrack(R, e.v, e.track, tau - e.t0 + e.seed * 0.01, x, y, 0, false, e.seed, nil, nil, yawTo(x, y, e.x1, e.y1))
+          putTrack(R, e.v, e.track, tau - e.t0 + e.seed * 0.01, x, y, 0, false, e.seed, nil, nil, yawTo(x, y, tx, ty))
         end
       end
     end
@@ -2685,27 +2993,8 @@ function Play.drawWorld(R, view, b, tau)
 
   WT[8] = clk()
   -- ball + dotted trail
-  local bx, by, bz = ballAt(plan, tau)
-  local inGlove = false
-  for i = 1, #plan.catches do
-    local c = plan.catches[i]
-    if tau >= c.ct and tau < c.ct + c.hold then
-      -- it's in his glove: ride with him, drawn in front of him
-      local gx, gy = fielderAt(plan, c.pos, tau)
-      if c.pos == "C" then gx, gy = 0, -3.2 end
-      if c.gz then
-        -- in the glove of the reach pose (then held up as he pops up)
-        if tau < c.ct + 0.3 then bx, by, bz = gx + c.gx, gy + c.gy, c.gz + catchLift(c, tau)
-        else bx, by, bz = gx, gy, 6.2 end
-        if c.ct2 and tau < c.ct2 then bx = nil end      -- (juggled: the line segment has it)
-        inGlove = bx ~= nil
-        if not bx then bx, by, bz = ballAt(plan, tau) end
-      else
-        bx, by, bz = gx, gy, GLOVE_Z[c.catch] or 5
-        inGlove = true
-      end
-    end
-  end
+  -- (in his glove after a catch: the glove of whatever key he's showing, drawn in front of him)
+  local bx, by, bz, inGlove = ballDrawn(plan, tau)
   local hide = false
   if plan.warp and abs(tau - plan.warp) < 0.08 then hide = true end
   if plan.cloud and tau > plan.cloud[1] + 0.1 and tau < plan.cloud[2] then hide = true end

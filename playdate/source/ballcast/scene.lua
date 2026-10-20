@@ -821,11 +821,11 @@ end
 ---------------------------------------------------------------------------
 -- decision angles (a local source waiting on its player: see S:update)
 
--- Held angles with a stepped push-in (each step a cut, animatic style: most frames hold the camera
--- exactly, so the park render cache reuses the frame). R3.shot "decision" frames them and checks the
--- batter and the pitcher are both in the picture (else the next angle).
+-- Held angles (DEC_HOLD s each, a cut between them) with a slow, continuous push-in (R3.shot
+-- "decision", eased over the hold). R3.shot frames them and checks the batter and the pitcher are
+-- both in the picture (else the next angle).
 local DECISION <const> = { "overShoulder", "catcherView", "lowBox", "dugoutLook" }
-local DEC_HOLD <const>, DEC_STEP <const> = 4.8, 0.8
+local DEC_HOLD <const> = 6.0
 function S:decisionCam(b)
   local it = self.idleT or 0
   local d = self.decision
@@ -833,18 +833,18 @@ function S:decisionCam(b)
     d = { k = floor(K.hash01(b.i or 1, 91) * #DECISION) }
     self.decision = d
   end
+  -- one angle per DEC_HOLD seconds (a cut between them), pushing in smoothly while it's held
   local idx = floor(it / DEC_HOLD)
-  local step = floor((it - idx * DEC_HOLD) / DEC_STEP)
-  local key = idx * 100 + step
-  if d.key ~= key then
-    d.key = key
-    d.cc = { name = "decision", opt = { kind = DECISION[(d.k + idx) % #DECISION + 1], step = step, side = (idx % 2 == 0) and 1 or -1, i = idx,
+  if d.idx ~= idx then
+    d.idx = idx
+    d.cc = { name = "decision", opt = { kind = DECISION[(d.k + idx) % #DECISION + 1], side = (idx % 2 == 0) and 1 or -1, i = idx,
       bat = self.src and self.src.idleBatter and self.src:idleBatter() or nil } }
     -- the free strip of the screen (the source's panels cover the rest)
     if self.src and self.src.decisionFrame then d.cc.opt.x0, d.cc.opt.x1 = self.src:decisionFrame() end
     -- a murmur now and then while they wait
-    if step == 0 and idx > 0 and K.hash01(b.i or 1, idx) < 0.5 then Audio.sfx(K.hash01(idx, 7) < 0.6 and "c_murmur" or "c_clap", 0.3) end
+    if idx > 0 and K.hash01(b.i or 1, idx) < 0.5 then Audio.sfx(K.hash01(idx, 7) < 0.6 and "c_murmur" or "c_clap", 0.3) end
   end
+  d.cc.opt.push = (it - idx * DEC_HOLD) / DEC_HOLD
   return d.cc
 end
 
@@ -904,9 +904,83 @@ function S:updateTicker(bi, tau)
   self.tickerInstant = false
 end
 
+-- the camera follow (S:update): time to close most of a gap, s (eye/target, then the zoom)
+local CAM_SMOOTH <const>, CAM_SMOOTH_FOV <const> = 0.14, 0.2
+--- one step of a critically damped spring from x (velocity v) toward `to`, exact for any dt
+--- (Game Programming Gems 4, 1.10): → new x, new v
+local function smoothCD(x, v, to, smooth, dt)
+  local w = 2 / smooth
+  local k = w * dt
+  local e = 1 / (1 + k + 0.48 * k * k + 0.235 * k * k * k)
+  local ch = x - to
+  local tmp = (v + w * ch) * dt
+  return to + (ch + tmp) * e, (v - w * tmp) * e
+end
+S.smoothCD = smoothCD
+--- the same shot (one camera move) as last frame? Identity, or the same entry of a re-planned beat.
+local function sameShot(a, b)
+  if a == b then return true end
+  if not a or not b or a.name ~= b.name or a.t ~= b.t then return false end
+  local ao, bo = a.opt or {}, b.opt or {}
+  return ao.side == bo.side and ao.kind == bo.kind and ao.changeover == bo.changeover and ao.play == bo.play
+end
+
+local CAM_GLIDE <const> = 0.6
+local function smoother(u) u = u < 0 and 0 or (u > 1 and 1 or u); return u * u * u * (u * (u * 6 - 15) + 10) end
+--- the wanted camera with any jump in it turned into a glide (see S:update)
+function S:camGlide(want, cc, bi, dt, reset)
+  local prev, g = self.camGlidePrev, self.camGlideState
+  local out = self.camGlideOut or {}
+  self.camGlideOut = out
+  local fresh = reset or not prev or not sameShot(cc, self.camShot) or bi ~= self.camBi
+  local jump = false
+  if fresh then
+    g = nil
+  else
+    -- a jump: a step well beyond the motion the shot had a frame ago (a ball-tracking shot moves
+    -- several ft a frame, smoothly: that's no jump)
+    local pv, r = self.camGlideVel, dt / max(1e-3, self.camGlideDt or dt)
+    for i = 1, 7 do
+      local d = want[i] - prev[i]
+      local lim = i == 7 and 1.5 or 4
+      if math.abs(d) > lim and math.abs(d - (pv and pv[i] or 0) * r) > lim then jump = true end
+    end
+    if jump then
+      -- glide from where the picture is headed now (mid-glide: from the glide's current point)
+      local from = {}
+      for i = 1, 7 do from[i] = self.camGlideLast and self.camGlideLast[i] or prev[i] end
+      g = { from = from, u = 0 }
+    end
+  end
+  -- (the wanted camera's motion last frame: none after a cut; a jump isn't motion)
+  local pv = self.camGlideVel or {}
+  if fresh then for i = 1, 7 do pv[i] = 0 end
+  elseif not jump then for i = 1, 7 do pv[i] = want[i] - prev[i] end end
+  self.camGlideVel, self.camGlideDt = pv, dt
+  prev = prev or {}
+  for i = 1, 7 do prev[i] = want[i] end
+  self.camGlidePrev = prev
+  if g then
+    g.u = g.u + dt / CAM_GLIDE
+    if g.u >= 1 then g = nil end
+  end
+  self.camGlideState = g
+  if g then
+    local k = smoother(g.u)
+    for i = 1, 7 do out[i] = g.from[i] + (want[i] - g.from[i]) * k end
+  else
+    for i = 1, 7 do out[i] = want[i] end
+  end
+  local last = self.camGlideLast or {}
+  for i = 1, 7 do last[i] = out[i] end
+  self.camGlideLast = last
+  return out
+end
+
 function S:update()
   local now = playdate.getCurrentTimeMilliseconds()
   local dt = min(0.1, (now - self.lastMs) / 1000)
+  if S.debugDt then dt = S.debugDt end   -- (harness: a fixed clock step per frame)
   self.lastMs = now
   gfx.clear(gfx.kColorWhite)
 
@@ -1046,6 +1120,7 @@ function S:update()
   if self.idleT then
     self.idleFrame = (self.idleFrame or 0) + 1
     if self.idleFrame % 2 == 1 and self.idleImg then
+      self.camDtSkip = (self.camDtSkip or 0) + dt   -- (the camera follow catches up next frame)
       self.idleImg:draw(0, 0)
       if self.src.draw then self.src:draw(self, bi, b, tau) end
       self:backgroundLoad(now, 27)
@@ -1101,19 +1176,34 @@ function S:update()
     local R = self.R
     if self.live3d then
       local want = R3.shot(R, b, tau, cc, self.camWant)
+      -- the stands guard on the wanted camera, before the follow smooths it: guarding the smoothed
+      -- one (as it was) pulled the eye in mid-move, a jolt whenever a moving eye crossed a stand
+      Cam.safeEye(R.park, want)
       self.camWant = want
-      local cur = self.camCur
-      self.cutThisFrame = cc ~= self.camShot
-      if not cur or cc ~= self.camShot or scrubbing or not self.playing then
-        cur = cur or {}
-        for k = 1, 7 do cur[k] = want[k] end
+      -- a shot whose wanted framing jumps (the deep shot cutting in on the catch, the runner shot
+      -- switching runners): glide to it instead (smootherstep over CAM_GLIDE s from where the
+      -- picture was headed), so the follow doesn't lurch off at full speed
+      local cdt = dt + (self.camDtSkip or 0)
+      want = self:camGlide(want, cc, bi, cdt, scrubbing or not self.playing)
+      local cur, vel = self.camCur, self.camVel
+      -- (a re-planned beat, e.g. Pennant's provisional pitch swapped for the real one, hands back
+      -- a new but identical shot: that's no cut)
+      local cut = not sameShot(cc, self.camShot) or bi ~= self.camBi
+      self.cutThisFrame = cut
+      if not cur or cut or scrubbing or not self.playing or (cc.opt and cc.opt.establish) then
+        cur, vel = cur or {}, vel or {}
+        for k = 1, 7 do cur[k], vel[k] = want[k], 0 end
       else
-        local k = cc.opt and cc.opt.establish and 1 or 0.22
-        for i = 1, 6 do cur[i] = cur[i] + (want[i] - cur[i]) * k end
-        cur[7] = cur[7] + (want[7] - cur[7]) * 0.15
+        -- critically damped follow, by the clock (not per frame): a jump in the wanted framing
+        -- eases in and out instead of starting at full speed, and the move doesn't depend on the
+        -- frame rate (the old per-frame lerp did both: moves started with a jolt and stuttered
+        -- whenever a frame ran long)
+        for i = 1, 7 do
+          cur[i], vel[i] = smoothCD(cur[i], vel[i], want[i], i == 7 and CAM_SMOOTH_FOV or CAM_SMOOTH, cdt)
+        end
       end
-      self.camCur = cur
-      self.camShot = cc
+      self.camCur, self.camVel, self.camDtSkip = cur, vel, 0
+      self.camShot, self.camBi = cc, bi
       R:setCamera(cur)
       -- fast-moving tracking shots: crowd photo textures fall back to the cheap animated
       -- crowd-noise fill (the textured stands cost ~20 ms on device when they fill the frame)

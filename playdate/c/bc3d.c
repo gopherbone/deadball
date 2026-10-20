@@ -91,6 +91,12 @@ typedef struct {
 	uint8_t hasLm;           // landmarks for the look stamps (bc3d.sprite arg 9)
 	uint8_t faceCode, backCode;   // face: 0 away, 1 profile, 2 toward the camera; back: 1 = number shows
 	float lm[22];            // 1x px: head, nose, back, kneeL, ankleL, kneeR, ankleR, elbowL, wristL, elbowR, wristR
+	// the jersey's number panel (tools/assets/humanoid/jersey.py), 1x px: a point of the back at
+	// panel (u, v) is jO + (u - .5) jU + (v - .5) jV; 7 x 5 glyph cells, jVis[col] bit row = clear
+	uint8_t hasJersey, jerseyAway;
+	uint8_t jVis[7];
+	float jO[2], jU[2], jV[2];
+	float jA, jB;            // the panel's clear span across (u): the digits fit in it or don't show
 } Sprite;
 
 typedef struct {
@@ -1069,11 +1075,16 @@ static void blitXf(LCDBitmap* bmp, float pax, float pay, float PX, float PY, flo
 #define LOOK_MIN_PX 22.0f     // smaller figures: no stamps (nothing would read)
 static int statLookPx = 0;    // stamp pixels visited (bc3d.lookStats)
 static float lookMinPx = LOOK_MIN_PX;
+static float jerseyMinPx = 1.0f;   // a glyph row's screen px below which no number is drawn
+static int statJerseys = 0;        // numbers stamped (bc3d.lookStats)
+static float statJerseyS = 0;      // seconds spent stamping them
 
 typedef struct {
 	const uint8_t* data; const uint8_t* mask; int w, h, rb;
 	float pax, pay, PX, PY, ksx, ksy, c, s, fs;
 	float iu, iv, ju, jv;
+	float csx, csy;          // bitmap px per 1x cell px (x includes the body width)
+	float srcPx;             // bitmap px per source-art px (the away checker's phase)
 } LookXf;
 
 static inline int lkOpaque(const LookXf* X, int i, int j)
@@ -1100,7 +1111,12 @@ typedef struct {
 	float t0, t1;                    // segment span (0 = a, 1 = b)
 	int arg;                         // skin level / number
 	float nx, ny;                    // nose (face side)
-	float g;                         // number glyph px
+	float g;                         // moustache thickness / helmet shine / number: 1 = erase only
+	const Sprite* sp;                // number: the sprite (its jersey panel)
+	float m00, m01, m10, m11;        // number: inverse of [jU jV] (1x px -> panel u, v)
+	float gu, u0;                    // number: panel u per glyph unit, the digits' block start
+	float sa, sb;                    // number: the clear span (reading u, mirror applied)
+	float rcx, rcy;                  // number: 1 / bitmap px per 1x px
 } LookRule;
 
 static inline float segT(float px, float py, float ax, float ay, float bx, float by, float* d2)
@@ -1112,6 +1128,37 @@ static inline float segT(float px, float py, float ax, float ay, float bx, float
 	*d2 = (px - cx) * (px - cx) + (py - cy) * (py - cy);
 	return t;
 }
+
+// jersey panel at bitmap pixel (i, j): -1 outside / hidden (occluded, wrapped), else bits:
+// 1 a digit pixel, 2 in the baked number's columns, 4 on the away patch (the digits' block
+// plus a margin). Digits: R->gu panel-u per glyph unit (1/7, or wider when the turn would
+// squeeze a column under a screen px), block from R->u0; R->g = 1: no digits (erase only).
+#define JPAD 0.12f    // the patch's margin above / below the digits (panel v)
+static int jerseyAt(const LookRule* R, const LookXf* X, int i, int j)
+{
+	const Sprite* s = R->sp;
+	float x = (i + 0.5f) * R->rcx - s->jO[0], y = (j + 0.5f) * R->rcy - s->jO[1];
+	float u = R->m00 * x + R->m01 * y + 0.5f;
+	float v = R->m10 * x + R->m11 * y + 0.5f;
+	if ( u < 0 || u >= 1 || v < -JPAD || v >= 1 + JPAD ) return -1;
+	int gc = (int)(u * 7), gr = (int)(v * 5);
+	if ( gr < 0 ) gr = 0;
+	if ( gr > 4 ) gr = 4;
+	if ( !((s->jVis[gc] >> gr) & 1) ) return -1;
+	int r = (gc >= 2 && gc <= 4 && v >= 0 && v < 1) ? 2 : 0;
+	// a mirrored figure (lefty) still reads left to right
+	float uu = X->fs < 0 ? 1.0f - u : u;
+	float t = (uu - R->u0) / R->gu;
+	int n = R->arg, nd = n >= 10 ? 2 : 1;
+	if ( t >= -0.5f && t < nd * 4 - 0.5f && uu >= R->sa && uu < R->sb ) r |= 4;
+	if ( t < 0 || v < 0 || v >= 1 || R->g != 0 ) return r;
+	int dc = (int)t, row = (int)(v * 5), cx = dc % 4, digit = -1;
+	if ( cx < 3 && dc < nd * 4 - 1 ) digit = nd == 2 ? (dc < 4 ? n / 10 : n % 10) : n;
+	if ( digit >= 0 && ((DIG[digit][row] >> (2 - cx)) & 1) ) r |= 1;
+	return r;
+}
+
+static int jerseyAwayStyle = 0;   // away: 0 a light patch with black digits, 1 black digits + white keyline
 
 // → -1 keep, 0 black, 1 white
 static int lookColor(const LookRule* R, const LookXf* X, int i, int j)
@@ -1156,20 +1203,28 @@ static int lookColor(const LookRule* R, const LookXf* X, int i, int j)
 	}
 	case LK_NUMBER:
 	{
-		// a white patch with the player's number in black (clears the baked one); a mirrored
-		// figure (lefty) still reads left to right
-		if ( X->fs < 0 ) px = 2.0f * R->ax - px;
-		int n = R->arg;
-		int nd = n >= 10 ? 2 : 1;
-		float g = R->g;
-		float gw = (nd * 3 + (nd - 1)) * g;
-		float x0 = R->ax - gw * 0.5f, y0 = R->ay - 2.5f * g;
-		int gx = (int)floorf((px - x0) / g), gy = (int)floorf((py - y0) / g);
-		if ( gy < 0 || gy > 4 || gx < 0 || gx >= nd * 4 - 1 ) return 1;
-		int d = gx / 4, cx = gx % 4;
-		if ( cx == 3 ) return 1;
-		int digit = nd == 2 ? (d == 0 ? n / 10 : n % 10) : n;
-		return ((DIG[digit][gy] >> (2 - cx)) & 1) ? 0 : 1;
+		// printed on the back: the digits live in the pose's jersey panel (so they slant with
+		// the shoulders, narrow as the torso turns, and hide behind an arm); the baked "7"
+		// (columns 2-4) goes back to the jersey. Home: black digits on the white jersey. Away
+		// (checker): black digits on a light patch sewn on in the same quad (style 0), or black
+		// digits with a white keyline (style 1).
+		int on = jerseyAt(R, X, i, j);
+		if ( on < 0 ) return -1;
+		int away = R->sp->jerseyAway;
+		if ( on & 1 ) return 0;
+		if ( away && R->g == 0 )
+		{
+			if ( jerseyAwayStyle == 0 && (on & 4) ) return 1;
+			if ( jerseyAwayStyle == 1 && ((jerseyAt(R, X, i + 1, j) | jerseyAt(R, X, i - 1, j) | jerseyAt(R, X, i, j + 1) | jerseyAt(R, X, i, j - 1)) & 1) )
+				return 1;
+		}
+		if ( (on & 2) && !white )
+		{
+			if ( !away ) return 1;
+			int si = (int)((i + 0.5f) / X->srcPx), sj = (int)((j + 0.5f) / X->srcPx);
+			return ((si + sj) & 1) ? 1 : 0;
+		}
+		return -1;
 	}
 	case LK_HELMET:
 	{
@@ -1249,6 +1304,8 @@ static void lookPass(const Sprite* s, LCDBitmap* bmp, float cs, uint32_t look, f
 	X.pax = pax; X.pay = pay; X.PX = PX; X.PY = PY; X.ksx = ksx; X.ksy = ksy;
 	X.iu = X.fs * X.c / ksx; X.iv = X.fs * X.s / ksx; X.ju = -X.s / ksy; X.jv = X.c / ksy;
 	float csx = cs * s->wx, csy = cs;
+	X.csx = csx; X.csy = csy;
+	X.srcPx = (cs >= 1.4f && s->src[1]) ? cs * 0.5f : cs;
 	const float* L = s->lm;
 	#define LX(k) (L[(k) * 2] * csx)
 	#define LY(k) (L[(k) * 2 + 1] * csy)
@@ -1318,15 +1375,45 @@ static void lookPass(const Sprite* s, LCDBitmap* bmp, float cs, uint32_t look, f
 			runRule(&R, &X, 1);
 		}
 	}
-	if ( num > 0 && s->backCode && cs >= 0.95f )
+	// the number: once a glyph row is at least ~1 screen px (smaller, the baked number is the
+	// 1-2 px smudge a far-off back shows). A glyph column is kept at >= 1 screen px too (digits
+	// >= 3 px, a 1 px gap): a torso turned edge-on widens the glyph units within the clear span;
+	// when they no longer fit, the number is dropped (the baked "7" only erased), not mangled.
+	if ( num > 0 && s->hasJersey )
 	{
-		memset(&R, 0, sizeof R);
-		R.type = LK_NUMBER; R.arg = num;
-		R.g = cs >= 1.9f ? floorf(cs * 0.8f + 0.5f) : 1.0f;
-		R.ax = LX(2); R.ay = LY(2) + 0.5f * R.g;
-		float gw = ((num >= 10 ? 7 : 3) * R.g) * 0.5f + R.g;
-		R.i0 = R.ax - gw; R.i1 = R.ax + gw; R.j0 = R.ay - 3.5f * R.g; R.j1 = R.ay + 3.5f * R.g;
-		runRule(&R, &X, 1);
+		float det = s->jU[0] * s->jV[1] - s->jU[1] * s->jV[0];
+		float rowPx = sqrtf(s->jV[0] * s->jV[0] * csx * csx * ksx * ksx + s->jV[1] * s->jV[1] * csy * csy * ksy * ksy) * 0.2f;
+		float wPx = sqrtf(s->jU[0] * s->jU[0] * csx * csx * ksx * ksx + s->jU[1] * s->jU[1] * csy * csy * ksy * ksy);
+		if ( fabsf(det) > 0.5f && rowPx >= jerseyMinPx )
+		{
+			memset(&R, 0, sizeof R);
+			R.type = LK_NUMBER; R.arg = num; R.sp = s;
+			R.m00 = s->jV[1] / det; R.m01 = -s->jV[0] / det; R.m10 = -s->jU[1] / det; R.m11 = s->jU[0] / det;
+			R.rcx = 1.0f / csx; R.rcy = 1.0f / csy;
+			// the digits in the clear span (jersey.py: no arm edge / torso side touching them),
+			// narrowed to fit it but never under a screen px a glyph column
+			int units = num >= 10 ? 7 : 3;
+			R.sa = X.fs < 0 ? 1.0f - s->jB : s->jA;
+			R.sb = X.fs < 0 ? 1.0f - s->jA : s->jB;
+			float span = R.sb - R.sa;
+			R.gu = fminf(1.0f / 7.0f, span / units);
+			if ( wPx * R.gu < 1.0f ) R.gu = 1.0f / fmaxf(wPx, 1e-3f);
+			R.u0 = (R.sa + R.sb) * 0.5f - units * R.gu * 0.5f;
+			R.g = (units * R.gu > span + 0.002f) ? 1.0f : 0.0f;     // doesn't fit: erase only
+			float mnx = 1e9f, mxx = -1e9f, mny = 1e9f, mxy = -1e9f;
+			for ( int k = 0; k < 4; k++ )
+			{
+				float a = (k & 1) ? 0.5f : -0.5f, b = (k & 2) ? 0.5f + JPAD : -0.5f - JPAD;
+				float px = (s->jO[0] + a * s->jU[0] + b * s->jV[0]) * csx;
+				float py = (s->jO[1] + a * s->jU[1] + b * s->jV[1]) * csy;
+				mnx = fminf(mnx, px); mxx = fmaxf(mxx, px); mny = fminf(mny, py); mxy = fmaxf(mxy, py);
+			}
+			R.i0 = floorf(mnx) - 1; R.i1 = ceilf(mxx) + 1; R.j0 = floorf(mny) - 1; R.j1 = ceilf(mxy) + 1;
+			float t0 = pd->system->getElapsedTime();
+			runRule(&R, &X, 1);
+			statJerseyS += pd->system->getElapsedTime() - t0;
+			statJerseys++;
+		}
 	}
 	if ( look & 128 )
 	{
@@ -1760,6 +1847,18 @@ static int l_sprite(lua_State* L)
 			s->faceCode = (uint8_t)(lm[4] - '0');
 			s->backCode = (uint8_t)(lm[7] - '0');
 			s->hasLm = 1;
+			// + the jersey panel (22 chars, jersey.py) and the ink ('A' away checker, 'H' home)
+			if ( strlen(lm) >= 47 && lm[36] == '1' )
+			{
+				float q[6];
+				for ( int k = 0; k < 6; k++ )
+					q[k] = ((float)((lm[24 + k * 2] - 32) * 94 + (lm[25 + k * 2] - 32))) / 32.0f - 64.0f;
+				s->jO[0] = q[0]; s->jO[1] = q[1]; s->jU[0] = q[2]; s->jU[1] = q[3]; s->jV[0] = q[4]; s->jV[1] = q[5];
+				for ( int k = 0; k < 7; k++ ) s->jVis[k] = (uint8_t)(lm[37 + k] - 64);
+				s->jA = (float)(lm[44] - 40) / 80.0f; s->jB = (float)(lm[45] - 40) / 80.0f;
+				s->jerseyAway = lm[46] == 'A';
+				s->hasJersey = 1;
+			}
 		}
 	}
 	sprites[id] = s;
@@ -1872,13 +1971,18 @@ static int l_dropCaches(lua_State* L)
 	return 0;
 }
 
-// bc3d.lookStats([minPx]) → stamp pixels visited since the last call (+ sets the min figure px)
+// bc3d.lookStats([minPx [, jerseyMinPx [, awayStyle]]]) → stamp pixels visited, jersey numbers stamped, ms
+// spent stamping numbers since the last call (+ sets the min figure px / the min glyph-row px for a number)
 static int l_lookStats(lua_State* L)
 {
 	if ( !argIsNil(1) ) lookMinPx = argf(1);
+	if ( !argIsNil(2) ) jerseyMinPx = argf(2);
+	if ( !argIsNil(3) ) jerseyAwayStyle = pd->lua->getArgInt(3);
 	pd->lua->pushInt(statLookPx);
-	statLookPx = 0;
-	return 1;
+	pd->lua->pushInt(statJerseys);
+	pd->lua->pushFloat(statJerseyS * 1000.0f);
+	statLookPx = 0; statJerseys = 0; statJerseyS = 0;
+	return 3;
 }
 
 // bc3d.stats() → polys, verts, polysFilled, spans

@@ -488,12 +488,15 @@ local BODY <const> = { { 1, 1 }, { 0.9, 1.06 }, { 1.14, 0.96 } }   -- width fact
 P.BODY = BODY
 function P.use(body, look) pendBody, pendLook = body or 1, look or 0 end
 local LM = nil      -- "set#view" → landmark string (24 chars a frame)
+local JM = {}       -- "set#view" → jersey panel string (jersey.py: JS chars a frame)
+local JS = 20
 local function loadLandmarks()
   if LM then return LM end
   LM = {}
   local path = "images/puppets/landmarks.json"
   local doc = playdate.file.exists(path) and json.decodeFile(path) or nil
   if doc and doc.cells then LM = doc.cells end
+  if doc and doc.jersey then JM = doc.jersey; JS = doc.jerseyStride or JS end
   P.gloves = doc and doc.glove or {}
   return LM
 end
@@ -505,7 +508,19 @@ function P.gloveCell(set, f)
   g = g and g[f]
   if g then return g[1], g[2] end
 end
-local function landmarksFor(tname, f)
+--- the glove hand (left wrist landmark) of pose set `set` frame f in view `view` (6: side on,
+--- facing screen right; 0: from the front), 1x cell px: for the sets without glove anchors
+function P.wristCell(set, view, f)
+  if not LM then loadLandmarks() end
+  local s = LM[set .. "#" .. view]
+  if not s or #s < f * 24 then return nil end
+  local o = (f - 1) * 24
+  return (s:byte(o + 19) - 40) * 0.5, (s:byte(o + 20) - 40) * 0.5
+end
+-- the landmark string bc3d.sprite takes: 24 landmark chars, then (player sets) the jersey
+-- panel (JS chars: the number printed on the back, tools/assets/humanoid/jersey.py) and the
+-- jersey ink ('H' white home jersey, 'A' gray/checker away)
+local function landmarksFor(tname, f, variant)
   local L = LM or loadLandmarks()
   local key
   if tname:sub(1, 1) == "@" then key = tname:sub(2)
@@ -517,7 +532,12 @@ local function landmarksFor(tname, f)
   end
   local str = L[key]
   if not str or #str < f * 24 then return nil end
-  return str:sub((f - 1) * 24 + 1, f * 24)
+  local lm = str:sub((f - 1) * 24 + 1, f * 24)
+  local js = JM[key]
+  if js and #js >= f * JS then
+    lm = lm .. js:sub((f - 1) * JS + 1, f * JS) .. (variant == "away" and "A" or "H")
+  end
+  return lm
 end
 if bc3d and not bc3d.__lookWrapped then
   -- the look of the puppet being queued rides along as bb arg 13 (render3d stays look-agnostic)
@@ -581,7 +601,7 @@ function P.idT(variant, tname, f)
     return P.idT(variant, tname, f)
   end
   local i1, i2, ax, ay, inv = P.frameT(v, tname, f)
-  id = register(i1, i2, ax, ay, inv, body, (v == "home" or v == "away") and landmarksFor(tname, f) or nil)
+  id = register(i1, i2, ax, ay, inv, body, (v == "home" or v == "away") and landmarksFor(tname, f, v) or nil)
   it[f] = id
   own(id, it, f)
   return id, invs[id]

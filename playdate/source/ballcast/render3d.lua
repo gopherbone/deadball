@@ -86,7 +86,12 @@ end
 -- pick, no track sampling, no sprite caches (see Live:puppet / Play putTrack, putIdle, tags)
 local FAR_Z <const> = 250
 function Live:setCamera(c)
-  c = Cam.safeEye(self.park, c)   -- (never inside the stands: see Cam.safeEye)
+  -- (never inside the stands: see Cam.safeEye. The scene guards the wanted camera before it
+  -- smooths it, so this is normally a no-op; on a copy, so the caller's camera isn't changed)
+  local g = self.camG or {}
+  self.camG = g
+  for i = 1, 7 do g[i] = c[i] end
+  c = Cam.safeEye(self.park, g)
   self.cam = c
   self.far = c[3] > FAR_Z
   bc3d.camera(c[1], c[2], c[3], c[4], c[5], c[6], c[7])
@@ -118,9 +123,11 @@ function R3.renderReport()
 end
 
 -- Park-render cache (bc3d.store/restore): reuse the last park render while the picture would
--- move less than ~1 px (eye/target/zoom drift converted to screen px). An excited crowd bobs
+-- move less than ~0.3 px (eye/target/zoom drift converted to screen px). An excited crowd bobs
 -- every 3 frames, so then the cache is refreshed at that rate; otherwise at least every 30 frames.
-local CACHE_PX <const>, CACHE_MAX_AGE <const>, CACHE_AGE_EXCITED <const> = 1.0, 30, 3
+-- (0.3 px: at 1 px a slow push-in or pan held the park still for a few frames, then jumped it a
+-- whole pixel under the smoothly moving players: the picture visibly stepped)
+local CACHE_PX <const>, CACHE_MAX_AGE <const>, CACHE_AGE_EXCITED <const> = 0.3, 30, 3
 function Live:background(ox, oy, crowd)
   self.ox, self.oy = ox or 0, oy or 0
   crowd = crowd or 0.3
@@ -135,7 +142,7 @@ function Live:background(ox, oy, crowd)
     local same = k ~= nil and self.pkAge < maxAge
     if same then
       -- how far would the picture move? eye/target drift as an angle at the target distance,
-      -- plus the zoom change, in screen px; reuse the last render below ~0.6 px
+      -- plus the zoom change, in screen px; reuse the last render below CACHE_PX
       local dx, dy, dz = c[4] - c[1], c[5] - c[2], c[6] - c[3]
       local dist = math.sqrt(dx * dx + dy * dy + dz * dz)
       if dist < 1 then dist = 1 end
@@ -145,6 +152,7 @@ function Live:background(ox, oy, crowd)
       if px > CACHE_PX then same = false end
     end
     if same and bc3d.restore() then
+      self.bgCam = k   -- (the camera the park picture on screen was rendered from)
       self.pkAge = self.pkAge + 1
       self.pkHits = (self.pkHits or 0) + 1
       renderCost(0)
@@ -156,9 +164,11 @@ function Live:background(ox, oy, crowd)
     k = k or {}
     for i = 1, 7 do k[i] = c[i] end
     self.pkCam, self.pkAge, self.pkFar = k, 0, self.far
+    self.bgCam = k
     return
   end
   self.pkCam = nil
+  self.bgCam = c
   bc3d.render(self.ox, self.oy)
   if bc3d.renderMs then renderCost(bc3d.renderMs()) end
 end
@@ -471,6 +481,7 @@ function R3.bothInFrame(c, bs, x0, x1)
   return true
 end
 
+local HIGH_GLIDE <const> = 0.9   -- s: the high shot's move from one held framing to the next
 --- desired camera {ex,ey,ez,tx,ty,tz,fov} for a shot name at tau
 function R3.shot(r, b, tau, cc, out)
   Play = Play or BallCast.Play
@@ -485,7 +496,16 @@ function R3.shot(r, b, tau, cc, out)
   end
   if name == "decision" then
     local opt = cc.opt
-    if opt.cam then return set({ opt.cam[1], opt.cam[2], opt.cam[3] }, { opt.cam[4], opt.cam[5], opt.cam[6] }, opt.cam[7]) end
+    -- the push-in: from the angle's framing fov0 to (at most) 15 % tighter, eased over the time
+    -- the angle is held (opt.push 0..1, set by the scene every frame): a continuous move, never
+    -- tighter than keeps both men inside the margin. (It used to step 2.5 % tighter every 0.8 s,
+    -- each step a hard cut: the picture jumped every 0.8 s while the player aimed a pitch.)
+    local function pushed(c)
+      local u = K.clamp(opt.push or 0, 0, 1)
+      u = u * u * (3 - 2 * u)
+      return set({ c[1], c[2], c[3] }, { c[4], c[5], c[6] }, c[7] + (c[8] - c[7]) * u)
+    end
+    if opt.cam then return pushed(opt.cam) end
     local bs = Play.batSide(opt.bat or (b.pre and b.pre.bat))
     -- the asked-for angle first, then the others in order
     local first = 1
@@ -500,15 +520,23 @@ function R3.shot(r, b, tau, cc, out)
       local t, fov0
       if g then t, fov0 = frameBoth({ g[1], g[2], g[3] }, bs, opt.x0, opt.x1) end
       if t and fov0 <= 76 then
-        -- the push-in: a step tighter every DEC_STEP (held between steps), inside the margin; if a
-        -- step would crop either man, the angle holds its wider framing
-        for _, fov in ipairs({ fov0 * (1 - 0.025 * math.min(6, opt.step or 0)), fov0 }) do
-          local c = { g[1], g[2], g[3], t[1], t[2], t[3], max(12, fov) }
-          if R3.bothInFrame(c, bs, opt.x0, opt.x1) then
-            if R3.DEBUG then print(string.format("[decision] asked %s -> %s fov %.1f eye %.0f,%.0f,%.0f", opt.kind, kind, c[7], c[1], c[2], c[3])) end
-            opt.cam = c
-            return set({ c[1], c[2], c[3] }, { c[4], c[5], c[6] }, c[7])
+        local c = { g[1], g[2], g[3], t[1], t[2], t[3], max(12, fov0) }
+        if R3.bothInFrame(c, bs, opt.x0, opt.x1) then
+          -- the tightest the push may go: 15 % in, or as far as both men stay in frame
+          local lo, hi = max(12, fov0 * 0.85), c[7]
+          c[7] = lo
+          if not R3.bothInFrame(c, bs, opt.x0, opt.x1) then
+            for _ = 1, 6 do
+              local m = (lo + hi) / 2
+              c[7] = m
+              if R3.bothInFrame(c, bs, opt.x0, opt.x1) then hi = m else lo = m end
+            end
+            lo = hi
           end
+          c[7], c[8] = max(12, fov0), lo
+          if R3.DEBUG then print(string.format("[decision] asked %s -> %s fov %.1f..%.1f eye %.0f,%.0f,%.0f", opt.kind, kind, c[7], c[8], c[1], c[2], c[3])) end
+          opt.cam = c
+          return pushed(c)
         end
       end
     end
@@ -597,6 +625,8 @@ function R3.shot(r, b, tau, cc, out)
   elseif name == "runner" then
     -- follow the lead runner from outside the diamond, ahead of him
     local rx, ry = Play.leadRunner(plan, tau)
+    -- (between runners, or once he's in: hold on where the last one was, not a jump to the mound)
+    if rx then cc.runLast = { rx, ry } elseif cc.runLast then rx, ry = cc.runLast[1], cc.runLast[2] end
     if not rx then rx, ry = 0, 60 end
     local nx, ny = rx, ry - 64
     local l = sqrt(nx * nx + ny * ny)
@@ -632,12 +662,31 @@ function R3.shot(r, b, tau, cc, out)
     -- the camera sits behind home, so field x spread is screen width, y spread is foreshortened
     local w = max(x1 - x0, (y1 - y0) * 0.55) + 50
     local fov = K.clamp(math.deg(2 * math.atan(w * 0.5 / d)), 18, 46)
-    -- broadcast-style re-framing: the aim snaps to a 20 ft grid and the zoom to 3 deg steps;
-    -- (40 ft / 4 deg) the scene's smoothing glides between framings and then HOLDS (so the park render cache
-    -- can reuse the frame: the high shot used to drift every frame and never hit it)
+    -- broadcast-style re-framing: the aim snaps to a 40 ft grid and the zoom to 4 deg steps, and
+    -- the camera HOLDS a framing (so the park render cache can reuse the frame: the high shot used
+    -- to drift every frame and never hit it). A new framing is a timed glide (smootherstep over
+    -- HIGH_GLIDE s: starts and ends at rest), not a jump of the wanted camera: the jump made the
+    -- follow lurch off at full speed toward each new grid point, step after step.
     tx, ty = floor(tx / 40 + 0.5) * 40, floor(ty / 40 + 0.5) * 40
     fov = K.clamp(floor(fov / 4 + 0.5) * 4, 18, 46)
-    return set(hh.eye, { tx, ty, floor(fz * 0.5 + 0.5) }, fov)
+    local tz = floor(fz * 0.5 + 0.5)
+    local g = cc.glide
+    if not g or tau < g.t0 then
+      g = { t0 = tau, from = { tx, ty, tz, fov }, to = { tx, ty, tz, fov } }
+      cc.glide = g
+    end
+    local u = K.clamp((tau - g.t0) / HIGH_GLIDE, 0, 1)
+    u = u * u * u * (u * (u * 6 - 15) + 10)
+    local to = g.to
+    if to[1] ~= tx or to[2] ~= ty or to[3] ~= tz or to[4] ~= fov then
+      -- re-aim from wherever the glide is now
+      local f = g.from
+      g.from = { f[1] + (to[1] - f[1]) * u, f[2] + (to[2] - f[2]) * u, f[3] + (to[3] - f[3]) * u, f[4] + (to[4] - f[4]) * u }
+      g.to, g.t0, u = { tx, ty, tz, fov }, tau, 0
+      to = g.to
+    end
+    local f = g.from
+    return set(hh.eye, { f[1] + (to[1] - f[1]) * u, f[2] + (to[2] - f[2]) * u, f[3] + (to[3] - f[3]) * u }, f[4] + (to[4] - f[4]) * u)
   end
   return set(p.eye, p.target, p.fov)
 end

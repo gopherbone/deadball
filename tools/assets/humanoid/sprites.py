@@ -297,6 +297,12 @@ def write_landmarks(meta, install=True):
            "stride": 24, "cells": out, "glove": gloves}
     d = hlib.PUPPETS_OUT if install else os.path.join(hlib.CACHE, "out")
     p = os.path.join(d, "landmarks.json")
+    # keep the jersey panels (jersey.py) — rerun it after re-posing (render_frames.py --jersey)
+    if os.path.exists(p):
+        old = json.load(open(p))
+        for k in ("jersey", "jerseyStride"):
+            if k in old:
+                doc[k] = old[k]
     with open(p, "w") as f:
         json.dump(doc, f, separators=(",", ":"))
     print("  landmarks:", len(out), "view rows ->", p)

@@ -244,6 +244,131 @@ def landmarks(Mp, right, up, fwd):
     return out
 
 
+# ---------------------------------------------------------------- jersey panel (runtime numbers)
+# The number is printed on the back of the jersey: a panel in the REST pose's mesh space (x across
+# the back, z up; the back is +y — uniform.py paints the baked number in the same place). For every
+# frame we find surface points on that panel (rest-pose ray hits, carried through the posed mesh by
+# barycentric coords), project them like the landmarks, and test each against the camera: facing,
+# lit (the toon ramp's sun) and occluded (an arm, the glove, the bat or the head in front). jersey.py
+# fits these into a per-frame affine quad + occlusion grid for bc3d (landmarks.json "jersey").
+JERSEY_X = (-0.165, 0.165)     # 7 glyph units: two 3x5 digits and a 1-unit gap
+JERSEY_Z = (1.13, 1.39)        # 5 glyph units
+JERSEY_COLS, JERSEY_ROWS = 7, 5
+jersey_out = argv[argv.index("--jersey") + 1] if "--jersey" in argv else None
+
+
+def jersey_setup():
+    from mathutils.bvhtree import BVHTree
+    me = body.data
+    me.calc_loop_triangles()
+    tris = [tuple(t.vertices) for t in me.loop_triangles]
+    rest = [v.co.copy() for v in me.vertices]
+    bvh = BVHTree.FromPolygons(rest, tris)
+    samples = []    # (col, row, sub-u, sub-v) → (tri, barycentric)
+    S = 3
+    for r in range(JERSEY_ROWS):
+        for c in range(JERSEY_COLS):
+            for sv in range(S):
+                for su in range(S):
+                    u = (c + (su + 0.5) / S) / JERSEY_COLS       # 0 = reading left (screen left from behind)
+                    v = (r + (sv + 0.5) / S) / JERSEY_ROWS       # 0 = top
+                    # seen from behind, screen-left is +x (the figure faces -y)
+                    x = JERSEY_X[1] - u * (JERSEY_X[1] - JERSEY_X[0])
+                    z = JERSEY_Z[1] - v * (JERSEY_Z[1] - JERSEY_Z[0])
+                    hit, nrm, ti, _ = bvh.ray_cast(Vector((x, 1.0, z)), Vector((0, -1, 0)))
+                    if hit is None or nrm.y < 0.2:
+                        continue
+                    a, b, cc = (rest[i] for i in tris[ti])
+                    w = barycentric(hit, a, b, cc)
+                    samples.append((c, r, u, v, ti, w))
+    return tris, samples
+
+
+def barycentric(p, a, b, c):
+    v0, v1, v2 = b - a, c - a, p - a
+    d00, d01, d11 = v0.dot(v0), v0.dot(v1), v1.dot(v1)
+    d20, d21 = v2.dot(v0), v2.dot(v1)
+    den = d00 * d11 - d01 * d01
+    if abs(den) < 1e-12:
+        return (1.0, 0.0, 0.0)
+    v = (d11 * d20 - d01 * d21) / den
+    w = (d00 * d21 - d01 * d20) / den
+    return (1.0 - v - w, v, w)
+
+
+def jersey_frame(tris, samples, shown, right, up, fwd):
+    """per sample: [col, row, u, v, x, y (hi-res canvas px), facing, lit, occluded]"""
+    dg = bpy.context.evaluated_depsgraph_get()
+    ev = body.evaluated_get(dg)
+    m = ev.to_mesh()
+    W = ev.matrix_world
+    P = [W @ vv.co for vv in m.vertices]
+    ev.to_mesh_clear()
+    cam_loc = cam.matrix_world.translation
+    toCam = -fwd
+    sun_to = -(sun.matrix_world.to_3x3() @ Vector((0, 0, -1))).normalized()
+    out = []
+    for c, r, u, v, ti, w in samples:
+        a, b, cc = (P[i] for i in tris[ti])
+        p = a * w[0] + b * w[1] + cc * w[2]
+        n = (b - a).cross(cc - a)
+        if n.length < 1e-9:
+            continue
+        n.normalize()
+        # the mesh winding: make the normal point away from the body (the back faces +y at rest)
+        q = p - cam_loc
+        facing = n.dot(toCam)
+        lit = n.dot(sun_to)
+        occ = 0
+        if facing > 0.05:
+            o = p + n * 0.004
+            for _ in range(6):
+                hit, loc, _n, _i, obj, _m = sc.ray_cast(dg, o, toCam, distance=10.0)
+                if not hit:
+                    break
+                if obj.name == "Body" or obj.name in shown:
+                    occ = 1
+                    break
+                o = loc + toCam * 0.002      # a hidden prop: look past it
+        out.append([c, r, round(u, 4), round(v, 4), round(CW / 2 + q.dot(right) * PPM_HI, 2),
+                    round(CH / 2 - q.dot(up) * PPM_HI, 2), round(facing, 3), round(lit, 3), occ])
+    return out
+
+
+if jersey_out:
+    tris, samples = jersey_setup()
+    # winding check: at rest the back's normals face +y
+    rn = [(body.data.vertices[tris[s[4]][1]].co - body.data.vertices[tris[s[4]][0]].co).cross(
+        body.data.vertices[tris[s[4]][2]].co - body.data.vertices[tris[s[4]][0]].co).y for s in samples]
+    sign = 1 if sum(rn) >= 0 else -1
+    if sign < 0:
+        tris = [(t[0], t[2], t[1]) for t in tris]
+        samples = [(c, r, u, v, ti, (w[0], w[2], w[1])) for c, r, u, v, ti, w in samples]
+    print("JERSEY samples", len(samples), "winding", sign)
+    res = {}
+    for t in poses.ALL_TABLES:
+        if not t.get("multiview") or t["outfit"] != "player":
+            continue
+        if only and not any(t["name"].startswith(o + "_") for o in only):
+            continue
+        fr = []
+        for i, (label, pose) in enumerate(t["frames"]):
+            shown = set(t.get("props", ())) | set(pose.get("_props", ())) - set(pose.get("_hide", ()))
+            show_props(shown)
+            for n_, o_ in props.items():
+                o_.hide_viewport = n_ not in shown
+            Mp = solver.apply(pose); ground(pose)
+            view = pose.get("_view", t["view"])
+            right, up, fwd = set_view(view[0], view[1])
+            bpy.context.view_layer.update()
+            fr.append({"lm": landmarks(Mp, right, up, fwd), "s": jersey_frame(tris, samples, shown, right, up, fwd)})
+        res[t["name"]] = fr
+        print("  jersey", t["name"], len(fr))
+    json.dump({"cols": JERSEY_COLS, "rows": JERSEY_ROWS, "tables": res}, open(jersey_out, "w"), separators=(",", ":"))
+    print("JERSEY OK", len(res), "tables")
+    sys.exit(0)
+
+
 if lmonly:
     lm_path = os.path.join(hlib.RENDERS, "landmarks.json")
     lmd = json.load(open(lm_path)) if (only and os.path.exists(lm_path)) else {}

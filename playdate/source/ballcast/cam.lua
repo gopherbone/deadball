@@ -419,11 +419,12 @@ function Cam.safeEye(park, c)
   -- pulled in (it would be at the foot of a wall); a raised one is fine
   if not surf and z >= 26 then return c end
   if z < 45 then
-    -- low: pull in along the ground toward the target until on the field (8 halvings)
+    -- low: pull in along the ground toward the target until on the field
     local tx, ty = c[4], c[5]
     if not Cam.inField(park, tx, ty, 8) then tx, ty = 0, 60 end
+    -- (14 halvings: fine enough that a moving eye is pulled in smoothly, not in visible steps)
     local lo, hi = 0, 1
-    for _ = 1, 8 do
+    for _ = 1, 14 do
       local m = (lo + hi) / 2
       if Cam.inField(park, tx + (x - tx) * m, ty + (y - ty) * m, 8) then lo = m else hi = m end
     end

@@ -442,6 +442,457 @@ elseif only == "nospoil" then
     BC.live = false
   end, 2)
   step(function() App.pop() end, 5)
+elseif only == "tvcatch" then
+  -- Sliding / diving catches frame by frame: the first "slide" fly catch (planFlyCatch) and the
+  -- first old-style "dive" (fcatch / ftrack), ~12 frames through the move, at the play's own
+  -- camera (the low "dive" cut) and at the gameplay camera (that cut taken out). tvcatch_<kind>_<cam>_<i>
+  local Play = BallCast.Play
+  step(function() App.push(BC, { gameId = HARNESS_GAME or "ultra", skipIntro = true }) end)
+  waitFor(function() return BC.mode == "watch" and not BC:timelinePending() end, 1800)
+  step(function() BC.playing = false end, 10)
+  local function diveOf(b)
+    if b.kind ~= "bip" then return nil end
+    for _, l in pairs(b.plan.fposes or {}) do
+      for _, e in ipairs(l) do
+        if e.catch == "dive" then return e.t0 end
+        if e.track == "dive" then return e.t0 end
+      end
+    end
+  end
+  local OFP = { LF = true, CF = true, RF = true }
+  -- (the fixtures have hardly any: force them, Play.forceCatchStyle, on deep outfield fly outs)
+  step(function()
+    local tl, k, dive = BC.tl, 0, false
+    for _, b in ipairs(tl.beats) do
+      local c = b.kind == "bip" and b.plan.flyCatch
+      if c and OFP[c.pos] and math.sqrt(c.fx * c.fx + c.fy * c.fy) > 200 then
+        k = k + 1
+        if k <= 2 then
+          Play.forceCatchStyle = k == 1 and "slide" or "layout"
+          Play.plan(b, tl)
+          Play.forceCatchStyle = nil
+        elseif not dive and not b.ultra then
+          -- the old dive (fcatch "dive"): LEAP_CATCH on a ball that never reaches the wall
+          b.ultra = { { power = "LEAP_CATCH" } }
+          Play.plan(b, tl)
+          if diveOf(b) then dive = true else b.ultra = nil; Play.plan(b, tl) end
+        end
+      end
+    end
+    BallCast.Timeline.layout(tl)
+  end, 2)
+  local CASES = {
+    { "slide", function(b) local c = b.kind == "bip" and b.plan.flyCatch; return c and c.style == "slide" and c.t0 or nil end },
+    { "layout", function(b) local c = b.kind == "bip" and b.plan.flyCatch; return c and c.style == "layout" and c.t0 or nil end },
+    { "dive", diveOf },
+  }
+  local N = tonumber(HARNESS_FRAMES or 16)
+  for _, c in ipairs(CASES) do
+    local b, t0
+    step(function()
+      b, t0 = nil, nil
+      local n = 0
+      for _, x in ipairs(BC.tl.beats) do
+        local t = c[2](x)
+        if t then n = n + 1; if not b then b, t0 = x, t end end
+      end
+      print(string.format("[tvcatch] %s: %d beats, first %s t0 %s", c[1], n, tostring(b and b.n), t0 and string.format("%.2f", t0) or "-"))
+    end, 1)
+    for _, camk in ipairs({ "play", "game" }) do
+      local saved
+      step(function()
+        if not b then return end
+        saved = b.plan.cams
+        if camk == "game" then
+          local l = {}
+          for _, cc in ipairs(saved) do if not (cc.opt and (cc.opt.play == "dive" or cc.opt.play == "track")) then l[#l + 1] = cc end end
+          b.plan.cams = l
+        end
+      end, 1)
+      for i = 0, N - 1 do
+        local tt
+        step(function()
+          if not b then return end
+          tt = t0 - 0.2 + i * (HARNESS_SPAN or 1.6) / N
+          BC.mode = "watch"
+          BC.t = b.start + tt
+          BC.lastBeat = nil
+          BC.playing = false
+          BC.scrubT = playdate.getCurrentTimeMilliseconds() + 100000
+        end, 4)
+        step(function() if b then shot(string.format("tvcatch_%s_%s_%02d", c[1], camk, i)) end end, 1)
+      end
+      step(function() if b and saved then b.plan.cams = saved end end, 1)
+    end
+  end
+  step(function() App.pop() end, 5)
+elseif only == "catchaudit" then
+  -- Catch audit (census + glove-ball contact). Every fixture game (dev, ultra, bunts, the shell's
+  -- g1) plus HARNESS_PDSIM pdsim games (spec: catchspec.json in the build) planned by Play, then:
+  --   [census] every code path that puts a fielder on the ground diving/flopping, per game
+  --   [contact] per catch style: where the DRAWN glove is (the pose's glove cell — fieldx/fieldin
+  --     glove anchors, else the side view's glove wrist — through the key's squash/rotation/
+  --     offset, lifted, at his feet and facing) vs. the ball at the catch; whether the ball came
+  --     down below the glove / to the ground in the half second before the catch; the ball vs.
+  --     the glove while it's held. Feet, ft; 1 ft = 6.45 px on a 40 px (1x) figure.
+  local Play, TL, Anim, Pup = BallCast.Play, BallCast.Timeline, BallCast.Anim, BallCast.Puppets
+  local LMK = json.decodeFile("images/puppets/landmarks.json") or { cells = {} }
+  local cos, sin, sqrt, max, min, abs, floor = math.cos, math.sin, math.sqrt, math.max, math.min, math.abs, math.floor
+  local function wrist(set, view, f)
+    local s = LMK.cells[set .. "#" .. view]
+    if not s or #s < f * 24 then return nil end
+    local o = (f - 1) * 24
+    return (s:byte(o + 19) - 40) * 0.5, (s:byte(o + 20) - 40) * 0.5
+  end
+  local VSET = { fielder = "fielder", runner_seq = "runner_seq", runner = "runner", fieldx = "fieldx", fieldin = "fieldin" }
+  -- the glove in the figure's frame from cell + key transform → right, fwd, up (ft above his feet)
+  local function cellGlove(tn, f)
+    if tn == "fieldx" or tn == "fieldin" then
+      local cx, cy = Pup.gloveCell(tn, f)
+      Anim.load()
+      local g = Anim.reach and Anim.reach[tn] and Anim.reach[tn].glove[f]
+      if cx then return cx, cy, g and g[1] or 0 end
+    end
+    local set = VSET[tn]
+    if not set then return nil end
+    local x, y = wrist(set, 6, f)
+    if not x then return nil end
+    local x0 = wrist(set, 0, f)
+    return x + 1, y, x0 and -(x0 - 14) * 0.155 or 0
+  end
+  local function keyGlove(tn, f, sx, sy, rot, dx, dy, piv)
+    local cx, cy, lat = cellGlove(tn, f)
+    if not cx then return nil end
+    local py = -(piv or 0)
+    local vx, vy = (cx - 14) * (sx or 1), (cy - 42 - py) * (sy or 1)
+    local r = math.rad(rot or 0)
+    local c, s = cos(r), sin(r)
+    local wx, wy = vx * c - vy * s, vx * s + vy * c
+    wx, wy = wx + (dx or 0), wy + py + (dy or 0)
+    return lat, wx * 0.155, -wy * 0.155
+  end
+  local function yawOf(dx, dy, fb) if (dx or 0) == 0 and (dy or 0) == 0 then return fb end return math.atan(dy, dx) end
+  -- the pose drawn for a fielder at tau (mirrors Play.drawWorld's fielder branch) → world glove
+  local function poseGlove(plan, pos, tau)
+    if Play.poseAt then
+      local tn, f, sx, sy, rot, dx, dy, piv, x, y, z, face = Play.poseAt(plan, pos, tau)
+      if not tn then return nil end
+      local gr, gf, gu = keyGlove(tn, f, sx, sy, rot, dx, dy, piv)
+      if not gr then return nil end
+      local fx, fy = cos(face), sin(face)
+      return x + gr * fy + gf * fx, y - gr * fx + gf * fy, (z or 0) + gu, tn, f
+    end
+    local x, y, moving, pe, dir, ddx, ddy = Play.fielderAt(plan, pos, tau)
+    if pos == "C" then x, y = 0, -3.2 end
+    if plan.leap and plan.leap.pos == pos and tau >= plan.leap.t0 and tau < plan.leap.land then
+      local L = plan.leap
+      local top = max(2, L.z - 6.5)
+      local face = math.atan(y, x)
+      local gr, gf, gu = keyGlove("fielder", 4, 0.9, 1.12, 0, 0, 0, 0)
+      local fx, fy = cos(face), sin(face)
+      return x + gr * fy + gf * fx, y - gr * fx + gf * fy, top + gu, "fielder", 4
+    end
+    if not pe then return nil end
+    local face = yawOf(ddx, ddy, math.atan(-y, -x))
+    local tn, f, sx, sy, rot, dx, dy, piv, z = nil, nil, 1, 1, 0, 0, 0, 0, 0
+    if pe.catch then
+      if pe.track then
+        tn, f, sx, sy, rot, dx, dy, _, piv = Anim.sample(pe.track, tau - pe.t0, 0)
+        z = Play.catchLift(pe, tau)
+        face = pe.face or face
+      elseif pe.catch == "dive" then
+        tn, f, sx, sy, rot, dx, dy, _, piv = Anim.sample("dive", tau - pe.ct + 0.2, 0)
+      else
+        local k = tau - pe.ct
+        tn, f = "fielder", 4
+        if pe.catch == "low" then
+          f = 1
+          if k < 0 then sx, sy = 1.12, 0.86 elseif k < 0.1 then sx, sy, rot = 1.22, 0.8, (floor(k * 30) % 2 == 0) and 4 or -4 else sx, sy = 1.06, 0.94 end
+        else
+          if k < 0 then sx, sy = 0.9, 1.12 elseif k < 0.1 then sx, sy, rot = 1.14, 0.88, (floor(k * 30) % 2 == 0) and 5 or -5 end
+        end
+      end
+    elseif pe.track then
+      tn, f, sx, sy, rot, dx, dy, _, piv = Anim.sample(pe.track, tau - pe.t0, 0)
+    else
+      return nil
+    end
+    local gr, gf, gu = keyGlove(tn, f, sx, sy, rot, dx, dy, piv)
+    if not gr then return nil end
+    local fx, fy = cos(face), sin(face)
+    return x + gr * fy + gf * fx, y - gr * fx + gf * fy, z + gu, tn, f
+  end
+  -- the ball as drawn at tau (mirrors drawWorld's in-glove logic) → x, y, z, inGlove
+  local function ballDrawn(plan, tau)
+    if Play.ballDrawn then return Play.ballDrawn(plan, tau) end
+    local bx, by, bz = Play.ballAt(plan, tau)
+    local inG = false
+    for i = 1, #plan.catches do
+      local c = plan.catches[i]
+      if tau >= c.ct and tau < c.ct + c.hold then
+        local gx, gy = Play.fielderAt(plan, c.pos, tau)
+        if c.pos == "C" then gx, gy = 0, -3.2 end
+        if c.gz then
+          local kx, ky, kz = nil, nil, nil
+          if c.style == "slide" then kx, ky, kz = Play.trackGlove(c, tau) end
+          if kx then bx, by, bz = gx + kx, gy + ky, kz
+          elseif tau < c.ct + 0.3 then bx, by, bz = gx + c.gx, gy + c.gy, c.gz + Play.catchLift(c, tau)
+          else bx, by, bz = gx, gy, 6.2 end
+          if c.ct2 and tau < c.ct2 then bx = nil end
+          inG = bx ~= nil
+          if not bx then bx, by, bz = Play.ballAt(plan, tau) end
+        else
+          bx, by, bz = gx, gy, Play.GLOVE_Z[c.catch] or 5
+          inG = true
+        end
+      end
+    end
+    return bx, by, bz, inG
+  end
+  local function d3(ax, ay, az, bx, by, bz) return sqrt((ax - bx) ^ 2 + (ay - by) ^ 2 + (az - bz) ^ 2) end
+  local INF = { P = true, C = true, ["1B"] = true, ["2B"] = true, ["3B"] = true, SS = true }
+  local function label(b, c)
+    local plan = b.plan
+    if c.style then
+      if c.catch == "dive" then return "layout (LEAP_CATCH short of the wall)" end
+      return c.style .. (INF[c.pos] and " (IF)" or " (OF)")
+    end
+    if c.catch == "throw" then
+      if c.pos == "1B" then return "throw: 1B takes it" elseif c.pos == "C" then return "throw: C at home" end
+      return "throw: " .. (INF[c.pos] and "IF bag/relay" or "OF")
+    end
+    if c.catch == "low" then
+      if plan.bunt then return "bunt fielded" end
+      if b.e.path then return "low: OF picks up a hit" end
+      return "grounder" .. (INF[c.pos] and " (IF)" or " (OF)")
+    end
+    if c.catch == "high" then return plan.bunt and "bunt pop-up" or "high (legacy fly)" end
+    return c.catch
+  end
+  local sources = {}
+  step(function() print("[catchaudit] start") end, 1)
+  step(function()
+    for _, fx in ipairs({ { "dev", "fixtures_dev/ballcast/game-log.json" }, { "ultra", "fixtures_dev/ballcast/game-log-ultra.json" },
+        { "bunts", "fixtures_dev/ballcast/game-log-bunts.json" }, { "g1", "fixtures/game-log.json" } }) do
+      local d = BCKit.readJson(fx[2])
+      if d and d.log then sources[#sources + 1] = { name = fx[1], people = d.people or {}, park = d.park or {}, log = d.log } end
+    end
+    local spec = HARNESS_PDSIM and pdsim and json.decodeFile("catchspec.json")
+    if spec then
+      for i = 1, HARNESS_PDSIM do
+        spec.seed = "catch-" .. i
+        local g = pdsim.new(spec)
+        pdsim.step(g)
+        local people = {}
+        for _, side in ipairs({ "home", "away" }) do
+          for _, p in ipairs(spec[side].players or {}) do people[p.id] = { id = p.id, name = p.name or p.id, pos = p.pos } end
+        end
+        sources[#sources + 1] = { name = "pdsim" .. i, people = people, park = spec.park, log = pdsim.log(g) }
+      end
+    end
+    print("[catchaudit] sources " .. #sources)
+  end, 2)
+  step(function()
+    local census = {}            -- path → { n, games = {} }
+    local function cen(k, src) local e = census[k] or { n = 0, g = {} }; census[k] = e; e.n = e.n + 1; e.g[src] = (e.g[src] or 0) + 1 end
+    local stats = {}
+    local order = {}
+    local nb, nbip = 0, 0
+    local rows = {}
+    for _, src in ipairs(sources) do
+      local tl = TL.new({ people = src.people, park = src.park })
+      TL.append(tl, src.log)
+      for _, b in ipairs(tl.beats) do
+        nb = nb + 1
+        local plan = b.plan
+        if b.kind == "bip" then nbip = nbip + 1 end
+        if b.kind == "inc" and b.e and (b.e.kind == "BRAWL" or b.e.kind == "RACCOON_ON_FIELD") then cen("incident " .. b.e.kind .. " (dive track in the scrum / at the raccoon)", src.name) end
+        if plan and b.kind == "bip" then
+          for pos, l in pairs(plan.fposes or {}) do
+            for _, e in ipairs(l) do
+              if e.track == "dive" and not e.catch then cen("ftrack 'dive' (old fielder flop: dropped fly, E-)", src.name) end
+              if e.catch == "dive" then cen("fcatch 'dive' (LEAP_CATCH short of the wall)" .. (e.track and (" -> " .. e.track) or " -> old dive track"), src.name) end
+            end
+          end
+          local fc = plan.flyCatch
+          if fc then cen("fly catch: " .. fc.style, src.name) end
+          if plan.leap then cen("LEAP_CATCH at the wall (drawLeap)", src.name) end
+          for _, c in ipairs(plan.catches or {}) do
+            local lb = label(b, c)
+            local s = stats[lb]
+            if not s then s = { n = 0, e = 0, emax = 0, h = 0, hmax = 0, below = 0, ground = 0, snap = 0, snapmax = 0, dz = 0, nomodel = 0, roll = 0 }; stats[lb] = s; order[#order + 1] = lb end
+            s.n = s.n + 1
+            local ct = c.ct
+            local px, py, pz, seg = Play.ballAt(plan, ct - 0.001)
+            local gx, gy, gz = poseGlove(plan, c.pos, ct + 0.001)
+            if not px or not gx then s.nomodel = s.nomodel + 1
+            else
+              local e = d3(px, py, pz, gx, gy, gz)
+              s.e = s.e + e; s.emax = max(s.emax, e); s.dz = s.dz + (gz - pz)
+              -- the half second before: below the glove (by > 0.75 ft) or on the ground (not a roller)
+              local below, ground = false, false
+              local isRoll = seg and seg.kind == "roll"
+              if isRoll then s.roll = s.roll + 1 end
+              for k = 1, 15 do
+                local t = ct - k / 30
+                local x, y, z, sg = Play.ballAt(plan, t)
+                if z then
+                  if z < gz - 0.75 then below = true end
+                  if z < 0.35 and not (sg and sg.kind == "roll") then ground = true end
+                end
+              end
+              if below then s.below = s.below + 1 end
+              if ground then s.ground = s.ground + 1 end
+              local qx, qy, qz = ballDrawn(plan, ct + 1 / 30)
+              if qx then local sn = d3(px, py, pz, qx, qy, qz); s.snap = s.snap + sn; s.snapmax = max(s.snapmax, sn) end
+              local hm = 0
+              for k = 1, floor(min(c.hold, 0.6) * 30) - 1 do
+                local t = ct + k / 30
+                local bx, by, bz, inG = ballDrawn(plan, t)
+                local hx, hy, hz = poseGlove(plan, c.pos, t)
+                if bx and hx and inG then hm = max(hm, d3(bx, by, bz, hx, hy, hz)) end
+              end
+              s.h = s.h + hm; s.hmax = max(s.hmax, hm)
+              if e > 2.5 and #rows < 400 then
+                rows[#rows + 1] = string.format("[catchaudit] big %s %s b%d %s err %.1f ball (%.1f,%.1f,%.1f) glove (%.1f,%.1f,%.1f)", src.name, lb, b.n or 0, c.pos, e, px, py, pz, gx, gy, gz)
+              end
+            end
+          end
+        end
+      end
+    end
+    print(string.format("[catchaudit] beats %d, balls in play %d, games %d", nb, nbip, #sources))
+    local ks = {}
+    for k in pairs(census) do ks[#ks + 1] = k end
+    table.sort(ks)
+    for _, k in ipairs(ks) do
+      local e = census[k]
+      local parts = {}
+      for g, n in pairs(e.g) do parts[#parts + 1] = g .. ":" .. n end
+      table.sort(parts)
+      print(string.format("[census] %-70s %4d  (%s)", k, e.n, table.concat(parts, " ")))
+    end
+    table.sort(order)
+    print("[contact] style | n | glove-ball at catch mean/max ft | glove z - ball z mean ft | %below glove before | %ground before (not rollers) | rollers | snap mean/max ft | held: ball-glove max mean/max ft | no model")
+    for _, lb in ipairs(order) do
+      local s = stats[lb]
+      local m = max(1, s.n - s.nomodel)
+      print(string.format("[contact] %-38s | %4d | %5.2f / %5.2f | %+5.2f | %5.1f%% | %5.1f%% | %d | %5.2f / %5.2f | %5.2f / %5.2f | %d",
+        lb, s.n, s.e / m, s.emax, s.dz / m, 100 * s.below / m, 100 * s.ground / m, s.roll, s.snap / m, s.snapmax, s.h / m, s.hmax, s.nomodel))
+    end
+    for i = 1, min(#rows, HARNESS_ROWS or 40) do print(rows[i]) end
+  end, 2)
+elseif only == "catchsheet" then
+  -- Every catch style frame by frame around the catch (HARNESS_FRAMES frames from 0.6 s before
+  -- to 0.9 s after), at the gameplay camera (the play's low "dive" / "track" cuts taken out) and
+  -- for the big ones at the play's own camera too: catch_<case>_<cam>_<i>.png, and a
+  -- "[crop] <file> sx sy ppf" line per frame (the fielder on screen) for the sheet crops.
+  -- The outfield styles are forced (Play.forceCatchStyle) on the same fixture fly balls before and
+  -- after, picked from the log (not the plan), so the two runs show the same plays.
+  local Play = BallCast.Play
+  step(function() App.push(BC, { gameId = HARNESS_GAME or "ultra", skipIntro = true }) end)
+  waitFor(function() return BC.mode == "watch" and not BC:timelinePending() end, 1800)
+  step(function() BC.playing = false end, 10)
+  local OFP = { LF = true, CF = true, RF = true }
+  local function landD(b)
+    local p = b.e and b.e.path
+    if not p or #p < 6 then return 0 end
+    return math.sqrt(p[#p - 2] ^ 2 + p[#p - 1] ^ 2)
+  end
+  local function apexOf(b) local m = 0; for i = 3, #b.e.path, 3 do m = math.max(m, b.e.path[i]) end; return m end
+  local function flyOut(b) return b.kind == "bip" and b.e.res == "OUT" and b.e.path and #b.e.path >= 6 and apexOf(b) > 12 and not b.ultra end
+  local mid, deep, ifpop = nil, nil, nil
+  step(function()
+    for _, b in ipairs(BC.tl.beats) do
+      if flyOut(b) and OFP[b.e.f] then
+        local d = landD(b)
+        if d > 230 and d < 300 and not mid then mid = b end
+        if not deep or d > landD(deep) then deep = b end
+      elseif flyOut(b) and not OFP[b.e.f] and not ifpop then ifpop = b end
+    end
+    print(string.format("[catchsheet] mid b%s %.0f ft, deep b%s %.0f ft, IF pop b%s", tostring(mid and mid.n), mid and landD(mid) or 0,
+      tostring(deep and deep.n), deep and landD(deep) or 0, tostring(ifpop and ifpop.n)))
+  end, 2)
+  local function firstCatch(pred)
+    for _, b in ipairs(BC.tl.beats) do
+      if b.kind == "bip" and b.plan then
+        for _, c in ipairs(b.plan.catches or {}) do if pred(b, c) then return b, c end end
+      end
+    end
+  end
+  local CASES = {
+    { "layout", "mid", "layout" }, { "slide", "mid", "slide" }, { "shoe", "mid", "shoe" }, { "stab", "mid", "stab" },
+    { "basket", "mid", "basket" }, { "side", "mid", "side" }, { "backhand", "mid", "backhand" }, { "juggle", "mid", "juggle" },
+    { "leap", "deep", "leap" }, { "crash", "deep", "crash" },
+    { "ifpop", "ifpop", nil },
+    { "grounder", function(b, c) return c.catch == "low" and not b.e.path and not b.plan.bunt and c.pos == "SS" end },
+    { "ofpickup", function(b, c) return c.catch == "low" and b.e.path ~= nil end },
+    { "throw1b", function(b, c) return c.catch == "throw" and c.pos == "1B" end },
+    { "throwbag", function(b, c) return c.catch == "throw" and c.pos ~= "1B" and c.pos ~= "C" end },
+  }
+  local N = tonumber(HARNESS_FRAMES or 12)
+  for _, cs in ipairs(CASES) do
+    local name = cs[1]
+    local b, c
+    step(function()
+      b, c = nil, nil
+      if type(cs[2]) == "function" then
+        b, c = firstCatch(cs[2])
+      else
+        b = (cs[2] == "mid" and mid) or (cs[2] == "deep" and deep) or (cs[2] == "ifpop" and ifpop) or nil
+        if b then
+          Play.forceCatchStyle = cs[3]
+          Play.plan(b, BC.tl)
+          Play.forceCatchStyle = nil
+          BallCast.Timeline.layout(BC.tl)
+          c = b.plan.flyCatch or b.plan.lastCatch
+        end
+      end
+      print(string.format("[catchsheet] %s: b%s %s ct %s", name, tostring(b and b.n), c and c.pos or "-", c and string.format("%.2f", c.ct) or "-"))
+    end, 2)
+    for _, camk in ipairs({ "game", "play" }) do
+      local saved
+      step(function()
+        if not b then return end
+        saved = b.plan.cams
+        if camk == "game" then
+          local l = {}
+          for _, cc in ipairs(saved) do if not (cc.opt and (cc.opt.play == "dive" or cc.opt.play == "track")) then l[#l + 1] = cc end end
+          b.plan.cams = l
+        end
+      end, 1)
+      local playCut = false
+      if camk == "play" then
+        step(function()
+          playCut = false
+          if b then for _, cc in ipairs(b.plan.cams) do if cc.opt and cc.opt.play == "dive" then playCut = true end end end
+        end, 1)
+      end
+      for i = 0, N - 1 do
+        local tt
+        step(function()
+          if not b or (camk == "play" and not playCut) then return end
+          tt = c.ct - 0.6 + i * 1.5 / (N - 1)
+          BC.mode = "watch"
+          BC.t = b.start + tt
+          BC.lastBeat = nil
+          BC.playing = false
+          BC.scrubT = playdate.getCurrentTimeMilliseconds() + 100000
+        end, 4)
+        step(function()
+          if not b or (camk == "play" and not playCut) then return end
+          local fname = string.format("catch_%s_%s_%02d", name, camk, i)
+          shot(fname)
+          local x, y = Play.fielderAt(b.plan, c.pos, tt)
+          if c.pos == "C" and not b.plan.fmoves.C then x, y = 0, -3.2 end
+          local sx, sy, d = BC.R:project(x, y, 3)
+          if sx then print(string.format("[crop] %s %.1f %.1f %.2f %.2f", fname, sx, sy, BC.R:ppf(d), tt - c.ct)) end
+        end, 1)
+      end
+      step(function() if b and saved then b.plan.cams = saved end end, 1)
+    end
+  end
+  step(function() App.pop() end, 5)
 elseif only == "tvcams" then
   -- every live camera at typical moments: the tallest player billboard on screen (a 6.5 ft
   -- figure projected at the people who stand closest to the lenses), to catch shots that put
@@ -1240,6 +1691,266 @@ elseif only == "loadprof" then
     for i = 1, 5 do BallCast.Cam.presets(data.park) end
     print("[prof] presets x5", t() - t0)
   end, 5)
+elseif only == "smoothcam" then
+  -- Camera smoothness + the pitching lane, over many pitches of a game at a fixed 1/30 s clock:
+  --  (a) within a shot, the second difference of where fixed field points land on screen
+  --      (px/frame^2: a stepping or snapping camera spikes it; a smooth move stays small)
+  --  (b) no puppet stands in the mound-to-plate lane (|x| < LANE_X, LANE_Y0 < y < LANE_Y1) from
+  --      the start of the pitch beat until the ball reaches the catcher
+  --  (c) Pennant-style decision idle (a held clock, the decision angles): same metric, plus how
+  --      many cuts it makes
+  -- Prints [smoothcam] lines; HARNESS_SHOTS=n saves frame strips of the first n pitches.
+  local Cam = BallCast.Cam
+  local LANE_X, LANE_Y0, LANE_Y1 = table.unpack(BallCast.Play.LANE)
+  local PTS = { { 0, 0, 0 }, { 0, 60.5, 0 }, { 0, 127.3, 0 }, { 63.6, 63.6, 0 }, { -63.6, 63.6, 0 }, { 0, 0, 6 } }
+  local NP = tonumber(HARNESS_NP) or 60
+  local stripN = tonumber(HARNESS_SHOTS) or 3
+  step(function() App.push(BC, { gameId = HARNESS_GAME or "g1", skipIntro = true }) end)
+  waitFor(function() return BC.mode == "watch" and not BC:timelinePending() end, 1800)
+  local pitches, st = {}, nil
+  local function newStats() return { frames = 0, worst = 0, worstAt = "", sum = 0, n = 0, over = 0, lane = 0, laneWho = {}, cuts = 0, secs = 0, hist = {} } end
+  local stats, bstats, dstats, pstats, pbstats, dbstats = newStats(), newStats(), newStats(), newStats(), newStats(), newStats()
+  local function report(name, S)
+    print(string.format("[smoothcam] %s: %d frames, %d cuts, 2nd-diff px/frame^2 max %.2f mean %.3f, frames > 1 px: %d (worst: %s)",
+      name, S.frames, S.cuts, S.worst, S.sum / math.max(1, S.n), S.over, S.worstAt))
+  end
+  local function screen(c)
+    local cam = Cam.new({ eye = { c[1], c[2], c[3] }, target = { c[4], c[5], c[6] }, fov = c[7] })
+    local out = {}
+    for i, p in ipairs(PTS) do
+      local x, y = Cam.project(cam, p[1], p[2], p[3])
+      if x and x > -400 and x < 800 and y > -300 and y < 540 then out[i] = { x, y } end
+    end
+    return out
+  end
+  local spikes = 0
+  local function measure(S, tag, cut, which)
+    -- S: the stats table; the camera actually sent to the renderer this frame (which = "bg":
+    -- the one the park picture on screen was rendered from: the park-render cache reuses one)
+    local c = BC.R and (which == "bg" and BC.R.bgCam or BC.R.cam)
+    if not c then return end
+    local sp = screen(c)
+    local hist = S.hist
+    if cut then hist = {}; S.cuts = S.cuts + 1 end
+    hist[#hist + 1] = sp
+    if #hist > 3 then table.remove(hist, 1) end
+    S.hist = hist
+    S.frames = S.frames + 1
+    if #hist == 3 then
+      local a, b2, c2 = hist[1], hist[2], hist[3]
+      local m = 0
+      for i = 1, #PTS do
+        if a[i] and b2[i] and c2[i] then
+          local dx = c2[i][1] - 2 * b2[i][1] + a[i][1]
+          local dy = c2[i][2] - 2 * b2[i][2] + a[i][2]
+          m = math.max(m, math.sqrt(dx * dx + dy * dy))
+        end
+      end
+      S.sum, S.n = S.sum + m, S.n + 1
+      if m > 1 then S.over = S.over + 1 end
+      if m > S.worst then S.worst, S.worstAt = m, tag end
+      if m > 8 and which ~= "bg" then
+        spikes = spikes + 1
+        if spikes <= 25 then print(string.format("[smoothcam] spike %.1f px at %s", m, tag)) end
+      end
+    end
+  end
+  -- the puppets drawn this frame
+  local drawn = {}
+  local function wrap(R)
+    if R.smoothWrapped then return end
+    R.smoothWrapped = true
+    local mt = getmetatable(R).__index
+    local P0, PT = mt.puppet, mt.puppetT
+    R.puppet = function(self, variant, frame, x, y, z, ...)
+      drawn[#drawn + 1] = { tostring(variant) .. ":" .. tostring(frame), x, y }
+      return P0(self, variant, frame, x, y, z, ...)
+    end
+    R.puppetT = function(self, variant, tname, f, x, y, z, ...)
+      drawn[#drawn + 1] = { tostring(variant) .. ":" .. tostring(tname), x, y }
+      return PT(self, variant, tname, f, x, y, z, ...)
+    end
+  end
+  step(function()
+    BallCast.TV.frame = function() return false end   -- (no DBN segments: the game picture only)
+    BC.debugDt = 1 / 30
+    wrap(BC.R)
+    local all = {}
+    for i, b in ipairs(BC.tl.beats) do if b.kind == "p" and b.plan and b.plan.pitch then all[#all + 1] = i end end
+    local stride = math.max(1, math.floor(#all / NP))
+    for k = 1, #all, stride do pitches[#pitches + 1] = all[k] end
+    print(string.format("[smoothcam] %d pitches in the game, sampling %d", #all, #pitches))
+  end)
+  local pi, phase, f = 0, "next", 0
+  waitFor(function()
+    local tl = BC.tl
+    if phase == "next" then
+      pi = pi + 1
+      if pi > #pitches then return true end
+      local b = tl.beats[pitches[pi]]
+      -- from a second before the beat (the cut in), at 1x
+      BC.t = b.start - 1.0
+      BC.lastBeat = nil
+      BC.playing, BC.speed, BC.scrubT = true, 1, 0
+      phase, f = "run", 0
+      stats.hist, bstats.hist, pstats.hist, pbstats.hist = {}, {}, {}, {}
+      drawn = {}
+      return false
+    end
+    f = f + 1
+    local bi = BC:curBeatIndex()
+    local b = tl.beats[pitches[pi]]
+    local tau = BC.t - b.start
+    if f > 1 then
+      local tag = string.format("pitch %d beat %d tau %.2f cam %s", pi, pitches[pi], tau, tostring(BC.curCam))
+      if bi == pitches[pi] then
+        measure(stats, tag, BC.cutThisFrame)
+        measure(bstats, tag, BC.cutThisFrame, "bg")
+      else
+        -- the beat after the pitch (the ball in play, the walk, the next batter)
+        measure(pstats, tag, BC.cutThisFrame)
+        measure(pbstats, tag, BC.cutThisFrame, "bg")
+      end
+    end
+    if bi == pitches[pi] and tau >= 0 and tau <= b.plan.pitch.tPlate + 0.06 then
+      for _, d in ipairs(drawn) do
+        if math.abs(d[2]) < LANE_X and d[3] > LANE_Y0 and d[3] < LANE_Y1 then
+          stats.lane = stats.lane + 1
+          local key = d[1]
+          stats.laneWho[key] = (stats.laneWho[key] or 0) + 1
+          if stats.lane <= 12 then print(string.format("[smoothcam] LANE beat %d tau %.2f %s at %.1f, %.1f", pitches[pi], tau, d[1], d[2], d[3])) end
+        end
+      end
+    end
+    drawn = {}
+    if pi <= stripN and f % 3 == 0 and BC.t < b.start + b.plan.pitch.tPlate + 0.5 then shot(string.format("smoothcam_p%d_%03d", pi, f)) end
+    local nb = tl.beats[pitches[pi] + 1]
+    if bi > pitches[pi] + 1 or (nb and BC.t > nb.start + math.min(nb.dur, 8)) or (not nb and tau > b.dur) then phase = "next" end
+    return false
+  end, 60 * 400)
+  step(function()
+    report("pitch camera", stats)
+    report("pitch park picture", bstats)
+    report("next beat camera", pstats)
+    report("next beat park picture", pbstats)
+    local who = {}
+    for k, v in pairs(stats.laneWho) do who[#who + 1] = k .. "=" .. v end
+    print(string.format("[smoothcam] lane: %d puppet-frames in the lane during pitches (%s)", stats.lane, table.concat(who, " ")))
+  end)
+  -- (c) the decision idle: a held clock at a pitch, as Pennant does while the player aims
+  local fake = {
+    idleDecision = function() return true end,
+    frame = function() return 0 end,
+    decisionFrame = function() return 96, 292 end,
+  }
+  local di, dphase, df = 0, "next", 0
+  waitFor(function()
+    if dphase == "next" then
+      di = di + 1
+      if di > 4 then return true end
+      local b = BC.tl.beats[pitches[di * 3]]
+      BC.t = b.start
+      BC.lastBeat = nil
+      BC.playing, BC.speed, BC.scrubT = true, 1, 0
+      BC.src = fake
+      BC.idleT, BC.decision = nil, nil
+      dphase, df = "run", 0
+      dstats.hist, dbstats.hist = {}, {}
+      return false
+    end
+    df = df + 1
+    if BC.idleFrame == nil or BC.idleFrame % 2 == 0 then
+      measure(dstats, string.format("decision %d idle %.2f", di, BC.idleT or 0), BC.cutThisFrame)
+      measure(dbstats, string.format("decision %d idle %.2f", di, BC.idleT or 0), BC.cutThisFrame, "bg")
+    end
+    if di == 1 and df % 6 == 0 and df <= 300 then shot(string.format("smoothcam_dec_%03d", df)) end
+    if df >= 30 * 12 then
+      dstats.secs = dstats.secs + 12
+      BC.src = nil
+      dphase = "next"
+    end
+    return false
+  end, 30 * 12 * 5 + 50)
+  step(function()
+    BC.src = nil
+    report(string.format("decision idle (%d s) camera", dstats.secs), dstats)
+    report("decision idle park picture", dbstats)
+    BC.debugDt = nil
+    App.pop()
+  end, 5)
+elseif only == "jersey" then
+  -- jersey numbers wherever a back can face a lens: pitcher from behind through the delivery,
+  -- the batter, the side / dugout / runner cams, catches, the DP pivot, runners (slides and
+  -- dives: tvcatch has those at their play cams). Prints [jersey] per shot: numbers stamped and their stamp time.
+  -- (HARNESS_AWAYSTYLE: the away number's style, bc3d lookStats arg 3)
+  step(function()
+    if HARNESS_AWAYSTYLE and bc3d.lookStats then bc3d.lookStats(nil, nil, HARNESS_AWAYSTYLE) end
+    App.push(BC, { gameId = HARNESS_GAME or "ultra", skipIntro = true })
+  end)
+  waitFor(function() return BC.mode == "watch" end, 900)
+  local function at(name, pred, tau)
+    step(seek(pred, tau), 6)
+    step(function() if bc3d.lookStats then bc3d.lookStats() end end, 4)
+    step(function()
+      local px, nj, ms = 0, 0, 0
+      if bc3d.lookStats then px, nj, ms = bc3d.lookStats() end
+      print(string.format("[jersey] %-28s stampPx/f %5d numbers/f %.1f numberMs/f %.3f", name, (px or 0) // 4, (nj or 0) / 4, (ms or 0) / 4))
+      shot("jersey_" .. name)
+    end)
+  end
+  local function pitchB(min) return function(b) return b.kind == "p" and b.n > (min or 30) and b.plan.cams[1].name == "pitch" end end
+  for _, tau in ipairs({ 0.0, 0.35, 0.6, 0.85, 1.2 }) do at(string.format("pitch_t%.2f", tau), pitchB(30), tau) end
+  for _, n in ipairs({ 80, 130, 200 }) do
+    for _, tau in ipairs({ 0.0, 0.6, 1.2 }) do at(string.format("pitch%d_t%.2f", n, tau), pitchB(n), tau) end
+  end
+  local function catchT(k, d) return function(b) local c = b.plan.catches[k]; return c and (c.ct + (d or 0.04)) or 1 end end
+  local function bipOut(o) return function(b) return b.kind == "bip" and b.e.res == "OUT" and b.e.out == o and b.n > 30 end end
+  at("grounder_scoop", bipOut("GO"), catchT(1))
+  at("grounder_1b", bipOut("GO"), catchT(2))
+  at("fly_caught", bipOut("FO"), catchT(1))
+  at("dp_pivot", function(b) return b.kind == "bip" and b.e.res == "DP" end, catchT(2))
+  at("single_runners", function(b) return b.kind == "bip" and b.e.res == "1B" and b.n > 30 end, function(b) return b.dur - 2.2 end)
+  at("double_runners", function(b) return b.kind == "bip" and b.e.res == "2B" end, function(b) return b.dur - 1.5 end)
+  at("hr_trot", function(b) return b.kind == "bip" and b.e.res == "HR" end, function(b) return b.plan.wallT + 2.5 end)
+  -- closeups: the beat's own camera at that moment, narrowed (fov / z) onto a man (aim: world
+  -- point, or nil = the shot's own target), held as a "decision" cam for the frame
+  local Play, R3 = BallCast.Play, BallCast.Render
+  local function zoomAt(name, pred, tau, z, aim)
+    local b, saved, t
+    step(function()
+      b = nil
+      for _, x in ipairs(BC.tl.beats) do if pred(x) then b = x; break end end
+      if not b then return end
+      t = type(tau) == "function" and tau(b) or tau
+      local c = R3.shot(BC.R, b, t, Play.camAt(b.plan, t), {})
+      local a = aim and aim(b, t) or { c[4], c[5], c[6] }
+      local f = c[7] / z
+      saved = b.plan.cams
+      b.plan.cams = { { name = "decision", t = -10, opt = { cam = { c[1], c[2], c[3], a[1], a[2], a[3], f, f } } } }
+    end, 1)
+    at(name, function(x) return x == b end, function() return t or 0 end)
+    step(function() if b and saved then b.plan.cams = saved end end, 1)
+  end
+  local function pitcherAim() return { 0, 60.5, 4.2 } end
+  local function batterAim(b) return { -Play.batSide(b.pre.bat) * 3.2, 0.6, 4.0 } end
+  for _, n in ipairs({ 30, 200 }) do
+    for _, tau in ipairs({ 0.0, 0.5, 0.9 }) do
+      for _, z in ipairs({ 2, 4 }) do zoomAt(string.format("zpitcher%d_t%.1f_z%d", n, tau, z), pitchB(n), tau, z, pitcherAim) end
+    end
+  end
+  local function hasCam(cn) return function(b) for _, c in ipairs(b.plan.cams) do if c.name == cn then return c end end end end
+  for _, d in ipairs({ 0.2, 0.6, 1.0 }) do
+    zoomAt(string.format("zbatter_%.1f", d), hasCam("behindPlate"), function(b) return hasCam("behindPlate")(b).t + d end, 3, batterAim)
+    zoomAt(string.format("zrunner_%.1f", d), hasCam("runner"), function(b) return hasCam("runner")(b).t + d end, 2.5)
+    zoomAt(string.format("zbatside_%.1f", d), hasCam("batterSide"), function(b) return hasCam("batterSide")(b).t + d end, 2.5, batterAim)
+  end
+  for _, cn in ipairs({ "behindPlate", "pitcherSide", "batterSide", "dugout", "runner", "wallLow", "deepC", "high" }) do
+    local function has(b) for _, c in ipairs(b.plan.cams) do if c.name == cn then return c end end end
+    for _, d in ipairs({ 0.3, 0.9 }) do
+      at(string.format("cam_%s_%.1f", cn, d), function(b) return has(b) ~= nil end, function(b) return has(b).t + d end)
+    end
+  end
+  step(function() App.pop() end, 5)
 elseif only == "fix" then
   -- catches, receivers, nametags, ball flight, camera variety, HUD cards, game log, crowd pops
   step(function() App.push(BC, { gameId = HARNESS_GAME or "g1", skipIntro = true }) end)
@@ -1376,7 +2087,7 @@ step(function() timingTag = nil; App.pop() end, 5)
 end
 
 -- Cards ----------------------------------------------------------------------
-if Cards and Cards.debugScript and only ~= "ballcast" and only ~= "anim" and only ~= "fix" and not (only or ""):match("^tv") and only ~= "camaudit" and only ~= "cambake" then
+if Cards and Cards.debugScript and only ~= "ballcast" and only ~= "anim" and only ~= "fix" and not (only or ""):match("^tv") and only ~= "camaudit" and only ~= "catchaudit" and only ~= "catchsheet" and only ~= "cambake" and only ~= "smoothcam" then
   Cards.debugScript(step, waitFor, shot)
 end
 

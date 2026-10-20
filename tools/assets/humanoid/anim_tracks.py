@@ -167,15 +167,23 @@ TRACKS = {
     "shoestring": {"loop": False, "keys": [
         K("runner_seq", 2, 2), K("fieldx", 8, 4, **STH, dx=2), K("fieldx", 8, 3, **SQ2, dx=3, fx={"shake": [5, 4]}),
         K("fieldx", 11, 4, **ST, dx=4, dy=-1), K("fieldx", 11, 10, dx=4)]},
-    # the layout: launch, fly flat out (the runtime lifts him on z), belly-flop squash + shake as
-    # he hits the grass, slide on, pop up with the glove raised
+    # the layout: the last push -> off the ground reaching (nose up) -> full stretch, the glove on
+    # the ball (key 3, the catch) -> coming down (nose down) -> belly-flop squash + shake -> the skid
+    # -> up on a knee -> pop up, glove raised. No dx: the runtime flies him on along his run (an arc
+    # on z: play.lua catchLift), lands him and eases the skid out in world space (play.lua LAYOUT_*),
+    # so the glove anchors stay true and the ball rides in the glove of whichever key is up.
     "dive_layout": {"loop": False, "keys": [
-        K("runner_seq", 2, 2, sx=0.95, sy=1.06), K("fieldx", 9, 3, **STH, rot=-8), K("fieldx", 9, 3, sx=1.18, sy=0.9),
-        K("fieldx", 9, 2, **SQ2, dx=2, fx={"shake": [6, 4]}), K("fieldx", 9, 6, dx=5), K("fieldx", 11, 3, **ST, dx=7, dy=-2),
-        K("fieldx", 11, 12, dx=7)]},
+        K("runner_seq", 2, 3, sx=0.95, sy=1.06), K("fieldx", 9, 4, **STH, rot=-10), K("fieldx", 9, 2, sx=1.18, sy=0.9),
+        K("fieldx", 9, 3, sx=1.1, sy=0.92, rot=6), K("fieldx", 9, 2, **SQ2, fx={"shake": [6, 4]}), K("fieldx", 9, 10),
+        K("fieldx", 8, 5, sx=0.97, sy=1.03), K("fieldx", 11, 3, **ST, dy=-1), K("fieldx", 11, 12)]},
+    # the sliding catch: last stride -> drop (the lunge) -> slide feet first (the runtime carries him
+    # along the ground, decelerating: play.lua SLIDE_*) -> the catch (key 5, glove up) -> skid to a
+    # stop -> up on a knee -> pop up, glove raised. No dx: the ground travel is world motion, so the
+    # glove anchors (reach.fieldx) stay true and the ball rides in the glove of whichever key is up.
     "slide_catch": {"loop": False, "keys": [
-        K("runner_seq", 2, 2), K("fieldx", 10, 3, **STH, dx=2), K("fieldx", 10, 5, sx=1.12, sy=0.9, dx=5),
-        K("fieldx", 10, 2, **SQ, dx=6, fx={"shake": [3, 3]}), K("fieldx", 11, 3, **ST, dx=7, dy=-1), K("fieldx", 11, 10, dx=7)]},
+        K("runner_seq", 2, 2), K("fieldx", 8, 3, sx=1.06, sy=0.95), K("fieldx", 10, 4, **STH),
+        K("fieldx", 10, 3, sx=1.06, sy=0.95), K("fieldx", 10, 2, **SQ, fx={"shake": [3, 3]}), K("fieldx", 10, 6),
+        K("fieldx", 8, 4, sx=0.97, sy=1.03), K("fieldx", 11, 3, **ST, dy=-1), K("fieldx", 11, 12)]},
     # at the wall: crouch, leap with the glove over the wall (runtime lifts him), the catch, the
     # crash into the padding (big shake + vibrate), drop, show the glove
     "leap_wall": {"loop": False, "keys": [
