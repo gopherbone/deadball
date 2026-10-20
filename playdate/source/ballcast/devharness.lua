@@ -329,6 +329,119 @@ elseif only == "tvplay" then
   drop(function(b) return b.kind == "end" end, function(b) return b.dur - 1.0 end)
   run("tvplay_post", 420, 3)
   step(function() App.pop() end, 5)
+elseif only == "nospoil" then
+  -- No spoilers: frames just before and just after each play's moment (the catch, the K, the
+  -- throw beating him to first, the ball over the wall, the run home, the last out of a DP, a
+  -- walk-off made from a bottom-inning run), at 1x with the clock held there (nothing paused).
+  -- Each frame's name carries its offset from the moment. Then A (the next camera shot): where
+  -- it lands, mid-play and at a beat's end, and that a live broadcast won't skip near its head.
+  local Play, TL = BallCast.Play, BallCast.Timeline
+  step(function() App.push(BC, { gameId = HARNESS_GAME or "dev", skipIntro = true }) end)
+  waitFor(function() return BC.mode == "watch" and not BC:timelinePending() end, 1800)
+  step(function() BC.playing = false end, 10)
+  local function batterOut(b) for _, m in ipairs(b.mvs) do if m.from == 0 then return m.to == -1 end end return false end
+  -- the moments, from the plan's runners and ball (so the same mode runs on an older build: the
+  -- before/after pairs)
+  local function batterR(b) for _, r in ipairs(b.plan.runners) do if r.from == 0 then return r end end end
+  local function batterT(b) local r = batterR(b); return r and (r.to == -1 and (r.outAt or r.t1) or r.t1) end
+  local function lastOutT(b) local t = 0; for _, r in ipairs(b.plan.runners) do if r.to == -1 then t = math.max(t, r.outAt or r.t1) end end return t end
+  local function firstRunT(b) local t; for _, r in ipairs(b.plan.runners) do if r.to == 4 then t = math.min(t or 99, r.t1) end end return t end
+  local function lastRunT(b) local t; for _, r in ipairs(b.plan.runners) do if r.to == 4 then t = math.max(t or 0, r.t1) end end return t end
+  local cases = {
+    { "flyout", function(b) return b.kind == "bip" and b.e.res == "OUT" and b.plan.flyCatch and not b.big end, function(b) return b.plan.catchT end },
+    { "strikeout", function(b) return b.kind == "p" and b.k and b.e.r == "S" end, function(b) return b.plan.kT end },
+    { "groundout", function(b) return b.kind == "bip" and b.e.res == "OUT" and b.e.out == "GO" and batterOut(b) end, batterT },
+    { "homer", function(b) return b.kind == "bip" and b.e.res == "HR" and not b.walkoff end, function(b) return b.plan.wallT end },
+    { "runscores", function(b) return b.kind == "bip" and b.e.res ~= "HR" and (b.runs or 0) > 0 and not b.walkoff end, firstRunT },
+    { "double", function(b) return b.kind == "bip" and b.e.res == "2B" and not b.walkoff end, batterT },
+    { "dp", function(b) return b.kind == "bip" and b.e.res == "DP" end, lastOutT },
+    { "walkoff", function(b) return b.walkoff and b.kind == "bip" and b.e.res ~= "HR" end, lastRunT },
+    { "walkoffhr", function(b) return b.walkoff and b.kind == "bip" and b.e.res == "HR" end, function(b) return b.plan.wallT end },
+  }
+  local OFFS = { -0.6, -0.15, 0.2, 0.6, 1.2 }
+  -- (no walk-off in the fixtures: make two out of a bottom-inning run and a bottom-inning homer,
+  -- re-planned the way TL.layout does once a game is final)
+  step(function()
+    local tl = BC.tl
+    local made = {}
+    for _, b in ipairs(tl.beats) do
+      if b.kind == "bip" and not b.pre.top and (b.runs or 0) > 0 then
+        local hr = b.e.res == "HR"
+        if not made[hr] then made[hr] = true; b.walkoff = true; Play.plan(b, tl) end
+      end
+    end
+    TL.layout(tl)
+  end, 2)
+  for _, c in ipairs(cases) do
+    local b, m
+    step(function()
+      b, m = nil, nil
+      for _, x in ipairs(BC.tl.beats) do if c[2](x) then b = x break end end
+      if b then m = c[3](b) end
+      print(string.format("[nospoil] %s beat %s moment %s callT %s revealT %s settleT %s bannerT %s big %s cams %s",
+        c[1], tostring(b and b.n), m and string.format("%.2f", m) or "-", b and b.plan.callT and string.format("%.2f", b.plan.callT) or "-",
+        b and Play.revealT and string.format("%.2f", Play.revealT(b)) or "-", b and Play.settleT and string.format("%.2f", Play.settleT(b)) or "-",
+        b and Play.bannerT and string.format("%.2f", Play.bannerT(b)) or "-", tostring(b and b.big), b and (function()
+          local s = {}
+          for _, cc in ipairs(b.plan.cams) do s[#s + 1] = cc.name .. "@" .. string.format("%.1f", cc.t) end
+          return table.concat(s, " ")
+        end)() or "-"))
+    end, 1)
+    for _, off in ipairs(OFFS) do
+      local function hold()
+        if not b or not m then return end
+        BC.mode = "watch"
+        BC.t = b.start + m + off
+        BC.lastBeat = nil
+        BC.playing = true
+        BC.speed = 1
+        BC.scrubT = 0
+        BC.hintUntil = nil
+        BC.lastMs = playdate.getCurrentTimeMilliseconds()
+      end
+      step(hold, 1)
+      step(hold, 1)
+      step(function() if b and m then shot(string.format("nospoil_%s_%s%.2f", c[1], off < 0 and "m" or "p", math.abs(off))) end end, 1)
+    end
+  end
+  -- A: the next camera shot
+  local function report(label)
+    local bi = BC:curBeatIndex()
+    local bb = BC.tl.beats[bi]
+    print(string.format("[nospoil] %s: t=%.2f beat %d(%s) tau=%.2f cam=%s playing=%s", label, BC.t, bi, bb.kind, BC.t - bb.start,
+      Play.camAt(bb.plan, BC.t - bb.start).name, tostring(BC.playing)))
+  end
+  local hr
+  step(function()
+    for _, x in ipairs(BC.tl.beats) do if x.kind == "bip" and x.e.res == "HR" and not x.walkoff then hr = x break end end
+    BC.t = hr.start + 0.5; BC.lastBeat = nil; BC.playing = true; BC.scrubT = 0; BC.lastMs = playdate.getCurrentTimeMilliseconds()
+    report("A: homer in flight, before")
+  end, 2)
+  step(function() BC:AButtonDown(); BC:AButtonUp(); report("A: after one press") end, 3)
+  step(function() shot("nospoil_A_1") end, 1)
+  step(function() BC:AButtonDown(); BC:AButtonUp(); report("A: after two") end, 3)
+  step(function() shot("nospoil_A_2") end, 1)
+  step(function() BC:AButtonDown(); BC:AButtonUp(); report("A: after three (next beat)") end, 3)
+  step(function() shot("nospoil_A_3") end, 1)
+  -- paused: A moves on and plays
+  step(function() BC:leftButtonDown(); report("left at 1x (pause)") end, 2)
+  step(function() shot("nospoil_paused") end, 1)
+  step(function() BC:AButtonDown(); BC:AButtonUp(); report("A while paused") end, 3)
+  step(function() BC.hintUntil = playdate.getCurrentTimeMilliseconds() + 3000 end, 3)
+  step(function() shot("nospoil_hint") end, 1)
+  -- a live broadcast: no jump to within LIVE_EDGE s of the head
+  step(function()
+    local tl = BC.tl
+    BC.live = true
+    BC.t = tl.total - 12; BC.lastBeat = nil
+    local tgt = BC:nextShotT()
+    print(string.format("[nospoil] live, 12 s behind the head: next shot %s (head %.2f)", tgt and string.format("%.2f", tgt) or "refused", tl.total))
+    BC.t = tl.total - 5
+    tgt = BC:nextShotT()
+    print(string.format("[nospoil] live, 5 s behind the head: next shot %s", tgt and string.format("%.2f", tgt) or "refused"))
+    BC.live = false
+  end, 2)
+  step(function() App.pop() end, 5)
 elseif only == "tvcams" then
   -- every live camera at typical moments: the tallest player billboard on screen (a 6.5 ft
   -- figure projected at the people who stand closest to the lenses), to catch shots that put

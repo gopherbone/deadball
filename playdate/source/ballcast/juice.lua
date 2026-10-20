@@ -53,7 +53,8 @@ local function build(b)
     if s.kind == "path" and s.t0 == 0 and b.kind == "bip" and s.pts then
       -- bat on ball: strength from exit velocity
       local evm = (b.e and b.e.ev) or 85
-      local st = clamp((evm - 55) / 50, 0.35, 1.25) * big
+      -- (not scaled by b.big: a bigger flash off the bat gave the homer and the great catch away)
+      local st = clamp((evm - 55) / 50, 0.35, 1.25)
       local c = ev(L, "crack", 0, 0.14, s.pts[1], s.pts[2], s.pts[3], st)
       c.kick = st >= 0.85
     elseif s.kind == "line" and pitch and s.t0 == pitch.tPlate and not s.throw then

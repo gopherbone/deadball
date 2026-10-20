@@ -324,6 +324,8 @@ end
 -- controls: no crank scrub, no at-bat seek, no speed, no play/pause, no game log). Each state allows
 -- only the inputs below; anything else is swallowed. See docs/PENNANT_INPUT_MAP.md.
 -- (D-pad aiming in the Arcade panels and the B hold in Scout batting are polled in their own frames.)
+-- The one replay control a watching state gets is A = the next camera shot (Live:nextShot): forward
+-- only, never past the end of what the engine has fed (the next decision) or into a swing window.
 Live.ownsInput = true
 Live.INPUT_MAP = {
   menu = { up = true, down = true, A = true, B = true },                 -- time-out menu
@@ -334,8 +336,19 @@ Live.INPUT_MAP = {
   bat_scout = { up = true, down = true, left = true, right = true, A = true, B = true },  -- approach; B tap/hold polled
   pitch_arcade = { A = true, B = true, crank = true },                   -- crank = pitch, A = meter, d-pad polled
   pitch_scout = { up = true, down = true, left = true, right = true, A = true, AUp = true, B = true, crank = true },
-  play = { B = true },                                                   -- ball in play / between batters: B = time out
+  play = { A = true, B = true },                                         -- ball in play / between batters: A = next shot, B = time out
 }
+
+--- A while watching: on to the next camera shot (BallCast's scene:nextShot), never past `limit`
+--- (the provisional pitch's windup) or the end of what's been fed (the engine's next pause). Not
+--- while a decision is up, the clock is held, or the game is simming or over.
+function Live:nextShot(scene, limit)
+  if self.menu or self.help or self.simming or self.finished then return false end
+  if self.pause and self.pause.reason == "done" then return false end
+  if self:idleDecision(scene) then return false end
+  return scene:nextShot(limit)
+end
+Live.hint = "A NEXT SHOT  B TIME OUT"
 
 --- (scene hook) Waiting on the player with the clock held: BallCast keeps the world alive (idle
 --- puppets, slow decision angles). Not the time-out menu (the picture freezes under it) or the final.
@@ -383,7 +396,10 @@ function Live:input(scene, btn, change)
     return true
   end
   if st == "dugout" then self:dugoutInput(scene, btn) return true end
-  if st == "play" then self:openMenu() return true end
+  if st == "play" then
+    if btn == "A" then self:nextShot(scene) else self:openMenu() end
+    return true
+  end
   self:controlInput(scene, btn, change)
   return true
 end

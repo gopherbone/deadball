@@ -9,8 +9,9 @@
 -- is a second full render pass (~10-20 ms on the device) on the pitch cam's 25 ms frame. The
 -- diagram is a cached panel image plus ~25 primitives and one cached label per frame.
 --
--- It opens from its corner just before the pitch arrives and folds back up after the result
--- (on contact it stays into the ball in play). Pure in (beat, tau), so scrubbing matches; it
+-- It opens from its corner once the pitch is in and runs the swing back a beat behind (opening
+-- ahead of the pitch gave away that he'd swing), then folds back up after the result (on
+-- contact it stays into the ball in play). Pure in (beat, tau), so scrubbing matches; it
 -- isn't shown while scrubbing, at 4x, or with the log open, and only the big ones at 2x. Any
 -- button folds the current one away. reduceMotion: no fold, a dither fade.
 
@@ -29,11 +30,12 @@ local K = BCKit
 local W <const>, H <const> = 152, 92        -- whole inset
 local PW <const> = 74                        -- one panel's width
 local TOP <const> = 12                       -- title strip height
+local LAG <const> = 0.65                     -- s: the inset's swing runs this far behind the live pitch
 
 ---------------------------------------------------------------------------
 -- which swings get it
 
-local XBH = { ["2B"] = true, ["3B"] = true, HR = true }
+local HARD <const> = 98          -- mph off the bat: a tier-1 swing cam
 
 local function contactBeat(tl, b)
   local nb = tl.beats[b.n + 1]
@@ -41,14 +43,15 @@ local function contactBeat(tl, b)
   return nil
 end
 
---- tier 1 (always, also at 2x): extra-base hits and homers. tier 2 (1x only): two-strike
+--- tier 1 (always, also at 2x): hard contact (98+ mph off the bat). tier 2 (1x only): two-strike
 --- swings and misses / fouls (some), and any swing in a big spot.
 function PiP.tier(tl, b)
   if b.kind ~= "p" or not b.plan.pitch then return nil end
   local r = b.e.r
   if r ~= "S" and r ~= "F" and r ~= "X" then return nil end
   local cb = contactBeat(tl, b)
-  if cb and XBH[cb.e.res] then return 1 end
+  -- (the hard-hit ones, caught or not: picking the extra-base hits told you it would fall in)
+  if cb and (cb.e.ev or 0) >= HARD then return 1 end
   local late = (b.pre.inn or 1) >= 7 and abs((b.pre.home or 0) - (b.pre.away or 0)) <= 2
   local big = late or ((b.pre.b2 or b.pre.b3) and (b.pre.outs or 0) == 2)
   local twoK = (b.pre.s or 0) >= 2
@@ -70,7 +73,7 @@ function PiP.verdict(tl, b)
   local cb = contactBeat(tl, b)
   if cb then
     local ev, la = cb.e.ev or 0, cb.e.la or 0
-    if cb.e.res == "HR" then return "BARRELED. " .. ev .. " MPH, " .. la .. " DEG.", "x" end
+    -- (the homer used to get its own wording, with the angle: it read as HOME RUN mid-flight)
     if la < 2 then return "TOPPED IT. " .. ev .. " MPH.", "x" end
     if la > 38 then return "GOT UNDER IT. " .. la .. " DEG.", "x" end
     if ev >= 96 then return "BARRELED. " .. ev .. " MPH.", "x" end
@@ -284,9 +287,12 @@ function PiP.draw(G, R, bi, b, tau, camName, opts)
     if not tier or (opts.speed == 2 and tier ~= 1) then return false end
   end
   local p = ab.plan.pitch
-  local tIn = p.tPlate - 0.55
+  -- it opens once the pitch is in (the mitt, the foul, the contact) and runs the swing back,
+  -- LAG behind: opening as the pitch came in told you he'd swing (and on a two-strike pitch, or
+  -- an extra-base hit's, what was coming)
+  local tIn = p.tPlate + 0.1
   local verdict, kind = PiP.verdict(tl, ab)
-  local tOut = (kind == "x") and (ab.dur + 1.5) or (p.tPlate + 1.6)
+  local tOut = ((kind == "x") and (ab.dur + 1.5) or (p.tPlate + 1.6)) + LAG
   if t < tIn or t > tOut + 0.22 then return false end
   local open = ease((t - tIn) / 0.22)
   if t > tOut then open = 1 - ease((t - tOut) / 0.22) end
@@ -300,8 +306,8 @@ function PiP.draw(G, R, bi, b, tau, camName, opts)
   local cy = y0 + H - h
   gfx.setScreenClipRect(cx, cy, w, h)
   panelImg():draw(x0, y0)
-  drawSwing(x0, y0, tl, ab, t, kind)
-  if t >= p.tPlate + 0.15 then
+  drawSwing(x0, y0, tl, ab, t - LAG, kind)
+  if t - LAG >= p.tPlate + 0.15 then
     local li = labelImg(verdict)
     local lw = li:getSize()
     li:draw(x0 + (W - lw) // 2, y0 + H - 11)

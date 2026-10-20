@@ -317,7 +317,8 @@ function O.draw(G, scene, bi, b, tau, camName, slo, R)
     end
   elseif plan.leap and b.ultra then
     local u = b.ultra[1]
-    local age = tau - (plan.leap.tc - 1.3)
+    -- (with the catch: 1.3 s ahead of it, the dossier said he'd climb the wall and rob it)
+    local age = tau - (plan.leap.tc + 0.15)
     if u and age >= 0 and age <= 1.1 then powerStrip(G, u.who, "LEAP_CATCH", age, 1.1) end
   end
   if b.kind == "p" and b.k and plan.kT then kStamp(G, tl, bi, b, tau) end

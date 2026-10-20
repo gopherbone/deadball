@@ -92,7 +92,9 @@ end
 function L.isOpen() return st.open end
 
 function L.open(scene)
-  local upto = scene:curBeatIndex() or 0
+  -- (up to the last play the picture has shown: opened mid-play, not that play's result)
+  local bi = scene:curBeatIndex() or 0
+  local upto = bi > 0 and scene:shownBeat(bi, scene.t - scene.tl.beats[bi].start) or 0
   st.scene = scene
   if upto ~= st.upto or not st.img or st.tl ~= scene.tl then
     st.entries = collect(scene, upto)

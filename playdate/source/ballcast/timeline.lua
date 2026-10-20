@@ -346,6 +346,21 @@ function TL.layout(tl)
   local t = 0
   local beats = tl.beats
   local prevWe = 0.5
+  -- walk-off: final scoring beat in the bottom of the 9th+ that puts home ahead. Only known once
+  -- the game is final, after the beat was planned: re-plan it then (its banner, slow motion and
+  -- fanfare, and when they land, are the walk-off's)
+  if tl.final then
+    for i = #beats, 1, -1 do
+      local b = beats[i]
+      if b.runs and b.runs > 0 then
+        if not b.pre.top and b.pre.inn >= 9 and b.post.home > b.post.away and b.pre.home <= b.pre.away and not b.walkoff then
+          b.walkoff = true
+          if b.plan and BallCast.Play and BallCast.Play.plan then BallCast.Play.plan(b, tl) end
+        end
+        break
+      end
+    end
+  end
   for i = 1, #beats do
     local b = beats[i]
     b.start = t
@@ -355,18 +370,6 @@ function TL.layout(tl)
     t = t + b.dur
   end
   tl.total = t
-  -- walk-off: final scoring beat in the bottom of the 9th+ that puts home ahead
-  if tl.final then
-    for i = #beats, 1, -1 do
-      local b = beats[i]
-      if b.runs and b.runs > 0 then
-        if not b.pre.top and b.pre.inn >= 9 and b.post.home > b.post.away and b.pre.home <= b.pre.away then
-          b.walkoff = true
-        end
-        break
-      end
-    end
-  end
 end
 
 --- Beat index at time t (binary search).

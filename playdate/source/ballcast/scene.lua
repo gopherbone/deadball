@@ -1,8 +1,12 @@
 -- BallCast 3D: the replay scene. Entered with App.push(BallCast.scene, { gameId = id }).
 --
--- Controls: crank scrubs time · A play/pause · B back · up/down previous/next at-bat ·
--- left/right playback speed (1x/2x/4x). Finals open on a menu (watch / highlights / skip
--- to the end); live games join near the head of the log and keep polling.
+-- Controls: crank scrubs time · A next camera shot · hold A game log · B back · up/down
+-- previous/next at-bat · left/right playback speed (left at 1x pauses, right plays on: II/1x/2x/
+-- 4x). Finals open on a menu (watch / highlights / skip to the end); live games join near the
+-- head of the log and keep polling (A never skips to within LIVE_EDGE s of what has come in).
+--
+-- No spoilers: nothing off the field (scorebug, calls, ticker, win chance, banners, game log)
+-- shows a play's result before the picture has (Play.revealT / settleT / outsRunsAt / bannerT).
 --
 -- Local games (offline modes, e.g. Pennant): App.push(BallCast.scene, { gameId = id, source = src })
 -- where src answers the same requests the server would (src:get(path) -> data | nil, err:
@@ -12,8 +16,10 @@
 --   src:draw(scene, bi, beat, tau)       after the HUD (overlays: dugout menu, batting/pitching)
 --   src:input(scene, button, ...)        "A","AUp","B","up","down","left","right","crank" -> true = consumed
 --   src.finalCard = true                 the source draws its own final card
--- and the scene offers scene:feed(events) (append to the live log; no polling for local games)
--- and scene:dropLast() (take back the open last beat: a provisional pitch the source re-decides).
+-- and the scene offers scene:feed(events) (append to the live log; no polling for local games),
+-- scene:dropLast() (take back the open last beat: a provisional pitch the source re-decides)
+-- and scene:nextShot(limit) (A in the source's watching states: on to the next camera shot, never
+-- past `limit` or the end of what the source has fed).
 
 import "CoreLibs/graphics"
 import "CoreLibs/timer"
@@ -51,6 +57,7 @@ BallCast.scene = S
 
 local SPEEDS = { 1, 2, 4 }
 local POLL_MS = 5000
+local LIVE_EDGE <const> = 8      -- s: A won't skip a live broadcast to within this of its head
 local CAM_ORDER = { "pitch", "high", "deepC", "deepL", "deepR" }
 
 ---------------------------------------------------------------------------
@@ -613,7 +620,7 @@ function S:AButtonDown()
   if self.mode ~= "watch" then return end
   if TV.interrupt() then return end
   if self.logOpen then self:closeLog(Log.pick()) return end
-  -- tap = play/pause (on release); hold = game log (see update)
+  -- tap = the next camera shot (on release); hold = game log (see update)
   self.aDownAt = playdate.getCurrentTimeMilliseconds()
 end
 
@@ -622,9 +629,85 @@ function S:AButtonUp()
   if not self.aDownAt then return end
   self.aDownAt = nil
   if self.mode ~= "watch" or self.logOpen then return end
-  self.playing = not self.playing
-  self.hintUntil = playdate.getCurrentTimeMilliseconds() + 3000
+  if not self:nextShot() and not self.playing then
+    -- (nothing further to cut to, paused: A plays on)
+    self.playing = true
+    K.sfx("tick")
+  end
+end
+
+--- Where A's jump lands: the next camera cut in this beat's plan, else the start of the next
+--- beat; nil if there's none, or it's past `limit`, the end of the timeline, or (a live
+--- broadcast) within LIVE_EDGE of its head.
+function S:nextShotT(limit)
+  local tl = self.tl
+  local bi = TL.beatAt(tl, self.t)
+  local b = tl.beats[bi]
+  if not b then return nil end
+  local tau = self.t - b.start
+  local target
+  local cams = b.plan.cams
+  local cur = Play.camAt(b.plan, tau)
+  for i = 1, #cams do
+    local c = cams[i]
+    -- (a hair past the cut, so float error can't land on the frame before it)
+    if c.t > tau + 0.05 and c.t < b.dur - 0.1 and c ~= cur then target = b.start + c.t + 0.002 break end
+  end
+  if not target and tl.beats[bi + 1] then target = tl.beats[bi + 1].start end
+  -- (a local source's last beat ends at its next decision: land there, not beyond)
+  if not target and self.src and tl.total - self.t > 0.3 then target = tl.total end
+  if not target then return nil end
+  local edge = tl.total
+  if self.live and not self.src then edge = tl.total - LIVE_EDGE end
+  if limit then edge = min(edge, limit) end
+  if target > edge or target <= self.t + 0.05 then return nil end
+  return target
+end
+
+-- crowd reactions and stingers a jump passes over still sound (the latest of each kind, once);
+-- the rest (cracks, pops, whooshes: tied to what's on screen) are dropped
+local SKIP_KEEP <const> = { roar = true, ooh = true, homerun = true, fanfare = true, strike3 = true, error = true }
+
+--- A: on to the next camera shot (see nextShotT). Playback carries on from there (A also plays
+--- on when paused). A local source calls it from its own watching states, with its own limit.
+--- → true if it jumped (or A went to a TV segment / the swing cam)
+function S:nextShot(limit)
+  if self.mode ~= "watch" or not self.tl or self.logOpen or self:timelinePending() then return false end
+  if self.src and self.src.idleDecision and self.src:idleDecision(self) then return false end
+  -- (a source's A comes straight here: a running TV segment, or the swing cam, takes it first)
+  if self.src and TV.interrupt() then return true end
+  local target = self:nextShotT(limit)
+  if not target then return false end
+  local tl = self.tl
+  local bi = TL.beatAt(tl, self.t)
+  local b = tl.beats[bi]
+  local tau = self.t - b.start
+  local nbi = TL.beatAt(tl, target)
+  local upto = (nbi == bi) and (target - b.start) or b.dur
+  if self.playing and self.speed <= 2 then
+    local fire, cues = nil, b.plan.sfx
+    for i = 1, #cues do
+      local c = cues[i]
+      local keep = SKIP_KEEP[c.kind] or (Audio.REACT and Audio.REACT[c.kind])
+      if keep and c.t > tau and c.t < upto and upto - c.t < 2.5 then
+        fire = fire or {}
+        fire[c.kind] = c
+      end
+    end
+    if fire then for _, c in pairs(fire) do Audio.sfx(c.kind, c.v) end end
+  end
+  self.t = target
+  if nbi == bi then
+    -- (cues at the cut itself still fire; the ones passed over don't, again)
+    self.lastTau = upto - 0.001
+    TV.skipped(upto)
+  end
+  -- (into the next beat: as if played into it, so its stingers, a replay of the play just
+  -- skipped past, the break cards all start as usual)
+  self.playing = true
+  self.scrubT = 0
   K.sfx("tick")
+  return true
 end
 
 function S:BButtonDown()
@@ -684,13 +767,20 @@ end
 
 local function speedIndex(s) for i, v in ipairs(SPEEDS) do if v == s then return i end end return 1 end
 
+-- left/right: the speed ladder II (paused) / 1x / 2x / 4x
 function S:leftButtonDown()
   if hook(self, "left") then return end
   TV.interrupt()
   if self.mode ~= "watch" then return end
   if self.logOpen then Log.move(-8) return end
-  self.speed = SPEEDS[max(1, speedIndex(self.speed) - 1)]
-  self.speedShown = playdate.getCurrentTimeMilliseconds()
+  if self.speed == 1 then
+    if not self.playing then return end
+    self.playing = false
+    self.hintUntil = playdate.getCurrentTimeMilliseconds() + 3000
+  else
+    self.speed = SPEEDS[max(1, speedIndex(self.speed) - 1)]
+    self.speedShown = playdate.getCurrentTimeMilliseconds()
+  end
   K.sfx("tick")
 end
 
@@ -699,7 +789,11 @@ function S:rightButtonDown()
   TV.interrupt()
   if self.mode ~= "watch" then return end
   if self.logOpen then Log.move(8) return end
-  self.speed = SPEEDS[min(#SPEEDS, speedIndex(self.speed) + 1)]
+  if not self.playing then
+    self.playing = true
+  else
+    self.speed = SPEEDS[min(#SPEEDS, speedIndex(self.speed) + 1)]
+  end
   self.speedShown = playdate.getCurrentTimeMilliseconds()
   K.sfx("tick")
 end
@@ -757,23 +851,29 @@ end
 ---------------------------------------------------------------------------
 -- per-frame
 
+-- The scorebug's state: the pre-state with each out and each run counted in as the picture shows
+-- it (the catch, the tag, the runner touching home), the post-state once everyone has stopped.
+-- (One cached in-between copy: the scorebug only ever shows one beat.)
+local shown = { b = nil, key = nil, st = nil }
 local function stateShown(b, tau)
-  local plan = b.plan
-  if plan.pitch then
-    if tau > plan.pitch.tPlate + 0.25 then return b.post end
-    return b.pre
+  if tau >= Play.settleT(b) then return b.post end
+  local o, r = Play.outsRunsAt(b, tau)
+  if o == 0 and r == 0 then return b.pre end
+  local key = o * 16 + r
+  if shown.b ~= b or shown.key ~= key then
+    local st = TL.copyState(b.pre)
+    st.outs = min(3, (st.outs or 0) + o)
+    if st.top then st.away = st.away + r else st.home = st.home + r end
+    shown.b, shown.key, shown.st = b, key, st
   end
-  if b.kind == "bip" or b.kind == "sb" or b.kind == "wp" or b.kind == "mv" then
-    if tau >= b.dur - 1.1 then return b.post end
-    return b.pre
-  end
-  return tau > 0.2 and b.post or b.pre
+  return shown.st
 end
 
-local function revealT(b)
-  if b.kind == "bip" then return max(0.5, b.dur - 1.6) end
-  if b.plan.pitch then return b.plan.pitch.tPlate + 0.3 end
-  return 0.3
+--- the last beat whose result the picture has shown: bi, or the one before it mid-play
+function S:shownBeat(bi, tau)
+  local b = self.tl.beats[bi]
+  if b and tau < Play.revealT(b) then return bi - 1 end
+  return bi
 end
 
 function S:describe(i)
@@ -783,9 +883,7 @@ function S:describe(i)
 end
 
 function S:updateTicker(bi, tau)
-  local b = self.tl.beats[bi]
-  local show = bi
-  if tau < revealT(b) then show = bi - 1 end
+  local show = self:shownBeat(bi, tau)
   if show == self.tickerBeat then return end
   local seq = show == self.tickerBeat + 1 or (self.tickerBeat >= 0 and show > self.tickerBeat and show - self.tickerBeat < 4)
   self.tickerBeat = show
@@ -1136,15 +1234,17 @@ function S:drawHud(bi, b, tau, slo, camName, incident, dt)
 
   -- win chance
   local dWe = abs((b.we or 0.5) - (b.weBefore or 0.5))
-  -- (on plays, only once the play is over: it used to sit on top of the first baseman)
+  -- (on plays, only once the play is over: it used to sit on top of the first baseman; never
+  -- ahead of the result, and paused mid-play it stops at the play before: the graph's swing
+  -- gave the result away)
   local showWe = (b.kind == "half" and tau > 0.6) or b.kind == "end" or (not self.playing and not self.logOpen)
-    or (dWe >= 0.08 and tau > b.dur - (b.kind == "bip" and 1.1 or 2.6) and b.kind ~= "p")
+    or (dWe >= 0.08 and tau > max(Play.revealT(b), b.dur - (b.kind == "bip" and 1.1 or 2.6)) and b.kind ~= "p")
   if (showWe and camName ~= "bleacher" and b.kind ~= "inc") or (b.kind == "end") then
     local bet = meta.bet
     local forHome = true
     local abbr = meta.home and meta.home.abbr
     if bet then forHome = bet.side == "home"; abbr = forHome and (meta.home and meta.home.abbr) or (meta.away and meta.away.abbr) end
-    HUD.winPanel(tl, bi, abbr, forHome, bet, 266, 48)
+    HUD.winPanel(tl, max(1, self:shownBeat(bi, tau)), abbr, forHome, bet, 266, 48)
   end
 
   -- lower thirds
@@ -1180,7 +1280,7 @@ function S:drawHud(bi, b, tau, slo, camName, incident, dt)
 
   -- big moment banner
   if b.big then
-    local t0 = b.plan.bannerT or (b.plan.wallT and b.plan.wallT + 0.3) or (b.plan.slo and b.plan.slo[2]) or (b.dur * 0.45)
+    local t0 = Play.bannerT(b)
     if tau >= t0 and tau < t0 + 2.0 then HUD.bigBanner(b.big, tau - t0) end
   end
 
@@ -1199,10 +1299,12 @@ function S:drawHud(bi, b, tau, slo, camName, incident, dt)
     K.voice("telegraph", playdate.sound.kWaveSquare, 0, 0.012, 0, 0.005, 0.06):playNote(2400, 0.3, 0.008)
   end
 
-  -- controls help: for a few seconds after entering / pausing
+  -- controls help: for a few seconds after entering / pausing (a local source's game: its own)
   if self.hintUntil and playdate.getCurrentTimeMilliseconds() < self.hintUntil and not slo then
     local f = K.fonts.tiny
-    local s = "A PLAY  HOLD A LOG  CRANK SCRUB  UP/DN AT-BAT  L/R SPEED  B BACK"
+    local s = self.src and (self.src.hint or "A NEXT SHOT  B TIME OUT")
+      or (self.playing and "A NEXT SHOT  HOLD A LOG  CRANK SCRUB  UP/DN AT-BAT  L/R SPEED"
+        or "II PAUSED  RIGHT PLAY  A NEXT SHOT  HOLD A LOG  CRANK SCRUB")
     local w = f:getTextWidth(s) + 10
     gfx.setColor(gfx.kColorWhite)
     gfx.fillRect(200 - w / 2, 210, w, 12)

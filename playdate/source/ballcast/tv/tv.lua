@@ -671,6 +671,10 @@ end
 function TV.holding() return seg ~= nil end
 function TV.active() return seg ~= nil or outro ~= nil end
 
+--- The scene jumped ahead within the beat (A: the next camera shot) to plan time tau: what the
+--- jump passed over (the banner's impact hit) doesn't fire on the way.
+function TV.skipped(tau) if lastTau then lastTau = tau end end
+
 function TV.interrupt()
   -- a swing-cam inset folds away (and the button is spent on that)
   if G and G.pipShowing then G.pipDismiss = G.pipShowing; G.pipShowing = nil; if not seg then return true end end
@@ -872,7 +876,7 @@ frameImpl = function(scene, bi, b, tau, dt, scrubbing)
   end
   -- big moment: an impact hit as the banner lands
   if not seg and b.big and lastBi == bi and lastTau and not scrubbing and scene.playing then
-    local t0 = b.plan.bannerT or (b.plan.wallT and b.plan.wallT + 0.3) or (b.plan.slo and b.plan.slo[2]) or (b.dur * 0.45)
+    local t0 = BallCast.Play.bannerT(b)
     if lastTau < t0 and tau >= t0 and bigTier(b.big) then sfx("tvImpact") end
   end
   lastBi, lastTau = bi, tau

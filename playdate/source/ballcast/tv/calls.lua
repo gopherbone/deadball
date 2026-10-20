@@ -78,7 +78,7 @@ function C.callFor(tl, b)
   local plan = b.plan
   if b.kind == "p" and plan.pitch then
     local p, e = plan.pitch, b.e
-    local t = p.tPlate + 0.18
+    local t = p.tPlate + 0.18          -- (the pop in the mitt is at tPlate + 0.06; the ump's call)
     if b.k then return (e.r == "C") and "k3C" or "k3S", (plan.kT or t) end
     if e.r == "H" then return "hbp", (plan.hbp or p.tPlate) + 0.2 end
     if b.walk then return "ball4", p.tPlate + 0.25 end
@@ -90,13 +90,17 @@ function C.callFor(tl, b)
   end
   if b.kind == "bip" then
     local res = b.e.res
-    local t = plan.catchT and (plan.catchT + 0.12) or max(0.5, b.dur - 1.7)
+    -- once the picture has shown it (play.lua plan.callT): the catch, the throw beating him to
+    -- the bag, the hitter into his base, the last out of two. (It used to slam in at the
+    -- outfielder's pickup, and 0.4 s before the throw reached first on a grounder.)
+    local t = (plan.callT or max(0.5, b.dur - 1.7)) + 0.12
     if res == "HR" then return nil end                       -- (the HOME RUN banner)
     if res == "1B" then return "single", t end
     if res == "2B" then return "double", t end
     if res == "3B" then return "triple", t end
-    if res == "DP" then return "outDP", (plan.slo and plan.slo[2]) or t end
-    if res == "SF" then return "outSF", t end
+    if res == "DP" then return "outDP", t end
+    -- ("A RUN SCORES": once he has)
+    if res == "SF" then return "outSF", max(t, (plan.scoreT or 0) + 0.12) end
     if res == "FC" then return "fc", t end
     if res == "ROE" then return "roe", t end
     if res == "FOUL_OUT" then return "outFoul", t end

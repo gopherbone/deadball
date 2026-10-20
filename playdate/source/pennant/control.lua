@@ -177,7 +177,8 @@ function Live:drawCard()
   gfx.fillRect(x, y, w, 13)
   Text.draw(c.title or "LAST", x + 3, y, F().bold, "white")
   local yy = y + 15
-  for _, l in ipairs(c.lines) do
+  for k, l in ipairs(c.lines) do
+    if c.hide and c.hide[k] and not c.revealed then l = "..." end
     if type(l) == "table" then
       -- a verdict: inverted
       gfx.fillRect(x + 2, yy - 1, w - 4, 14)
@@ -190,16 +191,42 @@ function Live:drawCard()
   end
 end
 
-function Live:setCard(c)
+--- Has BallCast shown the result on card c (c.resEv: the pitch or ball-in-play event it reads)?
+function Live:resultShown(scene, c)
+  local tl = scene.tl
+  if not tl or not c.resEv then return true end
+  local bi = scene:curBeatIndex()
+  if not bi then return false end
+  local j = c.resBi
+  if not j or tl.beats[j] == nil or tl.beats[j].e ~= c.resEv then
+    j = nil
+    for k = #tl.beats, math.max(1, #tl.beats - 60), -1 do
+      if tl.beats[k].e == c.resEv then j = k break end
+    end
+    c.resBi = j
+  end
+  if not j then return false end
+  if bi ~= j then return bi > j end
+  local b = tl.beats[j]
+  return scene.t - b.start >= BallCast.Play.revealT(b)
+end
+
+--- c.result: the line that names the result (hidden until the picture has shown it; see
+--- drawControl), resEv: the event it comes from
+function Live:setCard(c, result, resEv)
+  c.result, c.resEv = (result ~= "" and result) or nil, resEv
+  c.hide = c.result and {} or nil
   -- long lines wrap (two at most) rather than being cut
   local out = {}
   for _, l in ipairs(c.lines) do
+    local n0 = #out
     if type(l) == "string" and F().body:getTextWidth(l) > CW - 6 then
       local w = Text.wrap(l, F().body, CW - 6)
       for i = 1, math.min(2, #w) do out[#out + 1] = w[i] end
     else
       out[#out + 1] = l
     end
+    if c.hide and l == c.result then for k = n0 + 1, #out do c.hide[k] = true end end
   end
   c.lines = out
   local hh = 17
@@ -255,9 +282,9 @@ function Live:arcadeBatFrame(scene, bi, b, tau, p)
     self.lastCx, self.lastCz = u.cx, u.cz
     self.h:bat({ swing = false })
     local evs = self:resumeEvs(scene, true)
-    local words = self:resultWords(evs)
+    local words, resEv = self:resultWords(evs)
     local e = self:pitchEvent(evs)
-    self:setCard({ lines = { (e and (e.t .. " " .. e.v) or ""), e and PScheme.whereWords(e.px or 0, e.pz or 0, p.info.batter.bats) or "", { "TAKE" }, words } })
+    self:setCard({ lines = { (e and (e.t .. " " .. e.v) or ""), e and PScheme.whereWords(e.px or 0, e.pz or 0, p.info.batter.bats) or "", { "TAKE" }, words } }, words, resEv)
     return nil
   end
   if tau > pp.tRel - 0.25 and tau < pp.tPlate + 0.2 then return 0.6 end
@@ -277,10 +304,10 @@ function Live:arcadeSwing(scene, power)
   local i = self.pause.info
   self.h:bat(input)
   local evs = self:resumeEvs(scene, true)
-  local words = self:resultWords(evs)
+  local words, resEv = self:resultWords(evs)
   local when, by, aimWord = PScheme.batVerdict(raw, u.con)
   self:setCard({ lines = { pt.t .. " " .. pt.v, PScheme.whereWords(pt.px, pt.pz, i.batter.bats), { when .. (power and " +PWR" or "") },
-    (by > 0 and when ~= "ON TIME") and ("by " .. by .. " ms") or (aimWord or "squared up"), (by > 0 and when ~= "ON TIME" and aimWord) or words, (by > 0 and when ~= "ON TIME" and aimWord) and words or nil } })
+    (by > 0 and when ~= "ON TIME") and ("by " .. by .. " ms") or (aimWord or "squared up"), (by > 0 and when ~= "ON TIME" and aimWord) or words, (by > 0 and when ~= "ON TIME" and aimWord) and words or nil } }, words, resEv)
 end
 
 function Live:arcadeBatInput(scene, btn, change)
@@ -387,11 +414,11 @@ function Live:scoutChoose(scene, choice)
   local input, note = PScheme.scoutBat(choice, pt, { con = bat and bat.r.con or 50, eye = bat and bat.r.eye or 50, bats = i.batter.bats, strikes = i.strikes }, self.rng)
   self.h:bat(input)
   local evs = self:resumeEvs(scene, false)
-  local words = self:resultWords(evs)
+  local words, resEv = self:resultWords(evs)
   local name = PM.PITCH_NAME[pt.t] or pt.t
   local guessWords = ({ fast = "sat fastball", soft = "sat soft", ["in"] = "looked in", away = "looked away", see = "saw it", take = "took" })[choice]
   local verdict = note == "right" and "RIGHT" or (note == "wrong" and "FOOLED" or (note == "laid off" and "LAID OFF" or string.upper(note or "")))
-  self:setCard({ lines = { "You " .. guessWords .. ".", "It was a " .. name:lower(), PScheme.whereWords(pt.px, pt.pz, i.batter.bats), { verdict }, words } })
+  self:setCard({ lines = { "You " .. guessWords .. ".", "It was a " .. name:lower(), PScheme.whereWords(pt.px, pt.pz, i.batter.bats), { verdict }, words } }, words, resEv)
   Sfx.select()
 end
 
@@ -477,13 +504,13 @@ function Live:throw(scene, input, target)
   self.h:pitch(input)
   local evs = self:resumeEvs(scene, false)
   local e = self:pitchEvent(evs)
-  local words = self:resultWords(evs)
+  local words, resEv = self:resultWords(evs)
   local miss = e and PScheme.missWords(target.x, target.z, e.px or target.x, e.pz or target.z, pit and pit.throws or "R") or "thrown"
   local hit = miss == "hit the spot"
   local lines = { input.type .. (e and (" " .. e.v) or ""), { hit and "ON THE SPOT" or "MISSED" }, hit and "right there" or (miss:gsub("^missed ", "")) }
   if input.effort >= 1 then lines[#lines + 1] = "reached back" end
   lines[#lines + 1] = words
-  self:setCard({ title = "LAST", lines = lines })
+  self:setCard({ title = "LAST", lines = lines }, words, resEv)
   Sfx.select()
 end
 
@@ -631,6 +658,9 @@ function Live:controlInput(scene, btn, change)
   if u.kind == "bat_arcade" then
     if scene.tl and self.prov and scene:curBeatIndex() == self.prov.beat then return self:arcadeBatInput(scene, btn, change) end
     if btn == "B" then self:openMenu() end
+    -- (the last play still running before your pitch: A cuts ahead, at most to its windup)
+    local pb = btn == "A" and self.prov and scene.tl and scene.tl.beats[self.prov.beat]
+    if pb then self:nextShot(scene, pb.start) end
     return true
   end
   if u.kind == "bat_scout" then return self:scoutBatInput(scene, btn) end
@@ -659,6 +689,14 @@ function Live:drawControl(scene, bi, b, tau)
     local rows = (#u.ars + 1) // 2
     local hs = u.aDown and ((u.aHeld or 0) >= 12 and 2 or 1) or 0
     self:cached("ps" .. u.spot .. ":" .. u.k .. ":" .. hs, KX, KY - 1, KW + 2, KH + rows * 13 + 22, function() self:drawScoutPitch() end, "control")
+  end
+  -- the result line waits for the picture (the engine knows the swing's result at once: the card
+  -- used to read HOME RUN as the ball left the bat); once it's shown, the card stays 4 s more
+  local c = self.card
+  if c and c.result and not c.revealed and self:resultShown(scene, c) then
+    c.revealed = true
+    self.cardKey = (self.cardKey or 0) + 1
+    self.cardShown = now()
   end
   -- the card over BallCast's K-zone history while the player is in the at-bat
   if self.card and (mine or (self.cardShown and now() - self.cardShown < 4000)) then

@@ -79,7 +79,7 @@ Play.batSide = batSide
 
 local function newPlan()
   return { cams = {}, ball = {}, fmoves = {}, fposes = {}, runners = {}, pops = {}, sfx = {}, umpCalls = {}, catches = {}, slo = nil, shake = nil,
-    exits = {}, carry = {} }
+    exits = {}, carry = {}, outTs = {}, runTs = {} }
 end
 
 -- walk-offs: someone heading for his dugout (variant v's) from (x0, y0), starting at plan time
@@ -431,8 +431,8 @@ local function planPitch(b, tl, plan)
   local tPlate = tRel + travel + stallD
   local br = BREAK[e.t] or BREAK.FB
   plan.pitch = { tRel = tRel, tPlate = tPlate, px = px, pz = pz, r = e.r, side = batSide(b.pre.bat) }
-  local takes = e.r == "B" or e.r == "C"
-  if takes and not b.ultra and K.hash01(b.i, 51) < 0.22 then
+  -- (any pitch, swung at or not: an angle kept for takes only told you he wouldn't swing)
+  if not b.ultra and K.hash01(b.i, 51) < 0.22 then
     cam(plan, 0, "behindPlate", { side = K.hash01(b.i, 52) < 0.5 and 1 or -1 })
   else
     cam(plan, 0, "pitch")
@@ -512,6 +512,7 @@ local function planPitch(b, tl, plan)
     plan.umpCall = tPlate + 0.2
     umpCall(plan, tPlate + 0.2, "ump_strike", 1.4, 1)    -- the punch-out
     plan.kT = tPlate + 0.2
+    plan.outTs[#plan.outTs + 1] = plan.kT
     sfx(plan, tPlate + 0.2, "ooh")
     sfx(plan, tPlate + 0.25, "strike3")
     b.dur = max(b.dur, tPlate + 1.5)
@@ -520,6 +521,7 @@ local function planPitch(b, tl, plan)
     umpCall(plan, tPlate + 0.2, "ump_strike", 0.8)
   end
   if e.bunt then planBuntPitch(b, plan, tRel, tPlate) end
+  plan.callT = tPlate + 0.2                     -- the ump's call (the count / the K / ball four)
   if r ~= "X" and r ~= "H" then plan.receive = tPlate end
   if r == "H" then plan.hbp = tPlate end
   if b.walk then
@@ -1004,19 +1006,28 @@ local function planBip(b, tl, plan)
         throws[#throws + 1] = { t0 = tGet + 0.35, ax = rx, ay = ry, bx = tx, by = ty, slow = true, from = fpos }
         if res == "3B" then b.big = b.big or "TRIPLE!" end
         sfx(plan, 0, "crack")
-        sfx(plan, hang * 0.6, "roar", 0.7)
+        -- (the roar as it drops in: on the way up it told you nobody would catch it)
+        sfx(plan, hang, "roar", 0.7)
+        plan.dropT = hang
+        -- a long run after it: the same tracking shot a long run to a catch gets
+        local run = dist2(fa2[1], fa2[2], rx, ry)
+        if run > 55 and tGet - 0.3 > 1.4 then
+          plan.chase = { pos = fpos, t0 = 0.3, t1 = tGet, glove = tGet - 0.45 }
+          plan.chaseTo = { pos = fpos, fx = rx, fy = ry }
+        end
       end
     end
     -- running it down (a tracking shot alongside him), the dive / slide / leap (low, side-on)
     local cs = plan.catchStyle
-    if plan.chase and plan.chase.t1 - plan.chase.t0 > 1.4 and plan.catchT then
+    if plan.chase and plan.chase.t1 - plan.chase.t0 > 1.4 and plan.catchT and not plan.leap then
       cam(plan, plan.chase.t0 + 0.5, deepCamFor(sp), { play = "track", side = K.hash01(b.i, 151) < 0.5 and 1 or -1 })
     end
     if (cs == "layout" or cs == "slide" or cs == "shoe" or cs == "leap" or cs == "crash") and plan.catchT then
       cam(plan, plan.catchT - 0.85, deepCamFor(sp), { play = "dive" })
     end
     if res == "FOUL_OUT" then cam(plan, 0, "high")
-    elseif not uL and res ~= "HR" and K.hash01(b.i, 53) < 0.3 then cam(plan, 0, "wallLow", { side = sp < 0 and 1 or -1 })
+    -- (homers too: a wall-level angle kept for balls that stay in told you this one wouldn't)
+    elseif not uL and K.hash01(b.i, 53) < 0.3 then cam(plan, 0, "wallLow", { side = sp < 0 and 1 or -1 })
     else cam(plan, 0, deepCamFor(sp), { follow = true }) end
     if res ~= "HR" then cam(plan, tBallDone + 0.4, ((res == "2B" or res == "3B") and K.hash01(b.i, 54) < 0.5) and "runner" or "high", { side = 1 }) end
     if res == "HR" then
@@ -1024,6 +1035,14 @@ local function planBip(b, tl, plan)
       cam(plan, (plan.wallT or tBallDone) + 3.6, K.hash01(b.i, 55) < 0.4 and "blimp" or "high")
     end
     if res ~= "HR" then sfx(plan, 0, "crack") end
+    -- deep ones all get the slow motion as they come down: caught at the track, off the wall or
+    -- gone (it used to be the homer's alone, a second before the wall)
+    if not plan.slo and res ~= "HR" and res ~= "FOUL_OUT" then
+      local tEnd = plan.catchT and plan.flyCatch and plan.catchT or plan.dropT
+      local lx, ly = path[#path - 2], path[#path - 1]
+      local fence = Cam.fenceAt(park, sp)
+      if tEnd and sqrt(lx * lx + ly * ly) > fence - 30 then plan.slo = { max(0.2, tEnd - 1.1), tEnd + 0.35 } end
+    end
   elseif e.bunt then
     fx, fy, tFielded, tBallDone = planBuntBip(b, plan, throws)
   else
@@ -1078,7 +1097,8 @@ local function planBip(b, tl, plan)
       local tb = res == "3B" and 3 or 2
       local bx2, by2 = basePos(INFIELD[fpos] and 1 or tb)
       throws[#throws + 1] = { t0 = ta + 0.3, ax = fx, ay = fy, bx = bx2, by = by2, slow = not INFIELD[fpos] }
-      sfx(plan, 0.3, "roar", 0.5)
+      -- (the roar once it's through, or he's beaten the throw: off the bat it gave the hit away)
+      if not INFIELD[fpos] then plan.dropT = ta; sfx(plan, ta, "roar", 0.5) end
     end
     if K.hash01(b.i, 56) < 0.3 then cam(plan, 0, "dugout", { side = sp < 0 and 1 or -1 }) else cam(plan, 0, "high") end
   end
@@ -1129,6 +1149,9 @@ local function planBip(b, tl, plan)
     if m.from ~= m.to then
       local t0
       if m.from == 0 and res == "HR" then t0 = 0.85; plan.homerBatter = true   -- admire it first
+      -- (the men on base hold until it's gone: trotting in from the crack, the man from third
+      -- touched home with the ball still in the air)
+      elseif res == "HR" then t0 = max(0.05, (plan.wallT or 2) - 0.6)
       elseif m.from == 0 and plan.bunt then t0 = 0.4                            -- (the give, then go)
       elseif m.from == 3 and plan.bunt and plan.bunt.kind == "squeeze" then t0 = -0.45   -- broke with the pitch
       elseif m.from == 0 then t0 = 0.25
@@ -1189,6 +1212,18 @@ local function planBip(b, tl, plan)
   end
   if b.walkoff then b.big = (res == "HR") and "WALK-OFF HOME RUN!" or "WALK-OFF!"; plan.slo = plan.slo or { 0.3, 1.2 } end
   if res == "HR" and b.walkoff then sfx(plan, (plan.wallT or 2) + 0.2, "fanfare") end
+  -- when the result is on screen: the batter's out or safe (the last out of a double play, the
+  -- batter's bag on a hit), the ball over the wall. The call, the ticker, the scorebug and the
+  -- banner wait for it (Play.revealT, Play.bannerT).
+  local batT, lastOut = nil, 0
+  for _, r in ipairs(plan.runners) do
+    local t = (r.to == -1) and (r.outAt or r.t1) or r.t1
+    if r.to == -1 and t > lastOut then lastOut = t end
+    if r.from == 0 then batT = t end
+  end
+  plan.callT = (res == "HR" and plan.wallT) or max(batT or tBallDone or 1, lastOut)
+  if isHit and not plan.dropT then plan.dropT = plan.callT end      -- (an infield hit: he beat it out)
+  if b.big and not plan.bannerT then plan.bannerT = (res == "HR" and plan.wallT + 0.3) or plan.callT + 0.15 end
   b.dur = max(endT, lastT) + 1.3
 end
 
@@ -1238,6 +1273,8 @@ local function planOther(b, tl, plan)
     plan.relT = 0.3
     plan.cthrow = tThrow
     umpCall(plan, tIn + 0.05, e.ok and "ump_safe" or "ump_strike", 0.9)
+    if not e.ok then r.outAt = tIn + 0.05 end      -- (the tag, not where he pulls up)
+    plan.callT, plan.bannerT = tIn + 0.1, tIn + 0.3
     plan.slo = { tIn - 0.5, tIn + 0.3 }
     pop(plan, tIn + 0.1, e.ok and "SAFE!" or "OUT!", bx, by, 10, 1.2)
     sfx(plan, tIn + 0.1, e.ok and "roar" or "ooh", 0.6)
@@ -1252,6 +1289,7 @@ local function planOther(b, tl, plan)
     seg(plan, { kind = "roll", t0 = 0.85, t1 = 1.8, ax = 1.5, ay = 2, bx = 18, by = -40, hop = 2, hops = 3 })
     cam(plan, 1.0, "high")
     pop(plan, 0.9, e.pb and "PASSED BALL" or "WILD PITCH", 0, -6, 9, 1.4)
+    plan.callT = 0.9
     local endT = 1.8
     for _, m in ipairs(b.mvs) do
       local r = runner(plan, m.id, m.from, m.to, 0.9)
@@ -1315,17 +1353,19 @@ local function reactions(b, plan)
     if plan.power or plan.hyperPower then R(0.35, "c_ooh", 0.7) end
   elseif k == "bip" then
     local res = e.res
+    -- it's carrying...: every deep fly gets the ooh before it comes down, caught, off the wall or
+    -- gone (it used to be the caught ones only)
+    local cp = plan.catchPos
+    local deep = res == "HR" or (cp and (cp[1] * cp[1] + cp[2] * cp[2]) > 270 * 270)
+    local tDown = plan.wallT or (plan.flyCatch and plan.catchT) or plan.dropT
+    if deep and tDown and (e.path and #e.path >= 6) and res ~= "FOUL_OUT" then R(tDown - 0.8, "c_ooh", 0.85) end
     if res == "HR" then R(plan.wallT or 1, home and "c_roar" or "c_groan", 1)
     elseif plan.leap then R(plan.leap.tc + 0.05, home and "c_groan" or "c_roar", 1)
     else
-      local cp = plan.catchPos
-      local deep = cp and (cp[1] * cp[1] + cp[2] * cp[2]) > 270 * 270
-      if deep and plan.catchT and (res == "OUT" or res == "SF" or res == "DP" or res == "FOUL_OUT") then
-        R(plan.catchT - 0.8, "c_ooh", 0.85)                     -- it's carrying... caught
-      end
-      if (res == "1B" or res == "2B" or res == "3B") and home then R(0.7, "c_cheer", res == "1B" and 0.6 or 0.85) end
+      -- (the hit's cheer once it's in, not off the bat)
+      if (res == "1B" or res == "2B" or res == "3B") and home then R(plan.dropT or plan.callT or 0.7, "c_cheer", res == "1B" and 0.6 or 0.85) end
       if res == "ROE" then R((plan.catchT or 1) + 0.5, home and "c_cheer" or "c_groan", 0.8) end
-      if res == "DP" then R(plan.slo and plan.slo[2] or 2, home and "c_groan" or "c_applause", 0.8) end
+      if res == "DP" then R(plan.callT or 2, home and "c_groan" or "c_applause", 0.8) end
     end
     if plan.scoreT and res ~= "HR" then R(plan.scoreT, home and "c_cheer" or "c_groan", 0.9) end
     if b.walkoff then R(plan.scoreT or 1, "c_roar", 1) end
@@ -1394,6 +1434,11 @@ function Play.plan(b, tl)
   if b.kind == "p" then planPitch(b, tl, plan)
   elseif b.kind == "bip" then planBip(b, tl, plan)
   else planOther(b, tl, plan) end
+  -- the outs and the runs as they happen on screen (the scorebug counts them in one at a time)
+  for _, r in ipairs(plan.runners) do
+    if r.to == -1 then plan.outTs[#plan.outTs + 1] = r.outAt or r.t1
+    elseif r.to == 4 then plan.runTs[#plan.runTs + 1] = r.t1 end
+  end
   runnerExits(b, plan)
   carryExits(b, tl, plan)
   reactions(b, plan)
@@ -1401,6 +1446,60 @@ function Play.plan(b, tl)
   table.sort(plan.cams, function(a, c) return a.t < c.t end)
   -- pitch + big moments: the strikeout that ends it, the final out of a close game, etc.
   return plan
+end
+
+---------------------------------------------------------------------------
+-- no spoilers: when a beat's result may show anywhere off the field (the scorebug, the call,
+-- the ticker, the win chance, the banner, the game log). Each lands on or after the moment
+-- the picture shows it (the catch, the tag, the throw beating him, the ball over the wall).
+
+--- The beat's result is on screen (its play-by-play line, call, win chance, game log entry):
+--- the batter's out or safe, the last out, every run in. Plan time.
+function Play.revealT(b)
+  local plan = b.plan
+  if b.kind == "bip" then
+    if plan.wallT then return plan.wallT + 0.3 end
+    local t = plan.callT or max(0.5, b.dur - 1.6)
+    for i = 1, #plan.runTs do if plan.runTs[i] > t then t = plan.runTs[i] end end
+    return t + 0.1
+  end
+  -- (ball four with the bases loaded forces the run in: it counts with the call)
+  if plan.pitch then return plan.pitch.tPlate + 0.3 end
+  if b.kind == "sb" or b.kind == "wp" or b.kind == "mv" then
+    local t = plan.callT or 0.3
+    for i = 1, #plan.runTs do if plan.runTs[i] > t then t = plan.runTs[i] end end
+    return t + 0.1
+  end
+  return 0.3
+end
+
+--- Everyone has stopped: the scorebug's bases jump to the post state. (Before it, the outs and
+--- the runs tick in one at a time: Play.outsRunsAt.)
+function Play.settleT(b)
+  local plan = b.plan
+  if plan.pitch then return plan.pitch.tPlate + 0.25 end
+  if b.kind == "bip" or b.kind == "sb" or b.kind == "wp" or b.kind == "mv" then return b.dur - 1.1 end
+  return 0.2
+end
+
+--- outs made, runs scored by plan time tau (as the picture has shown them)
+function Play.outsRunsAt(b, tau)
+  local plan = b.plan
+  local o, r = 0, 0
+  for i = 1, #plan.outTs do if tau >= plan.outTs[i] then o = o + 1 end end
+  for i = 1, #plan.runTs do if tau >= plan.runTs[i] then r = r + 1 end end
+  return o, r
+end
+
+--- When the big-moment banner (b.big) lands: the catch, the ball over the wall, the last out,
+--- the winning run home. (A walk-off is only known once the game is over: TL.layout re-plans.)
+function Play.bannerT(b)
+  local plan = b.plan
+  if b.walkoff and b.kind == "bip" then
+    if plan.wallT then return plan.wallT + 0.3 end
+    return max(plan.callT or 0, plan.scoreT or 0) + 0.2
+  end
+  return plan.bannerT or (plan.wallT and plan.wallT + 0.3) or (plan.slo and plan.slo[2]) or (b.dur * 0.45)
 end
 
 ---------------------------------------------------------------------------
@@ -2213,9 +2312,11 @@ function Play.drawWorld(R, view, b, tau)
   do
     local plan0 = b.plan
     local big = b.big or plan0.homerBatter or b.walkoff
-    local tm = plan0.wallT or plan0.scoreT or plan0.shake or plan0.catchT or 0.5
+    -- (from the moment itself: the flashes used to start 0.6 s early, and at 0.5 s on a big
+    -- ground ball, so the stands knew first)
+    local tm = big and (plan0.wallT or (b.walkoff and plan0.scoreT) or Play.bannerT(b) - 0.3) or 0
     R.crowdWave = (big and tau > tm + 0.4) and 1 or 0
-    R.crowdFlash = (big and tau > tm - 0.6) and 1 or ((b.k and plan0.kT and tau > plan0.kT and tau < plan0.kT + 1.5) and 0.4 or 0)
+    R.crowdFlash = (big and tau > tm) and 1 or ((b.k and plan0.kT and tau > plan0.kT and tau < plan0.kT + 1.5) and 0.4 or 0)
   end
   -- dust, skids, slide plumes: drawn now, under the billboards the C flush draws later
   BallCast.Juice.ground(R, b, tau)
@@ -2782,6 +2883,8 @@ function Play.playShot(r, b, tau, cc)
     return e, t, BUNT_FOV
   end
   local c = plan.flyCatch
+  -- (the tracking shot also runs a fielder down to a hit he gets to after it drops: plan.chaseTo)
+  if kind == "track" and not (c and c.fx) then c = plan.chaseTo end
   if not c or not c.fx then return nil end
   if kind == "track" then
     -- alongside him from the infield side, a little behind: he runs across and away

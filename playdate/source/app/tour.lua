@@ -588,6 +588,8 @@ end
 --- Pennant live games own every input: in each input state (first time seen), send every input the
 --- state does not allow, plus the crank everywhere, and assert BallCast's replay state didn't move
 --- (game clock, beat index, speed, play/pause, game log, highlights) and nothing opened or closed.
+--- In "play" it also presses A (the next camera shot) and checks the clock only went forward, no
+--- further than what's been fed.
 Tour.probe = { seen = {}, ok = 0, fail = 0 }
 local function probeInputs()
   local src = PennantLive and PennantLive.cur
@@ -621,6 +623,17 @@ local function probeInputs()
   local b = snap()
   local bad = {}
   for k, v in pairs(a) do if b[k] ~= v then bad[#bad + 1] = k .. " " .. tostring(v) .. "->" .. tostring(b[k]) end end
+  -- A where it's the next camera shot (watching): the clock may only move forward, to at most the
+  -- end of what's been fed (the next decision); nothing else may change
+  if st == "play" and allowed.A then
+    local tl = s.tl
+    s:AButtonDown()
+    s:AButtonUp()
+    local c = snap()
+    if c.t < b.t or c.t > tl.total + 0.001 or (c.bi or 0) < (b.bi or 0) then bad[#bad + 1] = "A t " .. b.t .. "->" .. c.t .. " (total " .. tl.total .. ")" end
+    for k, v in pairs(b) do if k ~= "t" and k ~= "bi" and c[k] ~= v then bad[#bad + 1] = "A " .. k .. " " .. tostring(v) .. "->" .. tostring(c[k]) end end
+    sent[#sent + 1] = "A(next shot " .. string.format("%+.1f", c.t - b.t) .. "s)"
+  end
   if #bad == 0 then Tour.probe.ok += 1 else Tour.probe.fail += 1 end
   print(string.format("[inputprobe] %-20s sent %-26s %s", key, table.concat(sent, ","), #bad == 0 and "OK" or ("FAIL " .. table.concat(bad, "; "))))
 end
