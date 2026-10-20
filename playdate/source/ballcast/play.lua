@@ -1768,6 +1768,33 @@ local function ballR(R, d) return K.clamp(R:ppf(d) * 0.6, 1.5, 7) end
 -- "marching ants": the last ~0.7 s of the ball's path as a dashed line whose dashes crawl
 -- toward the ball. Black dashes on white gaps, so it reads on grass, dirt and stands.
 local antX, antY = {}, {}
+-- the part of segment (x0,y0)-(x1,y1) inside the screen (+ a margin), as parameters 0..1 along
+-- it (Liang-Barsky), or nil: a trail point next to the camera projects thousands of px away,
+-- and laying 6 px dashes along that was 20-70 ms a frame on the device (deep catches)
+local CLIP_P, CLIP_Q = {}, {}
+local function clipT(x0, y0, x1, y1)
+  local ta, tb = 0, 1
+  local dx, dy = x1 - x0, y1 - y0
+  CLIP_P[1], CLIP_P[2], CLIP_P[3], CLIP_P[4] = -dx, dx, -dy, dy
+  CLIP_Q[1], CLIP_Q[2], CLIP_Q[3], CLIP_Q[4] = x0 + 8, 408 - x0, y0 + 8, 248 - y0
+  for k = 1, 4 do
+    local p, q = CLIP_P[k], CLIP_Q[k]
+    if p == 0 then
+      if q < 0 then return nil end
+    else
+      local r = q / p
+      if p < 0 then
+        if r > tb then return nil end
+        if r > ta then ta = r end
+      else
+        if r < ta then return nil end
+        if r < tb then tb = r end
+      end
+    end
+  end
+  return ta, tb
+end
+
 local function drawAnts(R, plan, tau, n)
   local m = 0
   for k = 0, 7 do
@@ -1786,26 +1813,33 @@ local function drawAnts(R, plan, tau, n)
   local white, black = gfx.kColorWhite, gfx.kColorBlack
   gfx.setLineWidth(1)
   -- (device cost: one black polyline, then only the white cells on top — half the draw calls
-  -- and one colour switch instead of one per dash)
-  gfx.setColor(black)
-  for i = 1, m - 1 do gfx.drawLine(antX[i], antY[i], antX[i + 1], antY[i + 1]) end
-  gfx.setColor(white)
+  -- and one colour switch instead of one per dash; only the on-screen part of each segment)
   local s0 = 0                       -- arc length at the start of this segment
-  for i = 1, m - 1 do
-    local x0, y0, x1, y1 = antX[i], antY[i], antX[i + 1], antY[i + 1]
-    local dx, dy = x1 - x0, y1 - y0
-    local len = sqrt(dx * dx + dy * dy)
-    if len >= 1 then
-      -- whole dash cells overlapping this segment (integer counter: always terminates)
-      local c0 = floor((s0 + phase) / DASH)
-      local c1 = floor((s0 + len + phase) / DASH)
-      if c0 % 2 == 0 then c0 = c0 + 1 end          -- odd cells are the white ones
-      local il = 1 / len
-      for c = c0, c1, 2 do
-        local a = max(0, c * DASH - phase - s0)
-        local e = min(len, (c + 1) * DASH - phase - s0)
-        if e > a then
-          gfx.drawLine(x0 + dx * a * il, y0 + dy * a * il, x0 + dx * e * il, y0 + dy * e * il)
+  for pass = 1, 2 do
+    gfx.setColor(pass == 1 and black or white)
+    s0 = 0
+    for i = 1, m - 1 do
+      local x0, y0, x1, y1 = antX[i], antY[i], antX[i + 1], antY[i + 1]
+      local dx, dy = x1 - x0, y1 - y0
+      local len = sqrt(dx * dx + dy * dy)
+      local ta, tb = clipT(x0, y0, x1, y1)
+      if ta and len >= 1 then
+        if pass == 1 then
+          gfx.drawLine(x0 + dx * ta, y0 + dy * ta, x0 + dx * tb, y0 + dy * tb)
+        else
+          -- whole dash cells overlapping the visible part (integer counter: always terminates)
+          local lo, hi = ta * len, tb * len
+          local c0 = floor((s0 + lo + phase) / DASH)
+          local c1 = floor((s0 + hi + phase) / DASH)
+          if c0 % 2 == 0 then c0 = c0 + 1 end          -- odd cells are the white ones
+          local il = 1 / len
+          for c = c0, c1, 2 do
+            local a = max(lo, c * DASH - phase - s0)
+            local e = min(hi, (c + 1) * DASH - phase - s0)
+            if e > a then
+              gfx.drawLine(x0 + dx * a * il, y0 + dy * a * il, x0 + dx * e * il, y0 + dy * e * il)
+            end
+          end
         end
       end
       s0 = s0 + len

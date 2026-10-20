@@ -25,7 +25,7 @@ static PlaydateAPI* pd = NULL;
 #define MAX_VERTS   12000
 #define MAX_POLYS   1600
 #define MAX_MATS    64
-#define MAX_SPRITES 256
+#define MAX_SPRITES 640      // every pose x body x team a game draws (~580 by the 9th; was 256: constant re-registering)
 #define MAX_BB      96
 #define MAX_CLIP    64
 #define BUCKETS     110      // height buckets of 2 px → up to 220 px tall
@@ -70,16 +70,22 @@ typedef struct {
 	uint8_t amount;  // crowd: flip density 0..255
 } Material;
 
+// one built size of a sprite: allocated when it's built (a slot used to carry all 110 sizes'
+// fields up front, ~3 KB a sprite; now ~1 KB, so the registry can hold every pose a game uses)
+typedef struct {
+	LCDBitmap* bmp;
+	int16_t w, h;
+	float ax, ay;
+	float cs;                // cached bitmap px per 1x source px
+} SizeCache;
+
 typedef struct {
 	LCDBitmap* src[2];       // 1x, 2x
 	int w[2], h[2];
 	float ax[2], ay[2];      // anchor (feet) in source pixels
 	float figH;              // figure height in px at 1x (e.g. 40)
 	float figFt;             // what that height means in feet (e.g. 6.2)
-	LCDBitmap* cache[BUCKETS];
-	int cw[BUCKETS], ch[BUCKETS];
-	float cax[BUCKETS], cay[BUCKETS];
-	float ccs[BUCKETS];      // cached bitmap px per 1x source px
+	SizeCache* cache[BUCKETS];   // the scaled sizes built so far (most sprites use a few)
 	int lastB;               // size-bucket hysteresis: a slow zoom doesn't flicker between sizes
 	float wx;                // body width factor (stocky > 1, lanky < 1), baked into the caches
 	uint8_t hasLm;           // landmarks for the look stamps (bc3d.sprite arg 9)
@@ -857,7 +863,7 @@ static void freeSpriteCache(Sprite* s)
 {
 	for ( int b = 0; b < BUCKETS; b++ )
 	{
-		if ( s->cache[b] ) { pd->graphics->freeBitmap(s->cache[b]); s->cache[b] = NULL; }
+		if ( s->cache[b] ) { pd->graphics->freeBitmap(s->cache[b]->bmp); pd->system->realloc(s->cache[b], 0); s->cache[b] = NULL; }
 	}
 }
 
@@ -906,11 +912,13 @@ static void buildBucket(Sprite* s, int b)
 	if ( f == 1.0f && s->wx == 1.0f ) pd->graphics->drawBitmap(s->src[which], 0, 0, kBitmapUnflipped);
 	else pd->graphics->drawScaledBitmap(s->src[which], 0, 0, fx, f);
 	pd->graphics->popContext();
-	s->cache[b] = bmp;
-	s->cw[b] = nw; s->ch[b] = nh;
-	s->cax[b] = s->ax[which] * fx;
-	s->cay[b] = s->ay[which] * f;
-	s->ccs[b] = which ? f * 2.0f : f;
+	SizeCache* c = pd->system->realloc(NULL, sizeof(SizeCache));
+	c->bmp = bmp;
+	c->w = (int16_t)nw; c->h = (int16_t)nh;
+	c->ax = s->ax[which] * fx;
+	c->ay = s->ay[which] * f;
+	c->cs = which ? f * 2.0f : f;
+	s->cache[b] = c;
 }
 
 // pre-warm support: bc3d.collect(true) makes flush record the (sprite, bucket) pairs it would
@@ -956,8 +964,9 @@ static LCDBitmap* spriteFor(Sprite* s, int id, float hpx, int* w, int* h, float*
 		statNewCaches++;
 		buildBucket(s, b);
 	}
-	*w = s->cw[b]; *h = s->ch[b]; *ax = s->cax[b]; *ay = s->cay[b]; *cs = s->ccs[b];
-	return s->cache[b];
+	SizeCache* c = s->cache[b];
+	*w = c->w; *h = c->h; *ax = c->ax; *ay = c->ay; *cs = c->cs;
+	return c->bmp;
 }
 
 // Nearest-neighbour affine blit of a (masked) bitmap straight into the frame buffer.

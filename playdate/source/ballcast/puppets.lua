@@ -451,7 +451,7 @@ local ids, idsT, invs, nextId = {}, {}, {}, 1
 -- The C side holds MAX_SPRITES (256) ids. With the multi-view tables a long game can touch
 -- more cells than that, so ids are recycled least-recently-used: owners[id] lists the cache
 -- slots that point at an id (cleared on reuse), used[id] the frame it was last drawn.
-local MAX_IDS <const> = 250
+local MAX_IDS <const> = 630   -- (C: MAX_SPRITES 640; a game uses ~580 pose x body x team ids, and a recycled id loses its built sizes)
 local owners, used = {}, {}
 local tick = 0
 local pendBody, pendLook = 1, 0

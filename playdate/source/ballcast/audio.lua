@@ -179,7 +179,8 @@ A.TV_SOUNDS = { "tv_ident", "tv_whoosh", "tv_replay", "tv_rewind", "tv_bulletin"
 --- played silently until every variant has had its turn (random picks; 8 per variant).
 --- Stingers (strikeout, home_run, ...) load their file on first play too: played at volume 0.
 A.WARM_SFX = { "bat_crack", "mitt_pop", "crowd_roar", "crowd_cheer", "crowd_ooh", "crowd_groan", "crowd_boo",
-  "applause", "crowd_clap", "whistle", "telegraph", "strike_call", "tv_impact", "tv_rewind", "tv_freeze", "tv_pen", "tv_tick" }
+  "applause", "crowd_clap", "whistle", "telegraph", "strike_call", "tv_impact", "tv_rewind", "tv_freeze", "tv_pen", "tv_tick",
+  "tv_whoosh", "tv_replay" }
 A.WARM_STINGERS = { "strikeout", "home_run", "error", "ejection", "charge" }
 function A.warmSteps(step)
   local X = ext()
@@ -195,6 +196,8 @@ function A.warmSteps(step)
   for _, n in ipairs(A.WARM_STINGERS) do
     step("stinger " .. n, function() pcall(X.stinger, n, 0) end)
   end
+  -- the walk-up jingle starts on an at-bat's first frame: kept in memory, not streamed
+  if X.preload then step("music pop_weasel", function() pcall(X.preload, "pop_weasel") end) end
 end
 
 -- the ones the loader plays once silently (the others can play over a wipe or card, where a

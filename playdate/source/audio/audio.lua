@@ -75,6 +75,7 @@ local st = { music = 0.7, sfx = 0.8, muted = false, musicMuted = false, sfxMuted
 local inited = false
 local organCh, recCh, sfxCh, paFx
 local fp                      -- the one music fileplayer
+local resident = {}           -- name -> sampleplayer (A.preload)
 local current                 -- { name, mode = "file"|"midi", seq, gain, token }
 local fade, fadeTimer = 1, nil
 local duck = 1
@@ -106,6 +107,7 @@ local function applyVolumes()
   AudioSfx.setVolume(sfxLevel())
   local g = current and (current.gain * fade * duck) or 0
   if fp and current and current.mode == "file" then fp:setVolume(g) end
+  if current and current.mode == "sample" then current.sp:setVolume(g) end
   if inst then
     for i, ins in ipairs(inst.music) do ins:setVolume(ROLE_GAIN[i] * ((current and current.mode == "midi") and g or 0)) end
     local sg = sting and sting.gain or 1
@@ -201,6 +203,7 @@ local function stopMusicNow()
   stopFadeTimer()
   if current then
     if current.mode == "file" and fp then fp:stop()
+    elseif current.mode == "sample" then current.sp:stop()
     elseif current.seq then current.seq:stop(); current.seq:allNotesOff() end
   end
   current = nil
@@ -236,6 +239,19 @@ function A.info(name) return M.cues[name] end
 
 function A.current() return current and current.name or nil end
 
+--- Keep a short music cue in memory, so playing it doesn't open a file mid-frame (the
+--- fileplayer's open + first buffer was ~34 ms on the device: BallCast's walk-up jingle).
+function A.preload(name)
+  A.init()
+  local cue = M.cues[name]
+  if resident[name] or not (cue and cue.file) then return end
+  local smp = snd.sample.new(cue.file)
+  if not smp then return end
+  local sp = snd.sampleplayer.new(smp)
+  recCh:addSource(sp)
+  resident[name] = sp
+end
+
 function A.play(name, opts)
   A.init()
   opts = opts or {}
@@ -268,6 +284,13 @@ function A.play(name, opts)
     applyVolumes()
     updatePA()
     seq:play(function() if current and current.token == my and not loop then current = nil; updatePA() end end)
+  elseif cue.file and resident[name] then
+    -- a short cue kept in memory (A.preload): no file open on the frame it starts
+    local sp = resident[name]
+    current.mode, current.sp = "sample", sp
+    sp:setFinishCallback(function() if current and current.token == my then current = nil end end)
+    applyVolumes()
+    sp:play(loop and 0 or 1)
   elseif cue.file then
     if not fp then fp = snd.fileplayer.new(); recCh:addSource(fp) end
     local ok = fp:load(cue.file)

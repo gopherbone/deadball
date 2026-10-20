@@ -320,11 +320,17 @@ function S:prewarm(Y)
   local view = { defV = "home", offV = "away", people = self.meta.people }
   local done = {}
   bc3d.collect(true)
+  -- (+ the first changeover: both teams on the move, ~20 puppets in poses nothing else uses;
+  -- registering them at the cut was a 60-130 ms frame on the device)
+  local TAUS <const> = { p = { 0.3, 1.2 }, bip = { 0.3, 1.2 }, halfT = { 0.05, 0.8, 1.6, 2.4, 3.2 }, halfB = { 0.05, 0.8, 1.6, 2.4, 3.2 } }
   for i, b in ipairs(tl.beats) do
-    local want = (b.kind == "p" and not done.p) and "p" or (b.kind == "bip" and not done.bip) and "bip" or nil
+    -- (a changeover each way: top and bottom swap who jogs in and who trots out)
+    local hk = b.kind == "half" and (b.pre.top and "halfT" or "halfB") or nil
+    local want = (b.kind == "p" and not done.p) and "p" or (b.kind == "bip" and not done.bip) and "bip"
+      or (hk and not done[hk]) and hk or nil
     if want then
       done[want] = true
-      for _, tau in ipairs({ 0.3, 1.2 }) do
+      for _, tau in ipairs(TAUS[want]) do
         for _, v in ipairs({ "home", "away" }) do
           step("dry run " .. want .. " " .. v .. " " .. tau, function()
             view.defV, view.offV = v, v == "home" and "away" or "home"
@@ -335,7 +341,7 @@ function S:prewarm(Y)
         end
       end
     end
-    if done.p and done.bip then break end
+    if done.p and done.bip and done.halfT and done.halfB then break end
   end
   bc3d.collect(false)
   local t, built = playdate.getCurrentTimeMilliseconds(), 0

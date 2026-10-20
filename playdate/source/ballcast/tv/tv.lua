@@ -247,6 +247,15 @@ function TV.prepare(scene, step)
     if k == 1 then step("tv dossier " .. u[2], f) else later("dossier " .. u[2], f) end
   end
   for _, t in ipairs({ "INSTANT REPLAY", "SPECIAL REPORT", "DID YOU KNOW?" }) do later("text " .. t, function() A.text("waBig", t, "wa") end) end
+  -- the replay chrome (replayChrome): its slow-motion rates (replay.lua's shots) and angles,
+  -- ~7 ms each when a replay's first frame built them
+  later("text replay chrome", function()
+    A.text("nb", "REPLAY", "w"); A.text("nb", "TELESTRATOR", "w")
+    for k = 1, 4 do A.text("nb", "ANGLE " .. k, "wo") end
+  end)
+  for _, r in ipairs({ 0.35, 0.45, 0.5, 0.7 }) do
+    later("text slo-mo " .. r, function() A.text("tiny", string.format("SLO-MO %.2fX", r), "wo") end)
+  end
   -- the camera guard's index of this park's stands (BallCast.Cam.safeEye), 150 polygons a step
   do
     local done = false
