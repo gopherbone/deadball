@@ -2,10 +2,13 @@
   input mappings). Methods on PennantLive's source (pennant/live.lua), which hands over at the
   engine's "bat" and "pitchsel" pauses when the player has that side.
 
-  Shared: one strike zone (the inset on the right); the card on the left (where BallCast's K-zone
-  history sits) is the LAST card after every pitch (what the engine heard: early/late/over/under,
-  missed your spot...) or, for Scout, the scouting card before it. First use of a scheme shows
-  its how-to card.
+  Shared: one strike zone (the inset on the right) with this at-bat's pitches so far marked on it
+  (numbered, the latest ringed: hollow = ball, filled = strike or foul, X = hit by pitch; the
+  markers come from BallCast's K-ZONE, ballcast/tv/overlay.lua, so they show once the picture has
+  shown the pitch arrive). Once the pitch is away, BallCast's own K-ZONE inset on the left takes
+  over (with the call and the count for a moment), and after a ball in play its spray chart.
+  Nothing else stays up: the old LAST card is gone. Scout's scouting card sits on the left while
+  its decision is up. First use of a scheme shows its how-to card.
 ]]
 
 local gfx <const> = playdate.graphics
@@ -23,7 +26,6 @@ local CX, CY, CW, CH = 2, 58, 92, 92
 
 local function P(id) local L = Pennant.L return L.players[PEng.nid(id) or -1] end
 local function held(btn) return playdate.buttonIsPressed(btn) end
-local function now() return playdate.getCurrentTimeMilliseconds() end
 
 local function panel(x, y, w, h)
   gfx.setColor(gfx.kColorBlack)
@@ -109,7 +111,7 @@ local HELP <const> = {
     "D-pad: move the meet cursor onto the pitch.",
     "Tap A when the ring closes on the ball.",
     "Hold A in the windup, let go to swing: POWER.",
-    "B: time out. The LAST card says what you did." } },
+    "The zone marks this at-bat's pitches.  B: time out." } },
   scout_bat = { "SCOUT BATTING", {
     "Before the pitch, pick an approach:",
     "Up: sit fastball   Down: sit soft stuff",
@@ -146,28 +148,7 @@ function Live:drawHelp()
   Text.draw("A: play ball", x + w - 8, y + ht - 16, F().bold, nil, "right")
 end
 
--- The LAST card ---------------------------------------------------------------------------------------------
-
---- Describe what the engine did with the pitch the player just handled, from the new events.
-local RES <const> = { B = "ball", C = "called strike", S = "swinging strike", F = "foul", H = "hit by pitch" }
-function Live:resultWords(evs)
-  for _, e in ipairs(evs) do
-    if e.k == "bip" then
-      local r = e.res
-      local w = ({ ["1B"] = "single", ["2B"] = "double", ["3B"] = "triple", HR = "HOME RUN", OUT = "out", DP = "double play",
-        FC = "fielder's choice", ROE = "error", SF = "sac fly", FOUL_OUT = "foul out" })[r] or r
-      return w, e
-    end
-  end
-  for _, e in ipairs(evs) do
-    if e.k == "p" then return (RES[e.r] or "pitch") .. " " .. e.b .. "-" .. e.s, e end
-  end
-  return "", nil
-end
-
-function Live:pitchEvent(evs)
-  for _, e in ipairs(evs) do if e.k == "p" then return e end end
-end
+-- The scouting card (Scout's decisions) -------------------------------------------------------------------
 
 function Live:drawCard()
   local c = self.card
@@ -175,12 +156,11 @@ function Live:drawCard()
   local x, y, w, h = CX, CY, CW, c.h or CH
   panel(x, y, w, h)
   gfx.fillRect(x, y, w, 13)
-  Text.draw(c.title or "LAST", x + 3, y, F().bold, "white")
+  Text.draw(c.title or "SCOUT", x + 3, y, F().bold, "white")
   local yy = y + 15
-  for k, l in ipairs(c.lines) do
-    if c.hide and c.hide[k] and not c.revealed then l = "..." end
+  for _, l in ipairs(c.lines) do
     if type(l) == "table" then
-      -- a verdict: inverted
+      -- a name: inverted
       gfx.fillRect(x + 2, yy - 1, w - 4, 14)
       Text.draw(Text.ellipsize(l[1], F().bold, w - 8), x + w // 2, yy, F().bold, "white", "center")
       yy = yy + 15
@@ -191,50 +171,58 @@ function Live:drawCard()
   end
 end
 
---- Has BallCast shown the result on card c (c.resEv: the pitch or ball-in-play event it reads)?
-function Live:resultShown(scene, c)
-  local tl = scene.tl
-  if not tl or not c.resEv then return true end
-  local bi = scene:curBeatIndex()
-  if not bi then return false end
-  local j = c.resBi
-  if not j or tl.beats[j] == nil or tl.beats[j].e ~= c.resEv then
-    j = nil
-    for k = #tl.beats, math.max(1, #tl.beats - 60), -1 do
-      if tl.beats[k].e == c.resEv then j = k break end
-    end
-    c.resBi = j
-  end
-  if not j then return false end
-  if bi ~= j then return bi > j end
-  local b = tl.beats[j]
-  return scene.t - b.start >= BallCast.Play.revealT(b)
-end
-
---- c.result: the line that names the result (hidden until the picture has shown it; see
---- drawControl), resEv: the event it comes from
-function Live:setCard(c, result, resEv)
-  c.result, c.resEv = (result ~= "" and result) or nil, resEv
-  c.hide = c.result and {} or nil
-  -- long lines wrap (two at most) rather than being cut
-  local out = {}
-  for _, l in ipairs(c.lines) do
-    local n0 = #out
-    if type(l) == "string" and F().body:getTextWidth(l) > CW - 6 then
-      local w = Text.wrap(l, F().body, CW - 6)
-      for i = 1, math.min(2, #w) do out[#out + 1] = w[i] end
-    else
-      out[#out + 1] = l
-    end
-    if c.hide and l == c.result then for k = n0 + 1, #out do c.hide[k] = true end end
-  end
-  c.lines = out
+function Live:setCard(c)
   local hh = 17
-  for _, l in ipairs(out) do hh = hh + (type(l) == "table" and 15 or 13) end
-  -- (at least as tall as BallCast's K-zone history it covers)
+  for _, l in ipairs(c.lines) do hh = hh + (type(l) == "table" and 15 or 13) end
   c.h = math.max(CH, hh)
   self.card = c
   self.cardKey = (self.cardKey or 0) + 1
+end
+
+-- This at-bat's pitches on our zone -------------------------------------------------------------------------
+
+-- a pitch's spot on the zone panels (the same mapping as the ball in Arcade batting)
+local function markXY(p)
+  local x = max(KX + 9, min(KX + KW - 15, kzx((p.px or 0) / 0.83)))
+  local y = max(KY + 22, min(KY + KH - 9, kzy((p.pz or 2.5) - 2.5)))
+  return x, y
+end
+
+--- A transparent layer over the zone panel: the at-bat's pitches the picture has shown (BallCast's
+--- K-ZONE list; Arcade batting's provisional pitch left out), numbered, the latest ringed. Made
+--- when a pitch is added, blitted every frame.
+function Live:drawMarks(scene, bi, tau)
+  local O = BallCast.TVOverlay
+  local tl = scene.tl
+  if not (O and O.atBat and O.stampAt and tl and bi) then return end
+  local skip = self.prov and tl.beats[self.prov.beat] or nil
+  self.mkList = self.mkList or {}
+  local list, n, pa = O.atBat(tl, bi, tau, skip, self.mkList)
+  if n == 0 then return end
+  local key = pa .. ":" .. n .. ":" .. tostring(list[n])
+  if self.mkKey ~= key or not self.mkImg then
+    local img = gfx.image.new(KW, KH, gfx.kColorClear)
+    gfx.pushContext(img)
+    gfx.setDrawOffset(-KX, -KY)
+    for i = 1, n do
+      local x, y = markXY(list[i].plan.pitch)
+      if i == n then
+        -- the latest: ringed
+        gfx.setColor(gfx.kColorWhite)
+        gfx.fillCircleAtPoint(x, y, 8)
+        gfx.setColor(gfx.kColorBlack)
+        gfx.drawCircleAtPoint(x, y, 7)
+      elseif list[i].e.r ~= "B" then
+        -- (a white halo: the markers sit on Scout's spot boxes too)
+        gfx.setColor(gfx.kColorWhite) gfx.fillCircleAtPoint(x, y, 5)
+      end
+      O.stampAt(i, list[i].e.r, x, y)
+    end
+    gfx.setDrawOffset(0, 0)
+    gfx.popContext()
+    self.mkImg, self.mkKey = img, key
+  end
+  self.mkImg:draw(KX, KY)
 end
 
 -- Batting ---------------------------------------------------------------------------------------------------
@@ -242,8 +230,6 @@ end
 --- frame() for a "bat" pause the player handles. Returns a playback rate multiplier.
 function Live:batFrame(scene, bi, b, tau, p)
   local tl = scene.tl
-  -- (the last card from the other side of the ball doesn't carry into an at-bat)
-  if self.cardRole ~= "bat" then self.card, self.cardRole = nil, "bat" end
   local sch = self:schemeOf("bat")
   if self.help then return nil end
   if not self.helpDone then self.helpDone = {} end
@@ -281,10 +267,7 @@ function Live:arcadeBatFrame(scene, bi, b, tau, p)
     -- took it (or held the power swing too long)
     self.lastCx, self.lastCz = u.cx, u.cz
     self.h:bat({ swing = false })
-    local evs = self:resumeEvs(scene, true)
-    local words, resEv = self:resultWords(evs)
-    local e = self:pitchEvent(evs)
-    self:setCard({ lines = { (e and (e.t .. " " .. e.v) or ""), e and PScheme.whereWords(e.px or 0, e.pz or 0, p.info.batter.bats) or "", { "TAKE" }, words } }, words, resEv)
+    self:resumeEvs(scene, true)
     return nil
   end
   if tau > pp.tRel - 0.25 and tau < pp.tPlate + 0.2 then return 0.6 end
@@ -301,13 +284,8 @@ function Live:arcadeSwing(scene, power)
   local raw = { dt = tau - pp.tPlate, cx = u.cx, cz = u.cz, bx = pt.px, bz = pt.pz, power = power }
   local input = PScheme.arcadeBat(raw, u.con)
   self.lastCx, self.lastCz = u.cx, u.cz
-  local i = self.pause.info
   self.h:bat(input)
-  local evs = self:resumeEvs(scene, true)
-  local words, resEv = self:resultWords(evs)
-  local when, by, aimWord = PScheme.batVerdict(raw, u.con)
-  self:setCard({ lines = { pt.t .. " " .. pt.v, PScheme.whereWords(pt.px, pt.pz, i.batter.bats), { when .. (power and " +PWR" or "") },
-    (by > 0 and when ~= "ON TIME") and ("by " .. by .. " ms") or (aimWord or "squared up"), (by > 0 and when ~= "ON TIME" and aimWord) or words, (by > 0 and when ~= "ON TIME" and aimWord) and words or nil } }, words, resEv)
+  self:resumeEvs(scene, true)
 end
 
 function Live:arcadeBatInput(scene, btn, change)
@@ -331,10 +309,15 @@ function Live:arcadeBatInput(scene, btn, change)
   return true
 end
 
-function Live:drawArcadeBat(b, tau)
+function Live:drawArcadeBat(scene, bi, b, tau)
   local u = self.ui
   local pp = u.plan and u.plan.pitch
-  kzFrame(u.power and "POWER" or "AT BAT", "ARCADE")
+  local pw, ch = u.power and true or false, u.charging and true or false
+  self:cached("ab" .. tostring(pw) .. tostring(ch), KX, KY - 1, KW + 2, KH + 18, function()
+    kzFrame(pw and "POWER" or "AT BAT", "ARCADE")
+    hintStrip(ch and "POWER loaded..." or "A swing  hold: power", KY + KH + 2)
+  end, "control")
+  self:drawMarks(scene, bi, tau)
   -- the meet cursor: its size is the batter's real aim window (smaller on a power swing)
   local hw = PScheme.cursorHalf(u.con, u.power)
   local x0, x1 = kzx(u.cx - hw), kzx(u.cx + hw)
@@ -361,7 +344,6 @@ function Live:drawArcadeBat(b, tau)
       if left < 0.12 then gfx.drawCircleAtPoint(cx, cy, r + 2) end
     end
   end
-  hintStrip(u.charging and "POWER loaded..." or "A swing  hold: power", KY + KH + 2)
 end
 
 -- Scout: an approach before the pitch; the swing comes out of the mapping.
@@ -413,12 +395,7 @@ function Live:scoutChoose(scene, choice)
   self.rng = self.rng or PRng.new(playdate.getSecondsSinceEpoch())
   local input, note = PScheme.scoutBat(choice, pt, { con = bat and bat.r.con or 50, eye = bat and bat.r.eye or 50, bats = i.batter.bats, strikes = i.strikes }, self.rng)
   self.h:bat(input)
-  local evs = self:resumeEvs(scene, false)
-  local words, resEv = self:resultWords(evs)
-  local name = PM.PITCH_NAME[pt.t] or pt.t
-  local guessWords = ({ fast = "sat fastball", soft = "sat soft", ["in"] = "looked in", away = "looked away", see = "saw it", take = "took" })[choice]
-  local verdict = note == "right" and "RIGHT" or (note == "wrong" and "FOOLED" or (note == "laid off" and "LAID OFF" or string.upper(note or "")))
-  self:setCard({ lines = { "You " .. guessWords .. ".", "It was a " .. name:lower(), PScheme.whereWords(pt.px, pt.pz, i.batter.bats), { verdict }, words } }, words, resEv)
+  self:resumeEvs(scene, false)
   Sfx.select()
 end
 
@@ -430,28 +407,26 @@ function Live:scoutBatInput(scene, btn)
 end
 
 function Live:drawScoutBat()
-  -- (a plain panel, not the zone: the approach is picked before the pitch is seen)
-  gfx.setColor(gfx.kColorBlack)
-  gfx.fillRect(KX, KY, KW, KH)
-  gfx.setColor(gfx.kColorWhite)
-  gfx.fillRect(KX + 2, KY + 12, KW - 4, KH - 14)
-  Text.draw("APPROACH", KX + 4, KY - 1, F().bold, "white")
-  gfx.setColor(gfx.kColorBlack)
+  -- the approach around the zone: up/down sit on a pitch, left/right look in/away (the zone keeps
+  -- this at-bat's pitches: drawMarks)
+  kzFrame("APPROACH", "SCOUT")
   local cx = KX + KW // 2
-  local function lab(t, x, y, al) Text.draw(t, x, y, F().bold, nil, al) end
-  lab("\u{25b2} SIT FB", cx, KY + 16, "center")
-  lab("\u{25c0} IN", KX + 5, KY + 38)
-  lab("AWAY \u{25b6}", KX + KW - 5, KY + 38, "right")
-  lab("\u{25bc} SIT SOFT", cx, KY + 60, "center")
-  gfx.fillRect(KX + 6, KY + 79, KW - 12, 15)
-  Text.draw("A: SEE IT", cx, KY + 80, F().bold, "white", "center")
-  hintStrip("B: take  hold B: time out", KY + KH + 2)
+  local x0, x1, y0, y1 = kzx(-1), kzx(1), kzy(1), kzy(-1)
+  local function lab(t, x, y, al) Text.draw(t, x, y, F().body, nil, al) end
+  lab("\u{25b2} SIT FB", cx, KY + 18, "center")
+  lab("\u{25bc} SIT SOFT", cx, y1 + 3, "center")
+  local my = (y0 + y1) // 2
+  lab("\u{25c0}", KX + 4, my - 12)
+  lab("IN", KX + 4, my)
+  lab("\u{25b6}", KX + KW - 4, my - 12, "right")
+  lab("AWAY", KX + KW - 4, my, "right")
+  hintStrip("A: see it  B: take", KY + KH + 2)
+  hintStrip("hold B: time out", KY + KH + 17)
 end
 
 -- Pitching --------------------------------------------------------------------------------------------------
 
 function Live:pitchFrame(scene, p)
-  if self.cardRole ~= "pitch" then self.card, self.cardRole = nil, "pitch" end
   if not self:caughtUp(scene) then return nil end
   local sch = self:schemeOf("pitch")
   if self.help then return nil end
@@ -502,15 +477,7 @@ function Live:throw(scene, input, target)
   local i = self.pause.info
   local pit = P(i.pitcher.id)
   self.h:pitch(input)
-  local evs = self:resumeEvs(scene, false)
-  local e = self:pitchEvent(evs)
-  local words, resEv = self:resultWords(evs)
-  local miss = e and PScheme.missWords(target.x, target.z, e.px or target.x, e.pz or target.z, pit and pit.throws or "R") or "thrown"
-  local hit = miss == "hit the spot"
-  local lines = { input.type .. (e and (" " .. e.v) or ""), { hit and "ON THE SPOT" or "MISSED" }, hit and "right there" or (miss:gsub("^missed ", "")) }
-  if input.effort >= 1 then lines[#lines + 1] = "reached back" end
-  lines[#lines + 1] = words
-  self:setCard({ title = "LAST", lines = lines }, words, resEv)
+  self:resumeEvs(scene, false)
   Sfx.select()
 end
 
@@ -585,7 +552,7 @@ function Live:batterCard(i)
   return { title = "SCOUT", lines = lines }
 end
 
-function Live:drawArcadePitch()
+function Live:drawArcadePitch(scene, bi, tau)
   local u = self.ui
   local a = u.ars[u.k]
   -- the frame, the hint and the meter's bands are static: one cached image; the crosshair and the
@@ -606,6 +573,7 @@ function Live:drawArcadePitch()
     gfx.setColor(gfx.kColorBlack)
     gfx.fillRect(KX + floor(0.92 * KW), y + 1, KW - floor(0.92 * KW) - 1, 10)
   end, "control")
+  self:drawMarks(scene, bi, tau)
   local cx, cy = kzx(u.x), kzy(u.z)
   gfx.drawCircleAtPoint(cx, cy, 6)
   gfx.drawLine(cx - 9, cy, cx - 3, cy) gfx.drawLine(cx + 3, cy, cx + 9, cy)
@@ -669,40 +637,36 @@ function Live:controlInput(scene, btn, change)
   return false
 end
 
---- (frame hook) BallCast's own K-zone history stays hidden while one of ours covers its spot.
+--- (frame hook) BallCast's own K-zone inset (left) stays hidden while one of our panels is up (the
+--- at-bat's pitches are on our zone then) or a how-to card covers its spot.
 function Live:updateHideKzone()
   local u = self.ui
   local panel = u and u.kind ~= "dugout"
-  self.hideKzone = (self.help ~= nil) or panel or (self.card ~= nil and self.cardShown ~= nil and now() - self.cardShown < 4000)
+  self.hideKzone = (self.help ~= nil) or (panel and true or false)
 end
 
 function Live:drawControl(scene, bi, b, tau)
-  -- the game's over: no stale LAST card on the final
-  if self.pause and self.pause.reason == "done" then self.card = nil end
   if self.help then self:cached("help" .. self.help.key, 60, 60, 283, 113, function() self:drawHelp() end) return end
   local u = self.ui
-  local mine = self.pause and (self.pause.reason == "bat" or self.pause.reason == "pitchsel")
-  if u and u.kind == "bat_arcade" and self.prov and bi == self.prov.beat then self:drawArcadeBat(b, tau)
-  elseif u and u.kind == "bat_scout" and self:caughtUp(scene) then self:cached("sb", KX, KY - 1, KW + 2, KH + 18, function() self:drawScoutBat() end, "control")
-  elseif u and u.kind == "pitch_arcade" and self:caughtUp(scene) then self:drawArcadePitch()
+  local up = false
+  if u and u.kind == "bat_arcade" and self.prov and bi == self.prov.beat then
+    self:drawArcadeBat(scene, bi, b, tau)
+  elseif u and u.kind == "bat_scout" and self:caughtUp(scene) then
+    self:cached("sb", KX, KY - 1, KW + 2, KH + 34, function() self:drawScoutBat() end, "control")
+    self:drawMarks(scene, bi, tau)
+    up = true
+  elseif u and u.kind == "pitch_arcade" and self:caughtUp(scene) then
+    self:drawArcadePitch(scene, bi, tau)
   elseif u and u.kind == "pitch_scout" and self:caughtUp(scene) then
     local rows = (#u.ars + 1) // 2
     local hs = u.aDown and ((u.aHeld or 0) >= 12 and 2 or 1) or 0
     self:cached("ps" .. u.spot .. ":" .. u.k .. ":" .. hs, KX, KY - 1, KW + 2, KH + rows * 13 + 22, function() self:drawScoutPitch() end, "control")
+    self:drawMarks(scene, bi, tau)
+    up = true
   end
-  -- the result line waits for the picture (the engine knows the swing's result at once: the card
-  -- used to read HOME RUN as the ball left the bat); once it's shown, the card stays 4 s more
-  local c = self.card
-  if c and c.result and not c.revealed and self:resultShown(scene, c) then
-    c.revealed = true
-    self.cardKey = (self.cardKey or 0) + 1
-    self.cardShown = now()
-  end
-  -- the card over BallCast's K-zone history while the player is in the at-bat
-  if self.card and (mine or (self.cardShown and now() - self.cardShown < 4000)) then
-    if mine then self.cardShown = now() end
-    local c = self.card
-    self:cachedCard(function() self:drawCard() end, CX, CY, CW + 3, c.h + 3)
+  -- Scout's scouting card on the left, only while its decision is up (nothing stays behind)
+  if up and self.card then
+    self:cachedCard(function() self:drawCard() end, CX, CY, CW + 3, self.card.h + 3)
   end
 end
 

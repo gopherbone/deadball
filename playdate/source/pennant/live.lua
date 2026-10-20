@@ -19,6 +19,9 @@ PennantLive = PennantLive or {}
 local Live = {}
 Live.__index = Live
 Live.finalCard = true
+-- BallCast's K-ZONE inset gets the call with the count for a moment, and a ball in play a spray
+-- chart (ballcast/tv/overlay.lua); our zone panels mark the at-bat's pitches (pennant/control.lua)
+Live.pitchTrack = true
 PennantLive.Live = Live
 
 local function nid(s) return PEng.nid(s) end
@@ -365,7 +368,8 @@ end
 function Live:decisionFrame()
   local u = self.ui
   if u and u.kind == "dugout" then return 4, 224 end                 -- the dugout panel is on the right
-  if u and (u.kind == "pitch_arcade" or u.kind == "pitch_scout" or u.kind == "bat_scout") then return 96, 292 end  -- card left, zone right
+  if u and (u.kind == "pitch_scout" or u.kind == "bat_scout") then return 96, 292 end  -- scouting card left, zone right
+  if u and u.kind == "pitch_arcade" then return 4, 292 end                              -- zone right
   return 4, 396
 end
 

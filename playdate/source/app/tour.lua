@@ -222,9 +222,39 @@ local function buildPennant()
         end
         if pn.df >= 6 then pn.df = 0 src:input(s, "A") end
       end
-      -- the LAST card a few frames after a pitch the "player" handled
-      if pn.lastAt and pn.f - pn.lastAt == 20 then once(tag .. "_last_" .. pn.lastKind) end
-      local need = pn.shots[tag .. "_bat"] and pn.shots[tag .. "_pitch"] and pn.shots[tag .. "_last_bat"] and pn.shots[tag .. "_last_pitch"]
+      -- the pitch tracking (pennant/control.lua, ballcast/tv/overlay.lua): a decision with the
+      -- at-bat's pitches on the zone, the K-ZONE's call tab on a ball and on a strike, the spray
+      -- chart on a hit and on an out, and the next at-bat's first decision with the zone cleared
+      local info = src.pause and src.pause.info
+      if u and info and src:caughtUp(s) and (u.kind == "pitch_arcade" or u.kind == "pitch_scout" or u.kind == "bat_scout") then
+        local side = u.kind == "bat_scout" and "bat" or "pitch"
+        local cnt = (info.balls or 0) + (info.strikes or 0)
+        pn.dq = (pn.dq or 0) + 1
+        if pn.dq == 3 then
+          if cnt >= 2 and not pn.shots[tag .. "_" .. side .. "_seq"] then once(tag .. "_" .. side .. "_seq") pn.seqPa = info.batter and info.batter.id
+          elseif cnt == 0 and pn.seqPa and pn.seqPa ~= (info.batter and info.batter.id) then once(tag .. "_new_ab") end
+        end
+      else
+        pn.dq = 0
+        if u and info and u.kind == "bat_arcade" and u.plan and u.tau and u.tau > u.plan.pitch.tRel + 0.3 and (info.balls or 0) + (info.strikes or 0) >= 2 then once(tag .. "_bat_seq") end
+      end
+      local bi = s.tl and s:curBeatIndex()
+      local b = bi and s.tl.beats[bi]
+      if b and not u then
+        local tau = s.t - b.start
+        local cam = s.curCam
+        if b.kind == "p" and b.plan.pitch and (cam == "pitch" or cam == "behindPlate") then
+          local t0 = b.plan.callT or (b.plan.pitch.tPlate + 0.2)
+          if tau > t0 + 0.4 and tau < t0 + 0.8 then
+            if b.e.r == "B" then once(tag .. "_ball") elseif b.e.r == "C" or b.e.r == "S" then once(tag .. "_strike") end
+          end
+        elseif b.kind == "bip" and BallCast.TVOverlay.sprayShown(b, tau) and BallCast.TVOverlay.sprayShown(b, tau - 0.5) then
+          local hit = b.e.res == "1B" or b.e.res == "2B" or b.e.res == "3B" or b.e.res == "HR"
+          once(tag .. (hit and "_spray_hit" or "_spray_out"))
+        end
+      end
+      local extra = pn.f > 30 * 240 or (pn.shots[tag .. "_spray_hit"] and pn.shots[tag .. "_spray_out"] and pn.shots[tag .. "_new_ab"])
+      local need = pn.shots[tag .. "_bat"] and pn.shots[tag .. "_pitch"] and pn.shots[tag .. "_ball"] and pn.shots[tag .. "_strike"] and extra
       if need and withDugout and not pn.called then pn.called = true src.callTime = true src.directBat, src.directPitch = false, false end
       return need and (not withDugout or pn.shots["p27_dugout"])
     end, 30 * 300, nil, nil, 2)

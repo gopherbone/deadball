@@ -66,10 +66,10 @@ local function template()
   return img
 end
 
-local function stamp(i, bj)
-  local p = bj.plan.pitch
-  local x, y = zx(K.clamp(p.px, -2.2, 2.2)), zy(K.clamp(p.pz, 0.4, 4.6))
-  local r = bj.e.r
+--- one pitch's marker at (x, y) in the current context: ball hollow, strike / foul filled, in
+--- play a diamond, hit by pitch an X; its number on a white tab up and to the right. (Pennant's
+--- own zone panels stamp with it too.)
+local function stampAt(i, r, x, y)
   gfx.setColor(gfx.kColorBlack)
   if r == "B" then
     gfx.setColor(gfx.kColorWhite); gfx.fillCircleAtPoint(x, y, 4)
@@ -92,32 +92,185 @@ local function stamp(i, bj)
     dx = dx + di:getSize()
   end
 end
+O.stampAt = stampAt
 
-local function kzone(tl, bi, b, tau)
-  -- the at-bat's pitches so far (a pitch counts once it has reached the plate)
+local function kzPos(p) return zx(K.clamp(p.px, -2.2, 2.2)), zy(K.clamp(p.pz, 0.4, 4.6)) end
+local function stamp(i, bj)
+  local x, y = kzPos(bj.plan.pitch)
+  stampAt(i, bj.e.r, x, y)
+end
+
+--- The at-bat's pitches the picture has shown by (bi, tau): a pitch counts once it has reached
+--- the plate. skip: a beat to leave out (Pennant's provisional pitch). Returns the list (reused),
+--- its length and the at-bat's "pa" beat index. out: a table to fill instead of the shared one.
+function O.atBat(tl, bi, tau, skip, out)
   local pa = bi
   while pa > 1 and tl.beats[pa].kind ~= "pa" do pa = pa - 1 end
-  local list = O.kzList or {}
-  O.kzList = list
+  local list = out or O.kzList or {}
+  if not out then O.kzList = list end
   local n = 0
   for j = pa + 1, bi do
     local bj = tl.beats[j]
-    if bj.kind == "p" and bj.plan.pitch and (j < bi or tau >= bj.plan.pitch.tPlate + 0.05) then
+    if bj.kind == "p" and bj ~= skip and bj.plan.pitch and (j < bi or tau >= bj.plan.pitch.tPlate + 0.05) then
       n = n + 1
       list[n] = bj
     end
   end
-  if kzImg and pa == kzPa and n == kzN then return kzImg, n end
-  if not kzImg or pa ~= kzPa or n < kzN then
+  return list, n, pa
+end
+
+local kzBeats = {}
+local function kzone(tl, bi, b, tau)
+  local list, n, pa = O.atBat(tl, bi, tau)
+  -- (a beat swapped under us: Pennant's provisional pitch replaced by the real one)
+  local same = kzImg and pa == kzPa and n >= kzN
+  if same then for i = 1, kzN do if kzBeats[i] ~= list[i] then same = false break end end end
+  if same and n == kzN then return kzImg, n, list end
+  if not same then
     -- new at-bat (or scrubbed back): a fresh copy of the empty inset
     kzImg = template():copy()
     kzPa, kzN = pa, 0
   end
   gfx.pushContext(kzImg)
-  for i = kzN + 1, n do stamp(i, list[i]) end
+  for i = kzN + 1, n do stamp(i, list[i]); kzBeats[i] = list[i] end
   gfx.popContext()
   kzN = n
-  return kzImg, n
+  return kzImg, n, list
+end
+
+--- the inset at (x, y), the latest pitch ringed (drawn live over the baked stamps: a circle and
+--- its marker again, cached number images)
+local function drawKzone(tl, bi, b, tau, x, y)
+  local img, n, list = kzone(tl, bi, b, tau)
+  img:draw(x, y)
+  if n > 0 then
+    local mx, my = kzPos(list[n].plan.pitch)
+    gfx.setColor(gfx.kColorBlack)
+    gfx.drawCircleAtPoint(x + mx, y + my, 7)
+    gfx.setColor(gfx.kColorWhite)
+    gfx.drawCircleAtPoint(x + mx, y + my, 6)
+    -- (its number back on top of the ring)
+    stampAt(n, list[n].e.r, x + mx, y + my)
+  end
+  return n, list
+end
+
+--- the call on the latest pitch, with the count: a tab off the inset's title bar for a couple
+--- of seconds from the ump's call (plan.callT), then gone
+local function callWord(e)
+  local r, bb, ss = e.r, e.b or 0, e.s or 0
+  if r == "B" then return bb >= 4 and "BALL FOUR" or ("BALL " .. bb .. "-" .. ss) end
+  if r == "C" or r == "S" then
+    if ss >= 3 then return r == "C" and "CALLED K" or "SWINGING K" end
+    return (r == "C" and "CALLED STRIKE " or "SWING & MISS ") .. bb .. "-" .. ss
+  end
+  if r == "F" then return "FOUL " .. bb .. "-" .. ss end
+  if r == "H" then return "HIT BY PITCH" end
+  if r == "X" then return "IN PLAY" end
+  return nil
+end
+O.callWord = callWord
+local function callTab(b, tau, x, y)
+  if b.kind ~= "p" then return end
+  local p = b.plan.pitch
+  local t0 = b.plan.callT or (p.tPlate + 0.2)
+  if tau < t0 or tau > t0 + 2.2 then return end
+  local w = callWord(b.e)
+  if not w then return end
+  local img = A.text("tiny", w, "w")
+  local tw = img:getSize()
+  gfx.setColor(gfx.kColorBlack)
+  gfx.fillRect(x, y, tw + 8, 12)
+  img:draw(x + 3, y + 2)
+end
+
+---------------------------------------------------------------------------
+-- spray chart: where the ball in play went (Pennant): the park's fence and the infield made once
+-- per park, the batted ball's spot and the result stamped once per play; a blit per frame
+
+local SP_W <const>, SP_H <const> = 64, 60
+local SP_S <const> = 0.1                 -- px per foot
+local SP_HX <const>, SP_HY <const> = 32, SP_H - 5
+local function spx(x) return floor(SP_HX + x * SP_S + 0.5) end
+local function spy(y) return floor(SP_HY - y * SP_S + 0.5) end
+local spBase, spPark, spImg, spBeat
+
+local function sprayTemplate(park)
+  if spBase and spPark == park then return spBase end
+  local Cam = BallCast.Cam
+  local img = gfx.image.new(SP_W, SP_H, gfx.kColorClear)
+  gfx.pushContext(img)
+  gfx.setColor(gfx.kColorBlack)
+  gfx.fillRect(0, 0, SP_W, SP_H)
+  gfx.setColor(gfx.kColorWhite)
+  gfx.fillRect(2, 12, SP_W - 4, SP_H - 14)
+  gfx.setClipRect(2, 12, SP_W - 4, SP_H - 14)
+  -- fair territory: a light dither inside the fence
+  local poly = { SP_HX, SP_HY }
+  for a = -45, 45, 5 do
+    local d = Cam.fenceAt(park or {}, a)
+    local r = math.rad(a)
+    poly[#poly + 1] = spx(math.sin(r) * d); poly[#poly + 1] = spy(math.cos(r) * d)
+  end
+  gfx.setDitherPattern(0.75, gfx.image.kDitherTypeBayer4x4)
+  gfx.fillPolygon(table.unpack(poly))
+  gfx.setColor(gfx.kColorBlack)
+  gfx.drawPolygon(table.unpack(poly))
+  -- the infield
+  local d = 90 * 0.7071
+  gfx.drawPolygon(spx(0), spy(0), spx(d), spy(d), spx(0), spy(2 * d), spx(-d), spy(d))
+  gfx.clearClipRect()
+  gfx.popContext()
+  spBase, spPark = img, park
+  return img
+end
+
+local RES_WORD = { ["1B"] = "SINGLE", ["2B"] = "DOUBLE", ["3B"] = "TRIPLE", HR = "HOME RUN", SF = "SAC FLY",
+  DP = "DBL PLAY", FC = "FC", ROE = "ERROR", FOUL_OUT = "FOUL OUT", OUT = "OUT" }
+local HIT = { ["1B"] = true, ["2B"] = true, ["3B"] = true, HR = true }
+local function sprayWord(e)
+  local w = RES_WORD[e.res] or tostring(e.res or "")
+  if (e.res == "OUT" or e.res == "ROE" or e.res == "FC") and e.f then w = w .. " " .. e.f end
+  return w
+end
+O.sprayWord = sprayWord
+
+local function sprayImg(G, b)
+  if spImg and spBeat == b then return spImg end
+  local img = sprayTemplate(G.tl.meta and G.tl.meta.park):copy()
+  local sp = b.plan.spot
+  gfx.pushContext(img)
+  local w = A.text("tiny", sprayWord(b.e), "w")
+  w:draw(4, 2)
+  gfx.setClipRect(2, 12, SP_W - 4, SP_H - 14)
+  local x, y = spx(sp[1]), max(15, spy(sp[2]))
+  gfx.setColor(gfx.kColorBlack)
+  gfx.setDitherPattern(0.5, gfx.image.kDitherTypeBayer2x2)
+  gfx.drawLine(SP_HX, SP_HY, x, y)
+  gfx.setColor(gfx.kColorBlack)
+  if HIT[b.e.res] then
+    -- a hit: a filled ball, ringed
+    gfx.setColor(gfx.kColorWhite); gfx.fillCircleAtPoint(x, y, 5)
+    gfx.setColor(gfx.kColorBlack); gfx.fillCircleAtPoint(x, y, 3); gfx.drawCircleAtPoint(x, y, 5)
+  else
+    -- an out (or reached on the defense): an X where they got it
+    gfx.setColor(gfx.kColorWhite); gfx.fillRect(x - 4, y - 4, 9, 9)
+    gfx.setColor(gfx.kColorBlack)
+    gfx.setLineWidth(2); gfx.drawLine(x - 3, y - 3, x + 3, y + 3); gfx.drawLine(x - 3, y + 3, x + 3, y - 3); gfx.setLineWidth(1)
+  end
+  gfx.clearClipRect()
+  gfx.popContext()
+  spImg, spBeat = img, b
+  return img
+end
+
+--- the ball in play's spray chart, once the picture has shown the result (Play.revealT), held
+--- SPRAY_HOLD s; in the K-zone's slot (the K-zone only shows on the pitch cams)
+local SPRAY_HOLD <const> = 3.0
+function O.sprayShown(b, tau)
+  if b.kind ~= "bip" or not b.plan.spot then return false end
+  local t0 = BallCast.Play.revealT(b)
+  return tau >= t0 and tau < t0 + SPRAY_HOLD
 end
 
 --- strike-zone box + pitch-tracker trail, projected onto the plate (pitch cams only)
@@ -294,17 +447,22 @@ function O.draw(G, scene, bi, b, tau, camName, slo, R)
   local tl = G.tl
   local now = playdate.getCurrentTimeMilliseconds() / 1000
   -- pitch cams: zone + tracker + inset (a local game's own direct-control panel replaces the inset)
-  local hideKz = scene and scene.src and scene.src.hideKzone
+  -- (a local source with its own pitch tracking, src.pitchTrack: the call tab with the count, and
+  -- the spray chart after a ball in play)
+  local src = scene and scene.src
+  local hideKz = src and src.hideKzone
+  local track = src and src.pitchTrack
   if hideKz then
     if b.kind == "p" and b.plan.pitch and R and R.project and (camName == "pitch" or camName == "behindPlate") then tracker(R, b.plan, tau) end
   elseif b.kind == "p" and b.plan.pitch and (camName == "pitch" or camName == "behindPlate") then
     if R and R.project then tracker(R, b.plan, tau) end
-    local img = kzone(tl, bi, b, tau)
-    img:draw(4, 62)
+    drawKzone(tl, bi, b, tau, 4, 62)
+    if track then callTab(b, tau, 68, 62) end
   elseif b.kind == "pa" and camName == "pitch" then
     -- (the new at-bat: an empty zone keeps its spot)
-    local img = kzone(tl, bi, b, tau)
-    img:draw(4, 62)
+    drawKzone(tl, bi, b, tau, 4, 62)
+  elseif track and O.sprayShown(b, tau) then
+    sprayImg(G, b):draw(4, 62)
   end
   -- power dossier
   local plan = b.plan
@@ -339,7 +497,8 @@ end
 
 function O.release()
   kzImg, kzKey, kImg, kImgBack = nil, nil, nil, nil
-  kzTemplate, kzPa, kzN = nil, nil, 0
+  kzTemplate, kzPa, kzN, kzBeats = nil, nil, 0, {}
+  spBase, spPark, spImg, spBeat = nil, nil, nil, nil
   powImgs = {}
   O.kzList = nil
 end

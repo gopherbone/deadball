@@ -1341,6 +1341,18 @@ local function planBip(b, tl, plan)
     end
     if K.hash01(b.i, 56) < 0.3 then cam(plan, 0, "dugout", { side = sp < 0 and 1 or -1 }) else cam(plan, 0, "high") end
   end
+  -- where the ball went, for spray charts (feet, home at 0,0, +y to center): where the defense
+  -- got it, or where it came down (the homer: where it left the park)
+  if fx then plan.spot = { fx, fy }
+  elseif path then
+    local lx, ly = path[#path - 2], path[#path - 1]
+    if res == "HR" then
+      local fence = Cam.fenceAt(park, sp)
+      local d = sqrt(lx * lx + ly * ly)
+      if d > fence + 25 then lx, ly = lx * (fence + 25) / d, ly * (fence + 25) / d end
+    end
+    plan.spot = { lx, ly }
+  end
 
   -- 3) throws -------------------------------------------------------------------
   -- every throw has a receiver who runs to the bag (or cutoff spot) first and gloves it
