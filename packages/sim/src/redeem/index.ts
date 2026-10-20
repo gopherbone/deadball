@@ -70,6 +70,9 @@ export function boostEffects(p: Player): Effect[] {
 export function checkRedeem(world: World, card: Card): { ok: true } | RedeemRefusal {
   const r = card.redeem;
   if (!r) return { ok: false, reason: "This card isn't redeemable." };
+  // a retired player's leftover cards (he may have stayed on as a coach or a scout: still a
+  // person in the game, but not this card's ballplayer)
+  if (card.finalSeason) return { ok: false, reason: "That player is no longer in the game." };
   if (r.kind === "boost") {
     const p = world.players[card.personId];
     if (!p || !p.active) return { ok: false, reason: "That player is no longer in the game." };
