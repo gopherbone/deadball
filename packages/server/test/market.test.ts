@@ -33,7 +33,7 @@ describe("auctions", () => {
     const ok = await api("POST", "/market", { cardId: card.id, kind: "auction", startBid: 100, hours: 24, reserve: 300, buyNow: 600 }, s.token);
     expect(ok.body.listing).toMatchObject({ kind: "auction", price: 100, auction: { startBid: 100, currentBid: 100, bids: 0, minBid: 100, hasReserve: true, reserveMet: false, buyNow: 600 } });
     expect(ok.body.listing.auction.endsAt).toBeGreaterThan(Date.now() + 23 * 3600_000);
-    expect(JSON.stringify(ok.body)).not.toContain("300"); // the reserve stays hidden
+    expect(JSON.stringify(ok.body)).not.toMatch(/[:\[,]300[,\]}]/); // the reserve stays hidden (as a value; ids may contain the digits)
   });
 
   it("proxy bidding, escrow, outbid release, masked history, settlement and price history", async () => {

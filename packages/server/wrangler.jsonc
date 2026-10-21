@@ -22,7 +22,7 @@
     "WORLD_SEED": "deadball-1",
     // oldest Playdate build (pdxinfo buildNumber, sent as X-Build) allowed online; older builds
     // get 426 upgrade_required. Bump together with playdate/source/pdxinfo every release.
-    "MIN_BUILD": "5"
+    "MIN_BUILD": "6"
   },
   // safety net: makes sure the League DO is awake and its alarm is armed
   "triggers": { "crons": ["*/10 * * * *"] },
