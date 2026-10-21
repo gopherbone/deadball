@@ -822,7 +822,7 @@ function Page:update(covered)
     gfx.setColor(gfx.kColorBlack)
     local st = self.loading and "CARRIER DETECT..." or self:statusLine()
     if st == "Document: Done." or st == "" then st = "A: select   B: hang up   hold B: home   crank: scroll" end
-    Text.draw(Text.ellipsize(st, UI.fonts.body, 390), 4, 227, UI.fonts.body, "white")
+    Text.draw(Text.ellipsize(st, UI.fonts.body, 390), 4, 228, UI.fonts.body, "white")
     if Nav.holdB > 4 then
       gfx.setColor(gfx.kColorWhite)
       gfx.fillRect(330, 230, math.floor(66 * math.min(1, Nav.holdB / Nav.HOLD_B)), 7)

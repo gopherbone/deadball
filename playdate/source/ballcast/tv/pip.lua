@@ -100,7 +100,7 @@ local labels = {}          -- verdict text -> image
 
 local function panelImg()
   if panel then return panel end
-  local img = gfx.image.new(W, H, gfx.kColorClear)
+  local img = gfx.image.new(W, H, gfx.kColorBlack)   -- (all painted: opaque blits faster)
   gfx.pushContext(img)
   gfx.setColor(gfx.kColorBlack)
   gfx.fillRect(0, 0, W, H)
@@ -272,18 +272,23 @@ local function corner(R, b, t, camName)
   return 244, 124
 end
 
+local memoB, memoNext, memoTier, memoVerdict, memoKind
 --- per frame (from the TV overlay). opts: { speed, scrubbing, logOpen, dismissed }
 function PiP.draw(G, R, bi, b, tau, camName, opts)
   local tl = G.tl
   local ab, t = anchor(tl, bi, b, tau)
   if not ab then return false end
   local tier
+  -- (the tier and the verdict are pure in the beat and the one after it (a live game adds the
+  -- ball in play later): worked out once, not every frame)
+  local nb = tl.beats[ab.n + 1]
+  if memoB ~= ab or memoNext ~= nb then memoB, memoNext, memoTier, memoVerdict, memoKind = ab, nb, PiP.tier(tl, ab), nil, nil end
   if PiP.force then
     -- (harness: any swing, pacing ignored)
     if ab.e.r ~= "S" and ab.e.r ~= "F" and ab.e.r ~= "X" then return false end
   else
     if opts.scrubbing or opts.logOpen or opts.speed > 2 or opts.dismissed == ab.n then return false end
-    tier = PiP.tier(tl, ab)
+    tier = memoTier
     if not tier or (opts.speed == 2 and tier ~= 1) then return false end
   end
   local p = ab.plan.pitch
@@ -291,7 +296,8 @@ function PiP.draw(G, R, bi, b, tau, camName, opts)
   -- LAG behind: opening as the pitch came in told you he'd swing (and on a two-strike pitch, or
   -- an extra-base hit's, what was coming)
   local tIn = p.tPlate + 0.1
-  local verdict, kind = PiP.verdict(tl, ab)
+  if not memoVerdict then memoVerdict, memoKind = PiP.verdict(tl, ab) end
+  local verdict, kind = memoVerdict, memoKind
   local tOut = ((kind == "x") and (ab.dur + 1.5) or (p.tPlate + 1.6)) + LAG
   if t < tIn or t > tOut + 0.22 then return false end
   local open = ease((t - tIn) / 0.22)
@@ -323,6 +329,6 @@ function PiP.draw(G, R, bi, b, tau, camName, opts)
   return true, x0, y0
 end
 
-function PiP.release() panel, labels = nil, {} end
+function PiP.release() panel, labels, memoB = nil, {}, nil end
 
 return PiP

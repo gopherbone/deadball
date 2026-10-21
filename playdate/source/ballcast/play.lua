@@ -3053,7 +3053,7 @@ function Play.drawWorld(R, view, b, tau)
         gfx.setColor(gfx.kColorBlack)
         gfx.fillRect(x0, y0, w, 15)
         gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
-        font:drawText(p.text, x0 + 3, y0 + 1)
+        font:drawText(p.text, x0 + 3, Text and Text.boxY and Text.boxY(font, y0, 15, p.text) or (y0 + 1))
         gfx.setImageDrawMode(gfx.kDrawModeCopy)
       end
     end

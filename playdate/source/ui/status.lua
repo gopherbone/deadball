@@ -98,21 +98,21 @@ local function paintChip(v, x, y, fg, bg, fgName, bgName, text)
   local inv = v.inv and not v.blink
   if inv then
     gfx.setColor(fg)
-    gfx.fillRoundRect(x, y, w, 13, 2)
+    gfx.fillRoundRect(x, y, w, 14, 2)
   else
     gfx.setColor(fg)
-    gfx.drawRoundRect(x, y, w, 13, 2)
+    gfx.drawRoundRect(x, y, w, 14, 2)
   end
   local ic, tc = fg, fgName
   if inv then ic, tc = bg, bgName end
   if v.kind == "air" then
-    if (v.dot or 0) == 1 then gfx.setColor(ic) gfx.fillCircleAtPoint(x + 8, y + 6, 3) end
+    if (v.dot or 0) == 1 then gfx.setColor(ic) gfx.fillCircleAtPoint(x + 8, y + 7, 3) end
     gfx.setColor(ic)
-    gfx.drawCircleAtPoint(x + 8, y + 6, 3)
+    gfx.drawCircleAtPoint(x + 8, y + 7, 3)
   else
-    clockGlyph(x + 3, y + 1, ic)
+    clockGlyph(x + 3, y + 2, ic)
   end
-  Text.draw(text, x + 16, y, f, tc)
+  Text.draw(text, x + 16, Text.boxY(f, y + 1, 12), f, tc)
   return w
 end
 
@@ -144,7 +144,7 @@ local function paintRight(v, rx, y, fg, bg, fgName, bgName, roomLeft)
   if v.flash then
     gfx.setColor(fg)
     gfx.fillRect(x - 2, y, mw + 4, 14)
-    Text.draw(mtext, x, y + 1, fb, bgName)
+    Text.draw(mtext, x, Text.boxY(fb, y, 14), fb, bgName)
   else
     Text.draw(mtext, x, y + 1, fb, fgName)
   end
@@ -154,7 +154,7 @@ local function paintRight(v, rx, y, fg, bg, fgName, bgName, roomLeft)
     x -= sw + 8
     gfx.setColor(fg)
     gfx.fillRoundRect(x, y + 1, sw + 7, 12, 4)
-    Text.draw(mailText, x + 4 + sw // 2, y, fb, bgName, "center")
+    Text.draw(mailText, x + 4 + sw // 2, Text.boxY(fb, y + 1, 12), fb, bgName, "center")
     x -= 14
     gfx.setColor(fg)
     gfx.drawRect(x, y + 3, 11, 8)

@@ -236,8 +236,9 @@ function Composer:layout(L)
   local tw = Text.width(tl, UI.fonts.body) + 10
   gfx.setColor(self.bbs and gfx.kColorWhite or gfx.kColorBlack)
   gfx.drawRect(x + 68, y, tw, 16)
-  Text.draw(tl, x + 73, y + 2, UI.fonts.body, fg)
-  Text.draw("\u{25bc}", x + 68 + tw + 3, y + 2, UI.fonts.body, fg)
+  local ty = Text.boxY(UI.fonts.body, y + 1, 14, tl)
+  Text.draw(tl, x + 73, ty, UI.fonts.body, fg)
+  Text.draw("\u{25bc}", x + 68 + tw + 3, ty, UI.fonts.body, fg)
   L:link(x + 66, y - 2, tw + 16, 20, function() self:chooseTemplate() end, { id = "tpl", hint = "Change template" })
   y += 24
   Draw.hr(x, y, w - 16)

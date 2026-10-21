@@ -101,8 +101,9 @@ function Card:footer(Lb)
   for _, t in ipairs({ { "rat", "Ratings" }, { "stats", "Stats" } }) do
     local on = self.pg == t[1]
     local w = UI.fonts.bold:getTextWidth(t[2]) + 14
-    if on then gfx.fillRect(tx, y, w, 17) Text.draw(t[2], tx + 7, y + 1, UI.fonts.bold, "white")
-    else gfx.drawRect(tx, y, w, 17) Text.draw(t[2], tx + 7, y + 1, UI.fonts.bold) end
+    local ty = Text.boxY(UI.fonts.bold, y + 1, 15, t[2])
+    if on then gfx.fillRect(tx, y, w, 17) Text.draw(t[2], tx + 7, ty, UI.fonts.bold, "white")
+    else gfx.drawRect(tx, y, w, 17) Text.draw(t[2], tx + 7, ty, UI.fonts.bold) end
     local key = t[1]
     Lb:link(tx, y, w, 17, function() if self.pg ~= key then flip() end end, PUI.opts("pg:" .. key, "Left/right: Ratings / Stats", function(d) flip(d) end, "ring"))
     tx = tx + w + 3

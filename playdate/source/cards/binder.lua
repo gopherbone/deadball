@@ -164,7 +164,7 @@ function B:update()
   if c then
     local r = CR.rarityOf(c)
     gfx.fillRect(px, 30, 156, 16)
-    K.textW(K.fonts.nb, CR.RARITY_LABEL[r] or r, px + 78, 31, "center")
+    K.textW(K.fonts.nb, CR.RARITY_LABEL[r] or r, px + 78, Text and Text.boxY and Text.boxY(K.fonts.nb, 30, 16) or 31, "center")
     local y = 50
     for _, l in ipairs(K.wrap(K.fonts.slab, string.upper(c.person and c.person.name or "?"), 146)) do
       K.text(K.fonts.slab, l, px + 6, y); y = y + 16

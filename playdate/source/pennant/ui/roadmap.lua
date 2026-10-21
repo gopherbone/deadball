@@ -222,10 +222,10 @@ function Scape.banner(text, chip)
     gfx.setColor(gfx.kColorWhite)
     gfx.drawRect(0, 0, 282, 19)
     local cw = chip and UI.fonts.bold:getTextWidth(chip) + 10 or 0
-    Text.draw(Text.ellipsize(text, UI.fonts.bold, 270 - cw), 6, 3, UI.fonts.bold, "white")
+    Text.draw(Text.ellipsize(text, UI.fonts.bold, 270 - cw), 6, Text.boxY(UI.fonts.bold, 3, 13), UI.fonts.bold, "white")
     if chip then
       gfx.fillRect(282 - cw - 3, 3, cw, 13)
-      Text.draw(chip, 282 - 3 - cw / 2, 3, UI.fonts.bold, nil, "center")
+      Text.draw(chip, 282 - 3 - cw / 2, Text.boxY(UI.fonts.bold, 3, 13), UI.fonts.bold, nil, "center")
     end
     gfx.setColor(gfx.kColorBlack)
     gfx.popContext()
@@ -318,7 +318,7 @@ local function windowImg(w, h, title, fn)
   gfx.pushContext(img)
   gfx.setColor(gfx.kColorBlack)
   gfx.fillRect(0, 0, w, 14)
-  Text.draw(title, 5, 0, UI.fonts.bold, "white")
+  Text.draw(title, 5, Text.boxY(UI.fonts.bold, 0, 14, title), UI.fonts.bold, "white")
   gfx.drawRect(0, 0, w, h)
   fn(w, h)
   gfx.popContext()
@@ -516,7 +516,7 @@ function Map:paintColumn()
         if not it.time then gfx.fillRect(x, it.y + h - 1, w, 1) end
       end
       gfx.setColor(gfx.kColorBlack)
-      Text.draw(it.label, x + w // 2, it.y + (h - 14) // 2 + 1, UI.fonts.bold, on and "white" or nil, "center")
+      Text.draw(it.label, x + w // 2, Text.boxY(UI.fonts.bold, it.y + 1, h - 2, it.label), UI.fonts.bold, on and "white" or nil, "center")
     end
   end
   Scape.crankGlyph(COL + 25, 218, "CRANK", "SPINS")
@@ -545,7 +545,7 @@ function Map:paintPanel()
   gfx.drawRect(0, 14, 282, 36)
   gfx.setColor(gfx.kColorBlack)
   gfx.fillRect(1, 14, hw - 2, 1)
-  Text.draw(head, 5, 1, UI.fonts.bold, "white")
+  Text.draw(head, 5, Text.boxY(UI.fonts.bold, 1, 13), UI.fonts.bold, "white")
   if s then
     local prev = self.route[self.sel - 1]
     local tag = self.sel == self.cur and "NOW" or (self.sel < self.cur and "PLAYED" or "NEXT")
@@ -554,8 +554,9 @@ function Map:paintPanel()
     gfx.setColor(gfx.kColorWhite)
     gfx.fillRect(4, 18, tw, 13)
     local l1 = (s.home and "vs " or "at ") .. PUI.nick(s.opp) .. ", " .. PL.date(L, s.d0) .. "-" .. PL.date(L, s.d1):match("%d+$") .. res
-    Text.draw(tag, 7, 17, UI.fonts.bold)
-    Text.draw(Text.ellipsize(l1, UI.fonts.bold, 270 - tw), 8 + tw, 17, UI.fonts.bold, "white")
+    local ty = Text.boxY(UI.fonts.bold, 18, 13)
+    Text.draw(tag, 7, ty, UI.fonts.bold)
+    Text.draw(Text.ellipsize(l1, UI.fonts.bold, 270 - tw), 8 + tw, ty, UI.fonts.bold, "white")
     local l2
     if prev and prev.host ~= s.host then
       local r = PRoutes.path(prev.host, s.host)
@@ -566,9 +567,9 @@ function Map:paintPanel()
     else
       l2 = "No travel: " .. (prev and "same park as the last series." or "the season starts here.")
     end
-    Text.draw(Text.ellipsize(l2, UI.fonts.body, 272), 5, 32, UI.fonts.body, "white")
+    Text.draw(Text.ellipsize(l2, UI.fonts.body, 272), 5, 34, UI.fonts.body, "white")
   else
-    Text.draw("No games on the calendar.", 5, 17, UI.fonts.body, "white")
+    Text.draw("No games on the calendar.", 5, 20, UI.fonts.body, "white")
   end
   gfx.popContext()
   self.panel = img
@@ -580,20 +581,21 @@ function Map:raceCard()
   local L = Pennant.L
   return windowImg(150, 200, "THE RACE", function(w, h)
     local y = 18
-    local function title(t) gfx.fillRect(1, y, w - 2, 13) Text.draw(t, 5, y - 1, UI.fonts.bold, "white") y = y + 14 end
+    local function title(t) gfx.fillRect(1, y, w - 2, 13) Text.draw(t, 5, Text.boxY(UI.fonts.bold, y, 13, t), UI.fonts.bold, "white") y = y + 15 end
     if L.phase == "season" then
       for _, e in ipairs(PL.raceWindow(L)) do
         local mine = e.T.abbr == L.user
         if mine then gfx.fillRect(1, y - 1, w - 2, 12) end
         local col = mine and "white" or nil
-        Text.draw(e.rank .. " " .. e.T.abbr, 4, y - 2, UI.fonts.bold, col)
-        Text.draw(e.T.w .. "-" .. e.T.l, 92, y - 2, UI.fonts.body, col, "right")
-        Text.draw(PL.gbText(e.T.gb), w - 5, y - 2, UI.fonts.body, col, "right")
+        local ty = Text.boxY(UI.fonts.bold, y - 1, 12)
+        Text.draw(e.rank .. " " .. e.T.abbr, 4, ty, UI.fonts.bold, col)
+        Text.draw(e.T.w .. "-" .. e.T.l, 92, ty, UI.fonts.body, col, "right")
+        Text.draw(PL.gbText(e.T.gb), w - 5, ty, UI.fonts.body, col, "right")
         if e.rank == 4 then gfx.setPattern(UI.pat.gray) gfx.drawLine(2, y + 10, w - 3, y + 10) gfx.setColor(gfx.kColorBlack) end
         y = y + 12
       end
-      Text.draw(PL.raceNumber(L), 4, y - 1, UI.fonts.bold)
-      y = y + 14
+      Text.draw(PL.raceNumber(L), 4, y + 1, UI.fonts.bold)
+      y = y + 16
     else
       Text.draw(L.phase == "playoffs" and "Playoffs" or "Season over", 4, y, UI.fonts.bold)
       y = y + 16

@@ -207,7 +207,7 @@ function Desktop:buildTicker()
   self.tickerW = math.min(4000, UI.fonts.bold:getTextWidth(text))
   self.tickerImg = gfx.image.new(self.tickerW, 14, gfx.kColorBlack)
   gfx.pushContext(self.tickerImg)
-  Text.draw(text, 0, 1, UI.fonts.bold, "white")
+  Text.draw(text, 0, 2, UI.fonts.bold, "white")
   gfx.popContext()
 end
 
@@ -457,7 +457,7 @@ function Desktop:layoutIcons(L, a)
       gfx.fillRect(bx - 1, y - 6, bw + 2, 16)
       gfx.setColor(gfx.kColorBlack)
       gfx.fillRect(bx, y - 5, bw, 14)
-      Text.draw(badge, bx + bw // 2, y - 5, UI.fonts.bold, "white", "center")
+      Text.draw(badge, bx + bw // 2, Text.boxY(UI.fonts.bold, y - 5, 14), UI.fonts.bold, "white", "center")
     end
     L:link(cx - 25, y - 2, 50, 48, ic[3], { id = ic[1], style = "invert", hint = ic[4] })
   end
@@ -528,7 +528,7 @@ function Desktop:overlay()
   gfx.setColor(gfx.kColorWhite)
   gfx.fillRect(1, y + 1, 40, 13)
   gfx.setColor(gfx.kColorBlack)
-  Text.draw("Start", 21, y + 1, UI.fonts.bold, nil, "center")
+  Text.draw("Start", 21, y + 2, UI.fonts.bold, nil, "center")
   -- tray: modem lights blink with real network traffic
   local busy = Api.busy() > 0
   local f = self.frame

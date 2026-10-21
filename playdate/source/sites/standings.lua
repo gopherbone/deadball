@@ -54,10 +54,10 @@ function Standings:layout(L)
     local sel = l == self.level
     if sel then
       gfx.fillRect(tx, y, w, 17)
-      Text.draw(label, tx + 8, y + 2, UI.fonts.bold, "white")
+      Text.draw(label, tx + 8, y + 4, UI.fonts.bold, "white")
     else
       gfx.drawRect(tx, y + 2, w, 15)
-      Text.draw(label, tx + 8, y + 3, UI.fonts.bold)
+      Text.draw(label, tx + 8, y + 4, UI.fonts.bold)
     end
     L:link(tx, y, w, 17, function() self:setLevel(l) end, { id = "tab:" .. l, hint = "Show " .. label .. " standings", style = "ring" })
     tx += w + 4

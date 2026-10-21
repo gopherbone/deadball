@@ -556,7 +556,7 @@ function Live:drawDugout()
   local y = max(20, 200 - h)
   panel(x, y, w, h)
   gfx.fillRect(x, y, w, 15)
-  Text.draw(u.sub and (u.subKind == "pinch_hit" and "PINCH HIT" or "TO THE MOUND") or "DUGOUT", x + 5, y + 1, F().bold, "white")
+  Text.draw(u.sub and (u.subKind == "pinch_hit" and "PINCH HIT" or "TO THE MOUND") or "DUGOUT", x + 5, Text.boxY(F().bold, y, 15), F().bold, "white")
   Text.draw(Text.ellipsize(sitLine(i, true), F().body, w - 8), x + 5, y + 17, F().body)
   local bat, pit = P(i.batter.id), P(i.pitcher.id)
   Text.draw(Text.ellipsize((bat and PM.short(bat) or "?") .. " (" .. (i.batter.bats or "") .. ") " .. (bat and PM.rate3(PM.avg(bat.st.b)) or ""), F().body, w - 10), x + 5, y + 30, F().body)
@@ -566,7 +566,8 @@ function Live:drawDugout()
   for k, it in ipairs(list) do
     local on = k == sel
     if on then gfx.fillRect(x + 2, yy - 1, w - 4, 15) end
-    Text.draw(Text.ellipsize(it.label, F().body, w - 14), x + 7, yy, on and F().bold or F().body, on and "white" or nil)
+    local s = Text.ellipsize(it.label, F().body, w - 14)
+    Text.draw(s, x + 7, Text.boxY(F().body, yy - 1, 15, s), on and F().bold or F().body, on and "white" or nil)
     yy = yy + 15
   end
   if not u.sub and u.sug and u.sug.kind ~= "none" then
@@ -581,12 +582,12 @@ function Live:drawMenu()
   local y = 120 - h // 2
   panel(x, y, w, h)
   gfx.fillRect(x, y, w, 15)
-  Text.draw("TIME OUT", x + 5, y + 1, F().bold, "white")
+  Text.draw("TIME OUT", x + 5, Text.boxY(F().bold, y, 15), F().bold, "white")
   for k, it in ipairs(m.items) do
     local on = k == m.sel
     local yy = y + 17 + (k - 1) * 16
     if on then gfx.fillRect(x + 2, yy - 1, w - 4, 15) end
-    Text.draw(it[1], x + 8, yy, on and F().bold or F().body, on and "white" or nil)
+    Text.draw(it[1], x + 8, Text.boxY(F().body, yy - 1, 15, it[1]), on and F().bold or F().body, on and "white" or nil)
   end
 end
 
@@ -631,7 +632,8 @@ function Live:drawFinal(scene)
   Text.draw("W " .. nm(res.W) .. "   L " .. nm(res.L) .. (res.S and ("   S " .. nm(res.S)) or ""), x + w // 2, y + 36, F().body, nil, "center")
   if self.finalRace then
     gfx.fillRect(x + 2, y + 51, w - 4, 15)
-    Text.draw(Text.ellipsize(self.finalRace, F().bold, w - 10), x + w // 2, y + 52, F().bold, "white", "center")
+    local s = Text.ellipsize(self.finalRace, F().bold, w - 10)
+    Text.draw(s, x + w // 2, Text.boxY(F().bold, y + 51, 15, s), F().bold, "white", "center")
   end
   Text.draw("A: box score & the rest of the day", x + w // 2, y + 68, F().body, nil, "center")
 end

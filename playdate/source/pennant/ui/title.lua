@@ -223,9 +223,10 @@ function NewGame:layout(L)
     PUI.opts("len", "Left/right: season length (3-game series, an off day each week)", function(d) self.lenIdx = (self.lenIdx - 1 + d) % #LENGTHS + 1 end))
   -- controls: you manage by default; batting / pitching yourself is one press away, any time
   self.scheme = self.scheme or "arcade"
-  Text.draw("Controls", 204, y + 3, UI.fonts.bold)
+  local cy = Text.boxY(UI.fonts.body, y + 1, 16)
+  Text.draw("Controls", 204, cy, UI.fonts.bold)
   gfx.drawRect(268, y, 124, 18)
-  Text.draw("\u{25c0} " .. PScheme.NAME[self.scheme] .. " \u{25b6}", 330, y + 2, UI.fonts.body, nil, "center")
+  Text.draw("\u{25c0} " .. PScheme.NAME[self.scheme] .. " \u{25b6}", 330, cy, UI.fonts.body, nil, "center")
   L:link(268, y, 124, 18, function() self.scheme = self.scheme == "arcade" and "scout" or "arcade" self:render(true) end,
     PUI.opts("scheme", "For batting/pitching yourself: " .. PScheme.BLURB[self.scheme] .. " Change any time (Options, time out)", function(d) self.scheme = self.scheme == "arcade" and "scout" or "arcade" end))
   y = y + 20

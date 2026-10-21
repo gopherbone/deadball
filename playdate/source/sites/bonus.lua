@@ -711,8 +711,9 @@ end
 local function bar(y, left, right)
   gfx.setColor(gfx.kColorBlack)
   gfx.fillRect(2, y, W - 4, 16)
-  Text.draw(left, 6, y + 1, UI.fonts.bold, "white")
-  if right then Text.draw(right, W - 6, y + 1, UI.fonts.body, "white", "right") end
+  local ty = Text.boxY(UI.fonts.bold, y, 16)
+  Text.draw(left, 6, ty, UI.fonts.bold, "white")
+  if right then Text.draw(right, W - 6, ty, UI.fonts.body, "white", "right") end
   return y + 19
 end
 

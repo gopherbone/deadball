@@ -31,6 +31,7 @@ local function shot(name)
     return
   end
   if not outDir then return end
+  if Clearance and Clearance.on then Clearance.check(name) end
   local ok, e = pcall(playdate.simulator.writeToFile, gfx.getDisplayImage(), outDir .. "/" .. name .. ".png")
   print("[tour] shot " .. name .. (ok and "" or (" FAILED " .. tostring(e))))
 end

@@ -97,7 +97,20 @@ local function frameAt(b, tau, row, rpm)
 end
 
 local function ease(t) t = K.clamp(t, 0, 1); return 1 - (1 - t) ^ 3 end
-local hdrImg, textB, textA, textZ, textR
+local hdrImg, textB, textA, textZ, textR, boxImg
+
+--- the box at (x, y): frame, header, the pitch's two label lines (everything but the ball)
+local function drawBox(x, y, name, rpmText)
+  gfx.setColor(gfx.kColorBlack)
+  gfx.fillRect(x, y, BOX_W, BOX_H)
+  gfx.setColor(gfx.kColorWhite)
+  gfx.fillRect(x + 2, y + 10, BOX_W - 4, BOX_H - 12)
+  hdrImg = hdrImg or A.text("tiny", "SPIN CAM", "w")
+  hdrImg:draw(x + 4, y + 2)
+  label(name):draw(x + 2, y + BOX_H - 19)
+  label(rpmText):draw(x + 2, y + BOX_H - 10)
+  gfx.setColor(gfx.kColorBlack)
+end
 
 --- per frame (pitch cams). opts: { speed, scrubbing, logOpen }
 function Sp.draw(b, tau, camName, opts)
@@ -116,16 +129,21 @@ function Sp.draw(b, tau, camName, opts)
   local h = red and BOX_H or max(1, floor(BOX_H * open))
   -- unfold downward from the K-zone's bottom edge
   gfx.setScreenClipRect(X0, Y0, BOX_W, h)
-  gfx.setColor(gfx.kColorBlack)
-  gfx.fillRect(X0, Y0, BOX_W, BOX_H)
-  gfx.setColor(gfx.kColorWhite)
-  gfx.fillRect(X0 + 2, Y0 + 10, BOX_W - 4, BOX_H - 12)
-  hdrImg = hdrImg or A.text("tiny", "SPIN CAM", "w")
-  hdrImg:draw(X0 + 4, Y0 + 2)
   local ty = TYPES[b.e.t] or TYPES.FB
-  -- (the labels once per pitch, not a string build every frame)
-  if textB ~= b then textB, textA, textZ, textR = b, Sp.text(b) end
+  -- (the labels once per pitch, not a string build every frame; the box with its header and
+  -- this pitch's two label lines made once per pitch too, one opaque blit a frame: the ball
+  -- (rows 2-37 of its 40) and the power effects never reach the labels' rows)
+  if textB ~= b then
+    textB, textA, textZ, textR = b, Sp.text(b)
+    boxImg = boxImg or gfx.image.new(BOX_W, BOX_H, gfx.kColorBlack)
+    gfx.pushContext(boxImg)
+    gfx.setImageDrawMode(gfx.kDrawModeCopy)
+    drawBox(0, 0, textA, textZ)
+    gfx.popContext()
+  end
   local name, rpmText, rpm = textA, textZ, textR
+  boxImg:draw(X0, Y0)
+  gfx.setColor(gfx.kColorWhite)      -- (as the live box left it)
   local power = b.plan.power
   local bx, by = X0 + (BOX_W - 40) // 2, Y0 + 11
   local fi = frameAt(b, tau, ty[1], rpm or ty[2])
@@ -157,13 +175,11 @@ function Sp.draw(b, tau, camName, opts)
   if power == "STOPPER" and b.plan.stall and tau >= b.plan.stall[1] and tau < b.plan.stall[2] then
     A.text("tiny", "STOPPED", "b"):draw(X0 + 16, by + 16)
   end
-  label(name):draw(X0 + 2, Y0 + BOX_H - 19)
-  label(rpmText):draw(X0 + 2, Y0 + BOX_H - 10)
   gfx.clearClipRect()
   if red and open < 1 then A.shade(X0, Y0, BOX_W, BOX_H, 1 - open, true) end
   return true
 end
 
-function Sp.release() tbl, labels, hdrImg, textB = nil, {}, nil, nil end
+function Sp.release() tbl, labels, hdrImg, textB, boxImg = nil, {}, nil, nil, nil end
 
 return Sp

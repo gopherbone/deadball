@@ -43,8 +43,8 @@ function Schedule:layout(L)
   y = self:layoutGrid(L, cont, y, W)
   if #enh > 0 then
     gfx.fillRect(4, y, W - 8, 15)
-    Text.draw("THE ENHANCED LEAGUE", 9, y + 1, UI.fonts.bold, "white")
-    Text.draw("out in the desert", W - 9, y + 1, UI.fonts.body, "white", "right")
+    Text.draw("THE ENHANCED LEAGUE", 9, Text.boxY(UI.fonts.bold, y, 15), UI.fonts.bold, "white")
+    Text.draw("out in the desert", W - 9, Text.boxY(UI.fonts.bold, y, 15), UI.fonts.body, "white", "right")
     L:link(4, y, W - 8, 15, function() Sites.Standings.open({ level = "EL" }) end, { id = "el-standings", hint = "Enhanced League standings & the Mirage Cup", style = "invert" })
     y += 19
     y = self:layoutGrid(L, enh, y, W)
@@ -58,7 +58,7 @@ function Schedule:layout(L)
   end
   if #upcoming > 0 then
     gfx.fillRect(4, y, W - 8, 15)
-    Text.draw("COMING UP", 9, y + 1, UI.fonts.bold, "white")
+    Text.draw("COMING UP", 9, Text.boxY(UI.fonts.bold, y, 15), UI.fonts.bold, "white")
     y += 19
     for _, g in ipairs(upcoming) do
       Text.draw("Day " .. (g.day or "?"), 8, y, UI.fonts.bold)

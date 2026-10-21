@@ -79,21 +79,51 @@ local function countArea(x0, y0, st, b, s)
   gfx.setColor(gfx.kColorBlack)
 end
 
-function H.scorebug(st, meta, final)
-  local away = meta.away and meta.away.abbr or "AWY"
-  local home = meta.home and meta.home.abbr or "HOM"
-  local b, s = math.min(st.b or 0, 3), math.min(st.s or 0, 2)
-  H.buildBug(st, meta, final)
+-- the whole bug as drawn (base + count area + names) is kept as one opaque image and redrawn
+-- only when something on it changes (a pitch, an out, a runner, a new batter): a blit a frame
+local compImg
+local compKey = {}
+local bugVer = 0      -- (bumped each time the base image is redrawn)
+local function drawBug(st, final, b, s, pitImg, batImg)
   bugImg:draw(2, 2)
   if not final then
     countArea(2, 2, st, b, s)
     -- pitcher / batter: proper-cased last names in a clean face, cached per person
+    if pitImg then pitImg:draw(166, 3) end
+    if batImg then batImg:draw(166, 16) end
+  end
+end
+local function bugChanged(k, st, final, b, s, pitImg, batImg)
+  local top, b1, b2, b3 = st.top and true or false, st.b1 and true or false, st.b2 and true or false, st.b3 and true or false
+  local outs = st.outs or 0
+  if k.ver == bugVer and k.final == final and k.inn == st.inn and k.top == top and k.b1 == b1 and k.b2 == b2 and k.b3 == b3
+    and k.b == b and k.s == s and k.outs == outs and k.pit == pitImg and k.bat == batImg then return false end
+  k.ver, k.final, k.inn, k.top, k.b1, k.b2, k.b3, k.b, k.s, k.outs, k.pit, k.bat = bugVer, final, st.inn, top, b1, b2, b3, b, s, outs, pitImg, batImg
+  return true
+end
+
+function H.scorebug(st, meta, final)
+  local b, s = math.min(st.b or 0, 3), math.min(st.s or 0, 2)
+  H.buildBug(st, meta, final)
+  local pitImg, batImg
+  if not final then
     local people = meta.people or {}
     H.drawing = true
-    if st.pit and people[st.pit] then H.bugName(people[st.pit].name):draw(166, 3) end
-    if st.bat and people[st.bat] then H.bugName(people[st.bat].name):draw(166, 16) end
+    if st.pit and people[st.pit] then pitImg = H.bugName(people[st.pit].name) end
+    if st.bat and people[st.bat] then batImg = H.bugName(people[st.bat].name) end
     H.drawing = false
   end
+  if bugChanged(compKey, st, final, b, s, pitImg, batImg) or not compImg then
+    -- (drawn at its screen spot through a draw offset: the image's (0, 0) is the screen's (2, 2))
+    compImg = compImg or gfx.image.new(BUG_W, 30, gfx.kColorBlack)
+    gfx.pushContext(compImg)
+    gfx.setImageDrawMode(gfx.kDrawModeCopy)
+    gfx.setDrawOffset(-2, -2)
+    drawBug(st, final, b, s, pitImg, batImg)
+    gfx.setDrawOffset(0, 0)
+    gfx.popContext()
+  end
+  compImg:draw(2, 2)
 end
 
 --- the scorebug's base image (teams, runs, labels) for this score; the loader calls it for
@@ -107,7 +137,8 @@ function H.buildBug(st, meta, final)
     k = k or {}
     k.away, k.home, k.final = st.away, st.home, final
     bugKey = k
-    bugImg = bugImg or gfx.image.new(BUG_W, 30)
+    bugVer = bugVer + 1
+    bugImg = bugImg or gfx.image.new(BUG_W, 30, gfx.kColorBlack)
     gfx.pushContext(bugImg)
     gfx.clear(gfx.kColorBlack)
     local f = K.fonts.nb
@@ -181,14 +212,43 @@ function H.prewarmGun()
   A.text("tiny", "MPH", "w"); A.text("tiny", "PITCH", "w")
   for d = 0, 9 do A.text("tiny", tostring(d), "w") end
 end
+-- the whole gun as drawn, one opaque image redrawn only when it changes (a new pitch, the
+-- digits rolling up): a blit a frame
+local gunImg, gunPv, gunNo, gunShown
+local drawGun
 function H.pitchBox(pt, pv, x, y)
   if not pt then return end
   local A = TVA()
   local name = PN[pt] or pt
   x = x or (398 - GUN_W)
   y = y or 2
-  local key = name .. "|" .. tostring(pv) .. "|" .. tostring(H.pitchNo)
-  if key ~= gunKey then gunKey = key; gunT0 = playdate.getCurrentTimeMilliseconds() end
+  if name ~= gunKey or pv ~= gunPv or H.pitchNo ~= gunNo then
+    gunKey, gunPv, gunNo = name, pv, H.pitchNo
+    gunT0 = playdate.getCurrentTimeMilliseconds()
+    gunShown = nil
+  end
+  -- digits: roll up from 60 over a third of a second
+  local v = tonumber(pv) or 0
+  local age = (playdate.getCurrentTimeMilliseconds() - gunT0) / 1000
+  local shown = v
+  if age < 0.35 and A and not A.reduce then shown = math.floor(60 + (v - 60) * (1 - (1 - age / 0.35) ^ 3)) end
+  -- (the cached image only where it's exact: the name inside the frame, the LCD's dither on
+  -- the screen's 2 px grid)
+  if x % 2 ~= 0 or y % 2 ~= 0 or A.text("nb", name, "w"):getSize() > GUN_W - 52 then
+    drawGun(A, name, x, y, shown)
+    return
+  end
+  if shown ~= gunShown or not gunImg then
+    gunShown = shown
+    gunImg = gunImg or gfx.image.new(GUN_W, GUN_H, gfx.kColorBlack)
+    gfx.pushContext(gunImg)
+    gfx.setImageDrawMode(gfx.kDrawModeCopy)
+    drawGun(A, name, 0, 0, shown)
+    gfx.popContext()
+  end
+  gunImg:draw(x, y)
+end
+drawGun = function(A, name, x, y, shown)
   -- frame + LCD window: three fills
   gfx.setColor(gfx.kColorBlack)
   gfx.fillRect(x, y, GUN_W, GUN_H)
@@ -211,11 +271,6 @@ function H.pitchBox(pt, pv, x, y)
     local pl = A.text("tiny", "PITCH", "w")
     pl:draw(dx - pl:getSize() - 3, y + 17)
   end
-  -- digits: roll up from 60 over a third of a second
-  local v = tonumber(pv) or 0
-  local age = (playdate.getCurrentTimeMilliseconds() - gunT0) / 1000
-  local shown = v
-  if age < 0.35 and A and not A.reduce then shown = math.floor(60 + (v - 60) * (1 - (1 - age / 0.35) ^ 3)) end
   local s = tostring(math.max(0, math.min(199, shown)))
   if A then
     local dx = x + 46 - #s * 14
@@ -224,14 +279,32 @@ function H.pitchBox(pt, pv, x, y)
 end
 
 --- small tag under the pitch box: LIVE / REPLAY 2x / PAUSED
+-- (each one drawn once into an opaque image, then a blit a frame: no text rendering)
+local tagImgs = { [true] = {}, [false] = {} }
+local TAG_H <const> = 11
+local drawTag
 function H.tag(text, x, y, invert)
+  invert = invert and true or false
+  local img = tagImgs[invert][text]
+  if not img then
+    local w = K.fonts.tiny:getTextWidth(text) + 8
+    img = gfx.image.new(w, TAG_H, gfx.kColorBlack)
+    gfx.pushContext(img)
+    gfx.setImageDrawMode(gfx.kDrawModeCopy)
+    drawTag(text, w, 0, invert)
+    gfx.popContext()
+    tagImgs[invert][text] = img
+  end
+  img:draw(x - img:getSize(), y)
+end
+drawTag = function(text, x, y, invert)
   local f = K.fonts.tiny
   local w = f:getTextWidth(text) + 8
   x = x - w
   gfx.setColor(invert and gfx.kColorWhite or gfx.kColorBlack)
-  gfx.fillRect(x, y, w, 11)
+  gfx.fillRect(x, y, w, TAG_H)
   if invert then
-    gfx.setColor(gfx.kColorBlack); gfx.drawRect(x, y, w, 11)
+    gfx.setColor(gfx.kColorBlack); gfx.drawRect(x, y, w, TAG_H)
     f:drawText(text, x + 4, y + 2)
   else
     K.textW(f, text, x + 4, y + 2)
@@ -274,17 +347,44 @@ function H.tickerSet(lines, instant)
   tape.reveal = instant and w or prevW
 end
 
+-- between lines (nothing typing) the strip only changes when the cursor blinks: it's kept as
+-- one opaque image, redrawn on a blink or a new line
+local stripImg, stripTape, stripR, stripCur
+local drawTicker
 --- returns true while typing (for the telegraph clatter)
 function H.ticker(dt)
   local y = 240 - TICK_H
+  local typing = false
+  if tape.img and tape.reveal < tape.w then
+    tape.reveal = math.min(tape.w, tape.reveal + dt * 260)
+    typing = true
+  end
+  if typing or not tape.img then
+    drawTicker(y, typing)
+    return typing
+  end
+  local r = floor(tape.reveal)
+  local cur = floor(playdate.getCurrentTimeMilliseconds() / 400) % 2 == 0
+  if not stripImg or stripTape ~= tape.img or stripR ~= r or stripCur ~= cur then
+    stripTape, stripR, stripCur = tape.img, r, cur
+    stripImg = stripImg or gfx.image.new(400, TICK_H, gfx.kColorBlack)
+    gfx.pushContext(stripImg)
+    gfx.setImageDrawMode(gfx.kDrawModeCopy)
+    gfx.setDrawOffset(0, -y)
+    drawTicker(y, false, cur)
+    gfx.setDrawOffset(0, 0)
+    gfx.popContext()
+  end
+  stripImg:draw(0, y)
+  gfx.setColor(cur and gfx.kColorWhite or gfx.kColorBlack)   -- (as the live strip left it)
+  return false
+end
+--- the strip as it stands at y (cur: the blinking cursor's phase; nil = now)
+drawTicker = function(y, typing, cur)
   gfx.setColor(gfx.kColorBlack)
   gfx.fillRect(0, y, 400, TICK_H)
-  local typing = false
   if tape.img then
-    if tape.reveal < tape.w then
-      tape.reveal = math.min(tape.w, tape.reveal + dt * 260)
-      typing = true
-    end
+    if cur == nil then cur = floor(playdate.getCurrentTimeMilliseconds() / 400) % 2 == 0 end
     local r = floor(tape.reveal)
     local x = 6
     if r > 388 then x = 394 - r end
@@ -292,13 +392,12 @@ function H.ticker(dt)
     tape.img:draw(x, y + 1)
     gfx.clearClipRect()
     -- cursor block
-    if typing or floor(playdate.getCurrentTimeMilliseconds() / 400) % 2 == 0 then
+    if typing or cur then
       gfx.setColor(gfx.kColorWhite)
       gfx.fillRect(math.min(394, x + r + 1), y + 3, 5, 9)
     end
   end
   -- telegraph key icon at left edge
-  return typing
 end
 
 ---------------------------------------------------------------------------
@@ -312,7 +411,7 @@ function H.winPanel(tl, upto, teamAbbr, forHome, bet, x, y)
   local key = upto * 4 + (forHome and 1 or 0) + #beats * 100000
   if key ~= weKey then
     weKey = key
-    weImg = weImg or gfx.image.new(132, 74)
+    weImg = weImg or gfx.image.new(132, 74, gfx.kColorWhite)   -- (all painted: opaque blits faster)
     gfx.pushContext(weImg)
     gfx.clear(gfx.kColorWhite)
     gfx.setColor(gfx.kColorBlack)
@@ -737,11 +836,14 @@ end
 
 function H.release()
   bugImg, bugKey, weImg, weKey = nil, nil, nil, nil
+  compImg, compKey = nil, {}
   tape = { img = nil, text = "", reveal = 0, from = 0, w = 0 }
+  stripImg, stripTape = nil, nil
   bannerCache = {}
   faceSmallCache = {}
   ltStatic, ltText = {}, {}
   bugNames = {}
-  gunKey = nil
+  gunKey, gunImg, gunShown = nil, nil, nil
+  tagImgs = { [true] = {}, [false] = {} }
   bugLabels = nil
 end

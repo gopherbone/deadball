@@ -6,10 +6,10 @@ local gfx <const> = playdate.graphics
 Chrome = Chrome or {}
 Chrome.MENU_H = 16
 Chrome.TOOL_H = 18
-Chrome.STATUS_H = 13
+Chrome.STATUS_H = 14
 Chrome.TOP = Chrome.MENU_H + Chrome.TOOL_H        -- 34
-Chrome.BOTTOM = 240 - Chrome.STATUS_H              -- 227
-Chrome.VIEW_H = Chrome.BOTTOM - Chrome.TOP         -- 193
+Chrome.BOTTOM = 240 - Chrome.STATUS_H              -- 226
+Chrome.VIEW_H = Chrome.BOTTOM - Chrome.TOP         -- 192
 
 local function envelope(x, y, inverted)
   gfx.setColor(inverted and gfx.kColorWhite or gfx.kColorBlack)
@@ -74,12 +74,13 @@ function Chrome.toolbar(url, frame, busy, focus, enabled)
   local fx = bx + 26
   local fw = 400 - fx - 24
   gfx.setColor(gfx.kColorWhite)
-  gfx.fillRect(fx, y + 2, fw, 14)
+  -- (16 rows: the URL's capitals clear the frame by a row, its descenders stay inside)
+  gfx.fillRect(fx, y + 1, fw, 16)
   gfx.setColor(gfx.kColorBlack)
-  gfx.drawRect(fx, y + 2, fw, 14)
-  gfx.drawLine(fx + 1, y + 3, fx + fw - 2, y + 3)
-  local u = Text.ellipsize(url or "about:blank", UI.fonts.body, fw - 6)
-  Text.draw(u, fx + 3, y + 3, UI.fonts.body)
+  gfx.drawRect(fx, y + 1, fw, 16)
+  gfx.drawLine(fx + 1, y + 2, fx + 1, y + 15)
+  local u = Text.ellipsize(url or "about:blank", UI.fonts.body, fw - 7)
+  Text.draw(u, fx + 4, y + 3, UI.fonts.body)
   -- throbber
   Draw.throbber(388, y + 9, 7, frame or 0, busy)
 end
@@ -92,7 +93,7 @@ function Chrome.status(text, progress)
   gfx.setColor(gfx.kColorBlack)
   gfx.drawLine(0, y, 399, y)
   local w = progress and 300 or 394
-  Text.draw(Text.ellipsize(text or "", UI.fonts.body, w), 3, y + 1, UI.fonts.body)
+  Text.draw(Text.ellipsize(text or "", UI.fonts.body, w), 3, y + 2, UI.fonts.body)
   if progress then
     Draw.progress(310, y + 3, 86, 8, progress, nil)
   end

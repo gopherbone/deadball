@@ -44,8 +44,7 @@ function Draw.button(x, y, w, h, label, state, font)
     gfx.drawLine(x + w, y + 2, x + w, y + h - 1)
   end
   local oy = pressed and 1 or 0
-  local th = font:getHeight()
-  Text.draw(label, x + w // 2 + oy, y + (h - th) // 2 + oy + 1, font, nil, "center")
+  Text.draw(label, x + w // 2 + oy, Text.boxY(font, y + 1, h - 2, label) + oy, font, nil, "center")
   if state == "disabled" then
     Draw.fade(x + 1, y + 1, w - 2, h - 2, 0.5, true)
     gfx.setColor(gfx.kColorBlack)
@@ -83,14 +82,14 @@ function Draw.window(x, y, w, h, title, opts)
       gfx.setColor(gfx.kColorWhite)
       gfx.fillRect(tx, y + 1, tw, th - 2)
       gfx.setColor(gfx.kColorBlack)
-      Text.draw(title, tx + 5, y + 2, F().bold)
+      Text.draw(title, tx + 5, Text.boxY(F().bold, y + 1, th - 2, title), F().bold)
       -- close box
       gfx.setColor(gfx.kColorWhite)
       gfx.fillRect(x + 5, y + 3, 10, 9)
       gfx.setColor(gfx.kColorBlack)
       gfx.drawRect(x + 5, y + 3, 10, 9)
     else
-      Text.draw(title, tx + 5, y + 2, F().bold, "white")
+      Text.draw(title, tx + 5, Text.boxY(F().bold, y, th, title), F().bold, "white")
     end
   end
   return x + 1, y + th + 1, w - 2, h - th - 2
@@ -138,7 +137,7 @@ function Draw.stripes(x, y, w, h, label, frame)
     gfx.setColor(gfx.kColorWhite)
     gfx.fillRect(tx, y + 1, tw, h - 2)
     gfx.setColor(gfx.kColorBlack)
-    Text.draw(label, tx + 4, y + (h - f:getHeight()) // 2 + 1, f)
+    Text.draw(label, tx + 4, Text.boxY(f, y + 1, h - 2, label), f)
   end
 end
 
@@ -346,11 +345,11 @@ function Draw.chip(x, y, label, font, outline)
   if outline then
     gfx.setColor(gfx.kColorBlack)
     gfx.drawRect(x, y, w, h)
-    Text.draw(label, x + 3, y + 1, font)
+    Text.draw(label, x + 3, Text.boxY(font, y + 1, h - 2, label), font)
   else
     gfx.setColor(gfx.kColorBlack)
     gfx.fillRect(x, y, w, h)
-    Text.draw(label, x + 3, y + 1, font, "white")
+    Text.draw(label, x + 3, Text.boxY(font, y, h, label), font, "white")
   end
   return w
 end

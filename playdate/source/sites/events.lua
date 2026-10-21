@@ -59,7 +59,7 @@ function Card:update(covered)
   local kicker = "! CREW NEWS"
   local title = (self.ev.title or ""):lower()
   if title:find("offer") or (self.ev.body or ""):find("syndicate") then kicker = "! AN OFFER" elseif title:find("bobby") then kicker = "! A WORD" end
-  Text.draw(kicker, x + 7, y + 3, UI.fonts.bold, "white")
+  Text.draw(kicker, x + 7, Text.boxY(UI.fonts.bold, y + 2, 15), UI.fonts.bold, "white")
   local c = Game.clock
   local exp = self.ev.expiresAt and (self.ev.expiresAt - Api.now()) or nil
   local right = exp and ("decide within " .. Fmt.dur(exp)) or (c and ("Day " .. c.day) or "")

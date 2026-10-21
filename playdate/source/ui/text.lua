@@ -157,6 +157,57 @@ function Text.block(str, x, y, width, font, color, maxLines, leading)
   return n * lh
 end
 
+--- Ink metrics of a face (cached): capTop / capBot are the first and last ink rows of "H" below
+--- the draw y, descBot the lowest row of "gjpqy". Line heights don't say where the ink is: the
+--- Nontendo faces (body, bold) start their capitals on the very first row of the line and keep
+--- three rows of descender below, so text placed by getHeight() sits flush against a box's top.
+local metricsCache = setmetatable({}, { __mode = "k" })
+function Text.metrics(font)
+  font = font or UI.fonts.body
+  local m = metricsCache[font]
+  if m then return m end
+  local f = font.base or font   -- (composites: the base face carries the letters)
+  local h = f:getHeight()
+  local function rows(str)
+    local w = f:getTextWidth(str) + 2
+    local img = gfx.image.new(w, h + 4, gfx.kColorWhite)
+    gfx.pushContext(img)
+    gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
+    f:drawText(str, 1, 2)
+    gfx.popContext()
+    local top, bot
+    for yy = 0, h + 3 do
+      for xx = 0, w - 1 do
+        if img:sample(xx, yy) == gfx.kColorBlack then
+          top = top or yy
+          bot = yy
+          break
+        end
+      end
+    end
+    return (top or 2) - 2, (bot or h + 1) - 2
+  end
+  local ct, cb = rows("H")
+  local _, db = rows("gjpqy")
+  m = { capTop = ct, capBot = cb, capH = cb - ct + 1, descBot = math.max(cb, db) }
+  metricsCache[font] = m
+  return m
+end
+
+--- The draw y that centres a line's capitals in the box rows [top, top + h) (the box's inside:
+--- pass the rows between its borders). An odd spare row goes above. With `str` given, a line
+--- with descenders is lifted (toward one clear row under the top) to keep them inside the box.
+function Text.boxY(font, top, h, str)
+  local m = Text.metrics(font)
+  local y = top + (h - m.capH + 1) // 2 - m.capTop
+  if str and m.descBot > m.capBot and tostring(str):find("[gjpqy,;Q%(%)%[%]{}|_]") then
+    local maxY = top + h - 1 - m.descBot
+    -- (never closer than one clear row under the top when the box has room for it)
+    if y > maxY then y = math.max(maxY, top + (h >= m.capH + 2 and 1 or 0) - m.capTop) end
+  end
+  return y
+end
+
 function Text.width(str, font)
   return (font or UI.fonts.body):getTextWidth(tostring(str or ""))
 end

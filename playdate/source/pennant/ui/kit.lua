@@ -17,7 +17,7 @@ PUI = PUI or {}
 PUI.PROF = playdate.file.exists("debug.flag")
 local function nowMs() return playdate.getCurrentTimeMilliseconds() end
 PUI.TOP = 18
-PUI.BOT = 226
+PUI.BOT = 225
 PUI.VIEW_H = PUI.BOT - PUI.TOP
 
 local F = function() return UI.fonts end
@@ -80,10 +80,8 @@ function PUI.hintBar(text)
     gfx.pushContext(img)
     gfx.setColor(gfx.kColorBlack)
     gfx.drawLine(0, 0, 399, 0)
-    gfx.setPattern(UI.pat.gray)
-    gfx.drawLine(0, 1, 399, 1)
-    gfx.setColor(gfx.kColorBlack)
-    Text.draw(Text.ellipsize(key, F().body, 392), 4, 1, F().body)
+    -- (the rule, a clear row, then the line: descenders still fit in the 15 rows)
+    Text.draw(Text.ellipsize(key, F().body, 392), 4, 2, F().body)
     gfx.popContext()
     hintCache.key, hintCache.img = key, img
   end
@@ -345,11 +343,13 @@ end
 function PUI.grade(x, y, v, inv)
   local g = PM.grade(v)
   local inverted = inv or g == "S" or g == "A"
+  -- (the letter stays on the row's text line; the box, 14 rows from 2 above it, clears its
+  -- capitals by a row above and below inside the outline)
   if inverted then
-    gfx.fillRect(x, y, 13, 13)
+    gfx.fillRect(x, y - 2, 13, 14)
     Text.draw(g, x + 7, y, F().bold, "white", "center")
   else
-    gfx.drawRect(x, y, 13, 13)
+    gfx.drawRect(x, y - 2, 13, 14)
     Text.draw(g, x + 7, y, F().bold, nil, "center")
   end
 end
@@ -402,12 +402,13 @@ function PUI.tabs(L, items, sel, y)
   for _, it in ipairs(items) do
     local w = F().bold:getTextWidth(it[2]) + 14
     local on = it[1] == sel
+    local ty = Text.boxY(F().bold, y + 1, 14, it[2])
     if on then
       gfx.fillRect(x, y, w, 16)
-      Text.draw(it[2], x + 7, y + 1, F().bold, "white")
+      Text.draw(it[2], x + 7, ty, F().bold, "white")
     else
       gfx.drawRect(x, y, w, 16)
-      Text.draw(it[2], x + 7, y + 1, F().bold)
+      Text.draw(it[2], x + 7, ty, F().bold)
     end
     L:link(x, y, w, 16, it[3], { id = "tab:" .. it[1], style = "ring", hint = it[4] })
     x = x + w + 3

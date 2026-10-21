@@ -41,13 +41,14 @@ local function kzFrame(title, tag)
   gfx.fillRect(KX, KY, KW, KH)
   gfx.setColor(gfx.kColorWhite)
   gfx.fillRect(KX + 2, KY + 12, KW - 4, KH - 14)
-  Text.draw(title, KX + 4, KY - 1, F().bold, "white")
+  Text.draw(title, KX + 4, Text.boxY(F().bold, KY, 12), F().bold, "white")
   if tag then
     local w = F().body:getTextWidth(tag) + 6
     gfx.setColor(gfx.kColorWhite)
-    gfx.fillRect(KX + KW - w - 2, KY + 1, w, 10)
+    -- (a tab open into the white below: its capitals clear the strip's top by a row)
+    gfx.fillRect(KX + KW - w - 2, KY + 1, w, 11)
     gfx.setColor(gfx.kColorBlack)
-    Text.draw(tag, KX + KW - w + 1, KY - 1, F().body)
+    Text.draw(tag, KX + KW - w + 1, KY + 2, F().body)
   end
   gfx.setColor(gfx.kColorBlack)
   local x0, x1, y0, y1 = kzx(-1), kzx(1), kzy(1), kzy(-1)
@@ -64,10 +65,11 @@ end
 
 local function hintStrip(text, y)
   gfx.setColor(gfx.kColorWhite)
-  gfx.fillRect(KX, y, KW, 13)
+  gfx.fillRect(KX, y, KW, 14)
   gfx.setColor(gfx.kColorBlack)
-  gfx.drawRect(KX, y, KW, 13)
-  Text.draw(Text.ellipsize(text, F().body, KW - 4), KX + 2, y, F().body)
+  gfx.drawRect(KX, y, KW, 14)
+  local s = Text.ellipsize(text, F().body, KW - 4)
+  Text.draw(s, KX + 2, Text.boxY(F().body, y + 1, 12, s), F().body)
 end
 
 -- Settings --------------------------------------------------------------------------------------------------
@@ -143,7 +145,7 @@ function Live:drawHelp()
   local x, y, w, ht = 60, 60, 280, 110
   panel(x, y, w, ht)
   gfx.fillRect(x, y, w, 16)
-  Text.draw(h[1], x + w // 2, y + 1, F().bold, "white", "center")
+  Text.draw(h[1], x + w // 2, Text.boxY(F().bold, y, 16, h[1]), F().bold, "white", "center")
   for i, l in ipairs(h[2]) do Text.draw(l, x + 10, y + 22 + (i - 1) * 15, F().body) end
   Text.draw("A: play ball", x + w - 8, y + ht - 16, F().bold, nil, "right")
 end
@@ -156,13 +158,14 @@ function Live:drawCard()
   local x, y, w, h = CX, CY, CW, c.h or CH
   panel(x, y, w, h)
   gfx.fillRect(x, y, w, 13)
-  Text.draw(c.title or "SCOUT", x + 3, y, F().bold, "white")
+  Text.draw(c.title or "SCOUT", x + 3, Text.boxY(F().bold, y, 13, c.title or "SCOUT"), F().bold, "white")
   local yy = y + 15
   for _, l in ipairs(c.lines) do
     if type(l) == "table" then
       -- a name: inverted
       gfx.fillRect(x + 2, yy - 1, w - 4, 14)
-      Text.draw(Text.ellipsize(l[1], F().bold, w - 8), x + w // 2, yy, F().bold, "white", "center")
+      local s = Text.ellipsize(l[1], F().bold, w - 8)
+      Text.draw(s, x + w // 2, Text.boxY(F().bold, yy - 1, 14, s), F().bold, "white", "center")
       yy = yy + 15
     else
       Text.draw(Text.ellipsize(l, F().body, w - 6), x + 3, yy, F().body)
@@ -596,7 +599,7 @@ function Live:drawScoutPitch()
     local sx, sy = kzx(x), kzy(z)
     local on = n == u.spot
     if on then gfx.fillRect(sx - 6, sy - 6, 13, 13) else gfx.drawRect(sx - 5, sy - 5, 11, 11) end
-    if n == u.call.spot then Text.draw("C", sx + 1, sy - 6, F().bold, on and "white" or nil, "center") end
+    if n == u.call.spot then Text.draw("C", sx + 1, Text.boxY(F().bold, sy - 6, 13), F().bold, on and "white" or nil, "center") end
   end
   -- the pitches, the catcher's call marked
   local y = KY + KH + 2
@@ -609,7 +612,7 @@ function Live:drawScoutPitch()
     local on = k == u.k
     local cx, cy = KX + 1 + ((k - 1) % 2) * 49, y + 1 + ((k - 1) // 2) * 13
     if on then gfx.fillRect(cx, cy, 49, 13) end
-    Text.draw(a.kind .. " " .. PM.grade(a.quality or 50) .. (k == u.call.k and "*" or ""), cx + 2, cy, on and F().bold or F().body, on and "white" or nil)
+    Text.draw(a.kind .. " " .. PM.grade(a.quality or 50) .. (k == u.call.k and "*" or ""), cx + 2, Text.boxY(F().body, cy, 13), on and F().bold or F().body, on and "white" or nil)
   end
   hintStrip(u.aDown and ((u.aHeld or 0) >= 12 and "REACH BACK!" or "hold: reach back") or "A throw *catcher", y + rows * 13 + 4)
 end

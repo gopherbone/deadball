@@ -230,8 +230,9 @@ function Ticket:drawFace(closesText)
       local lbl = s.label .. (s.pays and s.pays > 0 and (" " .. Fmt.pays(s.pays) .. "x") or "")
       local w = UI.fonts.body:getTextWidth(lbl) + 10
       if sx + w > X + W - 10 then break end
-      if i == si then gfx.fillRect(sx, cy, w, 13) Text.draw(lbl, sx + 5, cy, UI.fonts.body, "white")
-      else gfx.drawRect(sx, cy, w, 13) Text.draw(lbl, sx + 5, cy, UI.fonts.body) end
+      local ty = Text.boxY(UI.fonts.body, cy + 1, 11, lbl)
+      if i == si then gfx.fillRect(sx, cy, w, 13) Text.draw(lbl, sx + 5, ty, UI.fonts.body, "white")
+      else gfx.drawRect(sx, cy, w, 13) Text.draw(lbl, sx + 5, ty, UI.fonts.body) end
       sx += w + 4
     end
     Text.draw("\u{25b2}\u{25bc}", X + W - 10, cy, UI.fonts.body, nil, "right")
@@ -257,10 +258,10 @@ function Ticket:drawFace(closesText)
   for _, ch in ipairs(chips) do
     if ch[1] == self.amount then
       gfx.fillRoundRect(kx, cy, ch.w, 14, 3)
-      Text.draw(ch[2], kx + 4, cy, UI.fonts.bold, "white")
+      Text.draw(ch[2], kx + 4, Text.boxY(UI.fonts.bold, cy + 1, 12), UI.fonts.bold, "white")
     else
       gfx.drawRoundRect(kx, cy, ch.w, 14, 3)
-      Text.draw(ch[2], kx + 4, cy, UI.fonts.bold)
+      Text.draw(ch[2], kx + 4, Text.boxY(UI.fonts.bold, cy + 1, 12), UI.fonts.bold)
     end
     kx += ch.w + 4
   end
@@ -364,7 +365,7 @@ function Ticket:update(covered)
           gfx.fillRect(tx, sh - 6, nw, 15)
           gfx.setColor(gfx.kColorBlack)
           gfx.drawRect(tx, sh - 6, nw, 15)
-          Text.draw(nt, lw // 2, sh - 5, UI.fonts.bold, nil, "center")
+          Text.draw(nt, lw // 2, Text.boxY(UI.fonts.bold, sh - 5, 13, nt), UI.fonts.bold, nil, "center")
         end
         gfx.popContext()
         self.landedImg, self.landedW = li, lw

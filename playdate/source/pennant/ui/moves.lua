@@ -164,11 +164,13 @@ function TT:paintRow(row)
   local on = has(list, p.id)
   if on then gfx.fillRect(x - 1, y - 1, w + 2, 14) end
   local col = on and "white" or nil
-  Text.draw(p.pos == "P" and (p.role or "P") or p.pos, x + 2, y - 1, UI.fonts.bold, col)
-  Text.draw(Text.ellipsize(PM.short(p) .. (p.lvl == "F" and " f" or ""), UI.fonts.body, 96), x + 26, y - 1, UI.fonts.body, col)
-  Text.draw(tostring(PM.ovr(p)), x + 146, y - 1, UI.fonts.bold, col, "right")
-  Text.draw(tostring(p.age), x + 168, y - 1, UI.fonts.body, col, "right")
-  if p.inj then Text.draw("+", x + w - 2, y - 1, UI.fonts.bold, col, "right") end
+  local name = Text.ellipsize(PM.short(p) .. (p.lvl == "F" and " f" or ""), UI.fonts.body, 96)
+  local ty = Text.boxY(UI.fonts.body, y - 1, 14, name)
+  Text.draw(p.pos == "P" and (p.role or "P") or p.pos, x + 2, ty, UI.fonts.bold, col)
+  Text.draw(name, x + 26, ty, UI.fonts.body, col)
+  Text.draw(tostring(PM.ovr(p)), x + 146, ty, UI.fonts.bold, col, "right")
+  Text.draw(tostring(p.age), x + 168, ty, UI.fonts.body, col, "right")
+  if p.inj then Text.draw("+", x + w - 2, ty, UI.fonts.bold, col, "right") end
 end
 
 function TT:column(Lb, T, list, x, y, w)
@@ -232,7 +234,7 @@ function TT:paintHeader()
   if not self.art then self.art = gfx.image.new("images/pennant/" .. MOOD_ART[(#self.other + self.other:byte(1)) % #MOOD_ART + 1] .. "-48") end
   if self.art then self.art:draw(4, 22) else gfx.drawRect(4, 22, 48, 48) end
   gfx.drawRect(56, 22, 222, 48)
-  Text.draw(self.other .. " GM, on the line:", 60, 23, UI.fonts.bold)
+  Text.draw(self.other .. " GM, on the line:", 60, 24, UI.fonts.bold)
   local line = ready and ("\"" .. note .. "\"") or "\"Who've you got for me?\""
   Text.block(line, 60, 37, 214, UI.fonts.body, nil, 2)
   -- the needle
@@ -277,8 +279,8 @@ function TT:layout(Lb)
   local fx = 180
   for i, f in ipairs(FILTERS) do
     local w = UI.fonts.bold:getTextWidth(f) + 6
-    if i == self.filter then gfx.fillRect(fx, y + 1, w, 13) Text.draw(f, fx + 3, y + 1, UI.fonts.bold, "white")
-    else gfx.drawRect(fx, y + 1, w, 13) Text.draw(f, fx + 3, y + 1, UI.fonts.bold) end
+    if i == self.filter then gfx.fillRect(fx, y + 1, w, 13) Text.draw(f, fx + 3, Text.boxY(UI.fonts.bold, y + 1, 13), UI.fonts.bold, "white")
+    else gfx.drawRect(fx, y + 1, w, 13) Text.draw(f, fx + 3, Text.boxY(UI.fonts.bold, y + 2, 11), UI.fonts.bold) end
     fx = fx + w + 2
   end
   Lb:link(178, y, fx - 178, 15, function() self.filter = self.filter % #FILTERS + 1 self:render(true) end,

@@ -1323,6 +1323,17 @@ local function linePA(tl, bi, bat)
   return h .. "-FOR-" .. ab .. " TODAY"
 end
 
+-- the controls help strip (S:drawHud), one image per text
+local hintImgs = {}
+local function drawHint(f, s)
+  local w = f:getTextWidth(s) + 10
+  gfx.setColor(gfx.kColorWhite)
+  gfx.fillRect(200 - w / 2, 210, w, 12)
+  gfx.setColor(gfx.kColorBlack)
+  gfx.drawRect(200 - w / 2, 210, w, 12)
+  K.text(f, s, 200, 213, "center")
+end
+
 function S:drawHud(bi, b, tau, slo, camName, incident, dt)
   local tl = self.tl
   local meta = self.meta
@@ -1421,12 +1432,20 @@ function S:drawHud(bi, b, tau, slo, camName, incident, dt)
     local s = self.src and (self.src.hint or "A NEXT SHOT  B TIME OUT")
       or (self.playing and "A NEXT SHOT  HOLD A LOG  CRANK SCRUB  UP/DN AT-BAT  L/R SPEED"
         or "II PAUSED  RIGHT PLAY  A NEXT SHOT  HOLD A LOG  CRANK SCRUB")
-    local w = f:getTextWidth(s) + 10
-    gfx.setColor(gfx.kColorWhite)
-    gfx.fillRect(200 - w / 2, 210, w, 12)
-    gfx.setColor(gfx.kColorBlack)
-    gfx.drawRect(200 - w / 2, 210, w, 12)
-    K.text(f, s, 200, 213, "center")
+    -- (drawn once into an image, a blit a frame after that: no text rendering)
+    local h = hintImgs[s]
+    if not h then
+      local w = f:getTextWidth(s) + 10
+      local ox = floor(200 - w / 2) - 1
+      h = { img = gfx.image.new(w + 3, 240 - 206, gfx.kColorClear), x = ox }
+      gfx.pushContext(h.img)
+      gfx.setDrawOffset(-ox, -206)
+      drawHint(f, s)
+      gfx.setDrawOffset(0, 0)
+      gfx.popContext()
+      hintImgs[s] = h
+    end
+    h.img:draw(h.x, 206)
   end
   if self.live and tl.total - self.t < 0.05 and not self.src then
     K.textW(K.fonts.tiny, "WAITING ON THE WIRE...", 6, 213)

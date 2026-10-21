@@ -67,16 +67,18 @@ local function L_() return Pennant.L end
 --- A hand chip: inverse L for a lefty, outlined R (S for a switch hitter).
 function PUI.handChip(x, y, h)
   local w = 9
-  if h == "L" then gfx.fillRect(x, y, w, 11) Text.draw("L", x + 5, y - 1, UI.fonts.bold, "white", "center")
-  else gfx.drawRect(x, y, w, 11) Text.draw(h or "R", x + 5, y - 1, UI.fonts.bold, nil, "center") end
+  -- (14 rows: capitals clear the edges by a row inside the outline)
+  if h == "L" then gfx.fillRect(x, y - 1, w, 14) Text.draw("L", x + 5, Text.boxY(UI.fonts.bold, y, 12), UI.fonts.bold, "white", "center")
+  else gfx.drawRect(x, y - 1, w, 14) Text.draw(h or "R", x + 5, Text.boxY(UI.fonts.bold, y, 12), UI.fonts.bold, nil, "center") end
   return w + 3
 end
 local handChip = PUI.handChip
 
 local function panelTitle(x, y, w, left, right)
   gfx.fillRect(x, y, w, 13)
-  Text.draw(left, x + 4, y, UI.fonts.bold, "white")
-  if right then Text.draw(right, x + w - 4, y, UI.fonts.bold, "white", "right") end
+  local ty = Text.boxY(UI.fonts.bold, y, 13)
+  Text.draw(left, x + 4, ty, UI.fonts.bold, "white")
+  if right then Text.draw(right, x + w - 4, ty, UI.fonts.bold, "white", "right") end
 end
 
 -- LAST NIGHT --------------------------------------------------------------------------------------------
@@ -255,9 +257,9 @@ function Hub:layoutRace(Lb, x, y, w)
     local mine = T.abbr == L.user
     if mine then gfx.fillRect(cx, y, bw - 3, 26) else gfx.drawRect(cx, y, bw - 3, 26) end
     local col = mine and "white" or nil
-    Text.draw(e.rank .. ". " .. T.abbr, cx + 3, y, UI.fonts.bold, col)
-    Text.draw(T.w .. "-" .. T.l, cx + 3, y + 12, UI.fonts.body, col)
-    Text.draw(PL.gbText(T.gb), cx + bw - 6, y + 12, UI.fonts.bold, col, "right")
+    Text.draw(e.rank .. ". " .. T.abbr, cx + 3, y + 2, UI.fonts.bold, col)
+    Text.draw(T.w .. "-" .. T.l, cx + 3, y + 14, UI.fonts.body, col)
+    Text.draw(PL.gbText(T.gb), cx + bw - 6, y + 14, UI.fonts.bold, col, "right")
     -- the playoff line after 4th
     if e.rank == 4 and i < #win then
       gfx.setPattern(UI.pat.gray)
@@ -285,7 +287,7 @@ function Hub:layoutRace(Lb, x, y, w)
   end
   local cw = UI.fonts.bold:getTextWidth(chip) + 10
   gfx.fillRect(x, y, cw, 14)
-  Text.draw(chip, x + 5, y, UI.fonts.bold, "white")
+  Text.draw(chip, x + 5, Text.boxY(UI.fonts.bold, y, 14), UI.fonts.bold, "white")
   local rv = PL.rivalTonight(L)
   Text.draw(Text.ellipsize(text .. (rv and ("  Tonight: " .. rv.a .. " @ " .. rv.h) or ""), UI.fonts.body, w - cw - 6), x + cw + 6, y + 1, UI.fonts.body)
   return y + 16
@@ -457,7 +459,7 @@ function Hub:buildTicker()
   if text == self.ticker then return end
   self.ticker = text
   self.tickerW = math.min(4000, UI.fonts.body:getTextWidth(text))
-  self.tickerImg = gfx.image.new(self.tickerW, 13, gfx.kColorBlack)
+  self.tickerImg = gfx.image.new(self.tickerW, 240 - PUI.BOT - 2, gfx.kColorBlack)
   gfx.pushContext(self.tickerImg)
   Text.draw(text, 0, 0, UI.fonts.body, "white")
   gfx.popContext()
@@ -474,15 +476,16 @@ end
 function Hub:after()
   if (self.idleFrames or 0) < 90 or not self.tickerImg then return end
   gfx.setColor(gfx.kColorWhite)
-  gfx.fillRect(0, PUI.BOT + 2, 400, 240 - PUI.BOT - 2)
+  gfx.fillRect(0, PUI.BOT + 1, 400, 240 - PUI.BOT - 1)
   gfx.setColor(gfx.kColorBlack)
-  gfx.setClipRect(0, PUI.BOT + 2, 400, 240 - PUI.BOT - 2)
+  gfx.setClipRect(0, PUI.BOT + 1, 400, 240 - PUI.BOT - 1)
   gfx.setImageDrawMode(gfx.kDrawModeInverted)
-  if self.tickerStatic then self.tickerImg:draw(4, PUI.BOT + 1)
+  -- (the hint bar's text line: one clear row under its rule)
+  if self.tickerStatic then self.tickerImg:draw(4, PUI.BOT + 2)
   else
     local off = ((self.idleFrames - 90) * 2) % self.tickerW
-    self.tickerImg:draw(4 - off, PUI.BOT + 1)
-    if self.tickerW - off < 396 then self.tickerImg:draw(4 + self.tickerW - off, PUI.BOT + 1) end
+    self.tickerImg:draw(4 - off, PUI.BOT + 2)
+    if self.tickerW - off < 396 then self.tickerImg:draw(4 + self.tickerW - off, PUI.BOT + 2) end
   end
   gfx.setImageDrawMode(gfx.kDrawModeCopy)
   gfx.clearClipRect()

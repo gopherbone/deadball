@@ -61,11 +61,13 @@ function Training:layout(Lb)
   local FX, FW, IX, IW, AX, AW = 176, 88, 267, 66, 336, 56
   local function paintF()
     gfx.drawRect(FX, gy, FW, 16)
-    Text.draw(Text.ellipsize("\u{25c0} " .. PL.FOCUS_NAME[gl[self.gf[self.tab]] or gl[1]] .. " \u{25b6}", UI.fonts.body, FW - 4), FX + FW // 2, gy + 1, UI.fonts.body, nil, "center")
+    local s = Text.ellipsize("\u{25c0} " .. PL.FOCUS_NAME[gl[self.gf[self.tab]] or gl[1]] .. " \u{25b6}", UI.fonts.body, FW - 4)
+    Text.draw(s, FX + FW // 2, Text.boxY(UI.fonts.body, gy + 1, 14, s), UI.fonts.body, nil, "center")
   end
   local function paintI()
     gfx.drawRect(IX, gy, IW, 16)
-    Text.draw("\u{25c0} " .. PL.INTENSITY[self.gi + 1] .. " \u{25b6}", IX + IW // 2, gy + 1, UI.fonts.body, nil, "center")
+    local s = "\u{25c0} " .. PL.INTENSITY[self.gi + 1] .. " \u{25b6}"
+    Text.draw(s, IX + IW // 2, Text.boxY(UI.fonts.body, gy + 1, 14, s), UI.fonts.body, nil, "center")
   end
   paintF() paintI()
   local gfl = Lb:link(FX, gy, FW, 16, function() end, PUI.opts("gf", "Everyone on this tab: left/right picks the focus, then Apply", function(d)

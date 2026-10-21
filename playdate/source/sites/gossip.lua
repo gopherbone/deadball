@@ -265,7 +265,7 @@ end
 function Gossip:layoutBets(L, y, title, bets, empty)
   gfx.setColor(gfx.kColorBlack)
   gfx.fillRect(BX, y, BW, 15)
-  Text.draw(title, BX + 5, y + 1, UI.fonts.bold, "white")
+  Text.draw(title, BX + 5, Text.boxY(UI.fonts.bold, y, 15, title), UI.fonts.bold, "white")
   y += 18
   if #bets == 0 then
     gfx.setColor(gfx.kColorWhite)

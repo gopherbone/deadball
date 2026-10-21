@@ -47,7 +47,7 @@ local function callImg(key)
   local tw = tag and tag:getSize() or 0
   local w = max(ww, tw) + 12
   local h = wh + (tag and 11 or 0) + 8
-  img = gfx.image.new(w, h, gfx.kColorClear)
+  img = gfx.image.new(w, h, gfx.kColorBlack)   -- (all painted: opaque blits faster)
   gfx.pushContext(img)
   gfx.setColor(gfx.kColorBlack)
   gfx.fillRect(0, 0, w, h)

@@ -896,11 +896,13 @@ frameImpl = function(scene, bi, b, tau, dt, scrubbing)
   return false
 end
 
+-- (the overlays' option tables, refilled each frame rather than made: no garbage a frame)
+local pipOpts, spinOpts, callOpts = {}, {}, {}
 function TV.overlay(scene, bi, b, tau, camName, slo, dt)
   if not G then return end
   local t0 = playdate.getElapsedTime()
-  local pipOn, pipX = PiP.draw(G, scene.R, bi, b, tau, camName, { speed = scene.speed, scrubbing = G.scrubbing,
-    logOpen = scene.logOpen, dismissed = G.pipDismiss })
+  pipOpts.speed, pipOpts.scrubbing, pipOpts.logOpen, pipOpts.dismissed = scene.speed, G.scrubbing, scene.logOpen, G.pipDismiss
+  local pipOn, pipX = PiP.draw(G, scene.R, bi, b, tau, camName, pipOpts)
   if pipOn then
     local pb = b.kind == "p" and b or G.tl.beats[bi - 1]
     G.pipShowing = pb and pb.n
@@ -909,8 +911,11 @@ function TV.overlay(scene, bi, b, tau, camName, slo, dt)
   end
   O.pipActive = pipOn
   O.draw(G, scene, bi, b, tau, camName, slo, scene.R)
-  Spin.draw(b, tau, camName, { speed = scene.speed, scrubbing = G.scrubbing, logOpen = scene.logOpen })
-  Calls.draw(G.tl, b, tau, { speed = scene.speed, scrubbing = G.scrubbing, logOpen = scene.logOpen, pipLeft = pipOn and pipX and pipX < 200, pipOn = pipOn, cam = camName })
+  spinOpts.speed, spinOpts.scrubbing, spinOpts.logOpen = scene.speed, G.scrubbing, scene.logOpen
+  Spin.draw(b, tau, camName, spinOpts)
+  callOpts.speed, callOpts.scrubbing, callOpts.logOpen = scene.speed, G.scrubbing, scene.logOpen
+  callOpts.pipLeft, callOpts.pipOn, callOpts.cam = pipOn and pipX and pipX < 200, pipOn, camName
+  Calls.draw(G.tl, b, tau, callOpts)
   local ms = (playdate.getElapsedTime() - t0) * 1000
   -- per-camera averages of what DBN adds (overlays + banners + the TV.frame checks), for tours
   if scene.playing then

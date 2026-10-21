@@ -6,6 +6,9 @@ import "CoreLibs/crank"
 import "CoreLibs/ui"
 import "CoreLibs/keyboard"
 
+-- dev: text clearance checker (inert without clearance.flag in the Simulator Data folder)
+import "app/clearance"
+
 import "app/scene"
 
 -- shell: ui, net, app

@@ -423,16 +423,17 @@ function Advance:racePanel()
   gfx.pushContext(img)
   gfx.drawRect(0, 0, 96, 96)
   gfx.fillRect(0, 0, 96, 14)
-  Text.draw("THE RACE", 4, 0, UI.fonts.bold, "white")
+  Text.draw("THE RACE", 4, Text.boxY(UI.fonts.bold, 0, 14), UI.fonts.bold, "white")
   local y = 16
   if L.phase == "season" then
     for _, e in ipairs(PL.raceWindow(L)) do
       local mine = e.T.abbr == L.user
       if mine then gfx.fillRect(1, y - 1, 94, 13) end
       local col = mine and "white" or nil
-      Text.draw(e.rank .. " " .. e.T.abbr, 4, y - 1, UI.fonts.bold, col)
-      Text.draw(e.T.w .. "-" .. e.T.l, 70, y - 1, UI.fonts.body, col, "right")
-      Text.draw(PL.gbText(e.T.gb), 92, y - 1, UI.fonts.body, col, "right")
+      local ty = Text.boxY(UI.fonts.bold, y - 1, 13)
+      Text.draw(e.rank .. " " .. e.T.abbr, 4, ty, UI.fonts.bold, col)
+      Text.draw(e.T.w .. "-" .. e.T.l, 70, ty, UI.fonts.body, col, "right")
+      Text.draw(PL.gbText(e.T.gb), 92, ty, UI.fonts.body, col, "right")
       if e.rank == 4 then gfx.setPattern(UI.pat.gray) gfx.drawLine(2, y + 12, 93, y + 12) gfx.setColor(gfx.kColorBlack) end
       y = y + 13
     end
@@ -506,7 +507,7 @@ function Advance:drawStop()
   gfx.setColor(gfx.kColorBlack)
   gfx.drawRect(x, y, w, h)
   gfx.fillRect(x, y, w, 16)
-  Text.draw("STOPPED", x + w // 2, y + 1, UI.fonts.bold, "white", "center")
+  Text.draw("STOPPED", x + w // 2, Text.boxY(UI.fonts.bold, y, 16), UI.fonts.bold, "white", "center")
   Text.block(self.pending.reason, x + 8, y + 22, w - 16, UI.fonts.body, nil, 3)
   Text.draw("A: deal with it", x + 8, y + h - 16, UI.fonts.bold)
   Text.draw("B: keep going", x + w - 8, y + h - 16, UI.fonts.body, nil, "right")
@@ -531,7 +532,7 @@ function Advance:drawDone()
   gfx.setColor(gfx.kColorBlack)
   gfx.drawRect(x, y, w, h)
   gfx.fillRect(x, y, w, 16)
-  Text.draw("WHAT TO DO", x + w // 2, y + 1, UI.fonts.bold, "white", "center")
+  Text.draw("WHAT TO DO", x + w // 2, Text.boxY(UI.fonts.bold, y, 16), UI.fonts.bold, "white", "center")
   local L = Pennant.L
   local endLine
   if L.phase == "playoffs" and L.po then
@@ -848,7 +849,7 @@ function Front:enter(args)
   gfx.drawRect(6, 4, 388, 220)
   Text.draw("The Evening Lamp", 200, 7, UI.fonts.serif or UI.fonts.big, nil, "center")
   gfx.drawLine(12, 31, 388, 31)
-  Text.draw(Text.ellipsize(c.city:upper() .. " \u{2022} " .. PL.date(L):upper() .. ", " .. L.year .. " \u{2022} EXTRA \u{2022} 5 CENTS", UI.fonts.body, 370), 200, 32, UI.fonts.body, nil, "center")
+  Text.draw(Text.ellipsize(c.city:upper() .. " \u{2022} " .. PL.date(L):upper() .. ", " .. L.year .. " \u{2022} EXTRA \u{2022} 5 CENTS", UI.fonts.body, 370), 200, Text.boxY(UI.fonts.body, 32, 14), UI.fonts.body, nil, "center")
   gfx.drawLine(12, 46, 388, 46)
   Text.draw(Text.ellipsize(c.name:upper() .. " CLINCH", UI.fonts.big, 370), 200, 50, UI.fonts.big, nil, "center")
   local dek = "Playoff berth secured with " .. left .. " to play" .. (hp and ("; " .. hp.ln .. " " .. hero.text) or "")

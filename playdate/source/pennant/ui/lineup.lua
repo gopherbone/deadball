@@ -147,9 +147,11 @@ function Lineup:paintRow(row)
     gfx.drawRoundRect(row.x, y, row.w, 16, 3)
     gfx.setLineWidth(1)
     local hand = p.bats .. edgeMark(p, self.tab)
-    Text.draw(p.pos, row.x + 4, y + 1, UI.fonts.bold)
-    Text.draw(Text.ellipsize(PM.short(p), UI.fonts.body, row.w - 44), row.x + 24, y + 1, UI.fonts.body)
-    Text.draw(hand, row.x + row.w - 4, y + 1, UI.fonts.bold, nil, "right")
+    local name = Text.ellipsize(PM.short(p), UI.fonts.body, row.w - 44)
+    local ty = Text.boxY(UI.fonts.body, y + 1, 14, name)
+    Text.draw(p.pos, row.x + 4, ty, UI.fonts.bold)
+    Text.draw(name, row.x + 24, ty, UI.fonts.body)
+    Text.draw(hand, row.x + row.w - 4, ty, UI.fonts.bold, nil, "right")
     return
   end
   if self.pick and self.pick.id == id and row.h then
@@ -273,7 +275,8 @@ function Lineup:layout(Lb)
     if #probs > 0 then
       self.bannerY = y
       gfx.fillRect(4, y, 388, 14)
-      Text.draw(Text.ellipsize("! " .. table.concat(probs, ", "), UI.fonts.bold, 380), 8, y, UI.fonts.bold, "white")
+      local s = Text.ellipsize("! " .. table.concat(probs, ", "), UI.fonts.bold, 380)
+      Text.draw(s, 8, Text.boxY(UI.fonts.bold, y, 14, s), UI.fonts.bold, "white")
       y = y + 16
     end
     Text.draw("#  POS", 6, y - 2, UI.fonts.body) Text.draw("B", 142, y - 2, UI.fonts.body) Text.draw("CON  POW  EYE  SPD  FLD", 200, y - 2, UI.fonts.body)

@@ -191,13 +191,13 @@ function Bets:layoutTop(L)
     local sel = t[1] == (self.tab or "today")
     if sel then
       gfx.fillRect(tx, y, w, 16)
-      Text.draw(t[2], tx + 6, y + 1, UI.fonts.bold, "white")
+      Text.draw(t[2], tx + 6, Text.boxY(UI.fonts.bold, y + 2, 13), UI.fonts.bold, "white")
     else
       gfx.setColor(gfx.kColorWhite)
       gfx.fillRect(tx, y + 1, w, 15)
       gfx.setColor(gfx.kColorBlack)
       gfx.drawRect(tx, y + 1, w, 15)
-      Text.draw(t[2], tx + 6, y + 2, UI.fonts.bold)
+      Text.draw(t[2], tx + 6, Text.boxY(UI.fonts.bold, y + 2, 13), UI.fonts.bold)
     end
     L:link(tx, y, w, 16, function() self:setTab(t[1]) end, { id = "tab:" .. t[1], style = "ring",
       hint = t[1] == "props" and "The Gossip Board: bet on their private lives" or (t[1] == "desert" and "The Enhanced League, out in the desert" or (t[1] == "tickets" and "Your open and settled bets" or "Today's Continental slate")) })
@@ -247,7 +247,7 @@ function Bets:layoutRow(L, g, y)
   local pool = g.pool and ((g.pool.home or 0) + (g.pool.away or 0)) or 0
   if live then
     gfx.fillRect(PX, y + 3, 44, 13)
-    Text.draw("LIVE", PX + 22, y + 3, UI.fonts.bold, "white", "center")
+    Text.draw("LIVE", PX + 22, Text.boxY(UI.fonts.bold, y + 3, 13), UI.fonts.bold, "white", "center")
     Text.draw(Fmt.inning(sc.inning), PX + 22, y + 18, UI.fonts.bold, nil, "center")
   elseif final then
     Text.draw("FINAL", PX + 22, y + 3, UI.fonts.bold, nil, "center")
@@ -256,7 +256,7 @@ function Bets:layoutRow(L, g, y)
   end
   if you then
     gfx.fillRect(W - 7 - yw, y + 18, yw, 13)
-    Text.draw(you, W - 10, y + 18, UI.fonts.bold, "white", "right")
+    Text.draw(you, W - 10, Text.boxY(UI.fonts.bold, y + 18, 13), UI.fonts.bold, "white", "right")
   elseif open then
     -- this game's own lock (first pitches are staggered): a countdown, repainted once a second
     local fp, cw = g.firstPitchAt or 0, W - 8 - (PX - 6)
@@ -349,7 +349,7 @@ function Bets:layoutBets(L, y, title, bets, empty)
   local x, w = 4, 384
   gfx.setColor(gfx.kColorBlack)
   gfx.fillRect(x, y, w, 15)
-  Text.draw(title, x + 5, y + 1, UI.fonts.bold, "white")
+  Text.draw(title, x + 5, Text.boxY(UI.fonts.bold, y, 15, title), UI.fonts.bold, "white")
   y += 18
   if #bets == 0 then
     gfx.setColor(gfx.kColorWhite)
