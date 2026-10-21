@@ -15,6 +15,7 @@ import "pennant/sim"
 import "pennant/roster"
 import "pennant/league"
 import "pennant/engine"
+import "pennant/week"
 import "pennant/schemes"
 import "pennant/wire"
 import "pennant/routes"
@@ -33,6 +34,8 @@ import "pennant/ui/moves"
 import "pennant/ui/league"
 import "pennant/ui/gameday"
 import "pennant/ui/roadmap"
+import "pennant/ui/week"
+import "pennant/ui/weekscreens"
 import "pennant/live"
 import "pennant/control"
 import "pennant/test"
@@ -73,7 +76,8 @@ end
 function Pennant.start(L)
   Pennant.L = L
   while #App.stack > (Pennant.base or 0) + 1 do App.pop() end
-  local hub = PennantUI.Hub.replace({})
+  -- (home is the Week screen, ui/week.lua; the old hub's helpers stay in ui/hub.lua)
+  local hub = PennantUI.Week.replace({})
   Pennant.hub = hub
 end
 

@@ -509,6 +509,9 @@ function Live:finish()
   PL.apply(L, self.g, res)
   PennantLive.cur = nil
   App.pop()   -- BallCast
+  -- a game inside the week run (ui/gameday.lua Advance:liveGame): back to the run
+  local back = PennantUI.liveReturn
+  if back then PennantUI.liveReturn = nil back() return end
   -- the other games, then the day's report
   PennantUI.Advance.open({ days = 1, afterLive = true })
 end

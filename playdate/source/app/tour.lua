@@ -87,79 +87,140 @@ local function buildPennant()
   S(20, function() end, "p01_title")
   U(function() local t = T() return t and t.generating == false end, 600, function() PennantUI.NewGame.open({ slot = 3 }) end, nil, 4)
   S(8, function() focusId("club:HCL") press("A") end, "p02_new_club")
-  U(function() return Pennant.hub ~= nil and T() == Pennant.hub end, 300, function() T():go() end, "p03_hub", 20)
-  S(20, function() PennantUI.Team.open({}) end, "p04_team")
+  -- the Week screen (home): programs, intensity, the club's units
+  local function calm()
+    local c = Pennant.L and Pennant.L.club
+    if c then c.rewards, c.monthNote, c.goalOffer = nil, nil, nil end
+  end
+  local function home() calm() Pennant.toHub() if Pennant.hub then Pennant.hub:render(true) end end
+  local function isA(t, S2) return t and getmetatable(t) == S2 end
+  -- (the season opens on April's goal pick, over the Week screen)
+  U(function() return Pennant.hub ~= nil and isA(T(), PennantUI.Goals) end, 300, function() T():go() end, "p03a_goal_pick", 10)
+  S(30, function() local t = T() if isA(t, PennantUI.Goals) then t.t = 99 press("down") t:AButtonDown() end end, "p03_week")
+  S(12, function() press("right") end, "p03b_week_arms")
+  S(12, function() press("up") end, "p03c_week_arms_hard")
+  S(12, function() press("right", 4) end, "p03d_week_rest")
+  S(12, function() press("left", 5) press("down") end, nil)
+  S(20, function() press("B") end, "p03e_office")
+  S(20, function() PennantUI.ThisWeek.open({}) end, "p03f_this_week")
+  S(20, function() home() PennantUI.Team.open({}) end, "p04_team")
   S(20, function() press("down", 3) press("A") end, "p05_card")
   S(15, function() local t = T() t.pg = "stats" t:render(true) end, "p05b_card_stats")
-  S(20, function() Pennant.toHub() PennantUI.Team.open({ tab = "pit" }) end, "p04b_team_pitchers")
-  S(20, function() Pennant.toHub() PennantUI.Training.open({}) end, nil)
+  S(20, function() home() PennantUI.Team.open({ tab = "pit" }) end, "p04b_team_pitchers")
+  S(20, function() home() PennantUI.Training.open({}) end, nil)
   S(12, function() press("down", 3) press("right") press("A") press("A") end, "p06_training")
-  S(20, function() Pennant.toHub() PennantUI.Lineup.open({}) end, "p07_lineup")
+  S(4, function() PWeek.clearOwn(Pennant.L) end, nil)
+  S(20, function() home() PennantUI.Lineup.open({}) end, "p07_lineup")
   S(10, function() press("A") press("down") end, "p07b_lineup_pick")
   S(10, function() press("B") T().tab = "pit" T():render() end, "p08_staff")
-  S(20, function() Pennant.toHub() PennantUI.Farm.open({}) end, "p09_farm")
-  S(20, function() Pennant.toHub() PennantUI.Trades.open({}) end, "p10_trades")
+  S(20, function() home() PennantUI.Farm.open({}) end, "p09_farm")
+  S(20, function() home() PennantUI.Trades.open({}) end, "p10_trades")
   S(20, function()
     PennantUI.TradeTable.open({ other = "STA" })
   end, nil)
   S(12, function() local t = T() local L = Pennant.L
     t.give = { L.teams.HCL.ml[5] } t.get = { L.teams.STA.farm[1] } t:render(true) end, "p11_trade_table")
-  -- a week of baseball: the progress screen, then the travel / training report follow-ups
-  U(function() local t = T() return t and (t.shown or 0) >= 7 end, 3000, function() Pennant.toHub() PennantUI.Advance.open({ untilOff = true, noStops = true }) end, "p12a_wire", 2)
-  U(function() local t = T() return t and t.caughtUp and t:caughtUp() end, 3000, nil, "p12_advance", 4)
-  S(6, function() local t = T() t.pending = { reason = "Toomey left the game with a pulled hamstring (out ~12 days).", jump = { screen = "lineup" } } t.state = "stop" end, "p12b_wire_stop")
-  S(4, function() local t = T() t.state = "done" t.pending = nil t.todoSel = #t:items() press("A") end, nil)
-  U(function() local t = T() return t == Pennant.hub or (t and t.rows ~= nil) or (t and t.map2 ~= nil) end, 200, nil, nil, 2)
-  S(14, function() end, "p13_after_week")
-  S(30, function() end, "p14_followup")
-  S(4, function() for _ = 1, 4 do local t = T() if t ~= Pennant.hub and t and t.AButtonDown then t:AButtonDown() end end end, nil)
-  S(30, function() Pennant.toHub() Pennant.L.weekRep = Pennant.L.weekRep or { week = 1, rows = {} } Pennant.L.weekRep.seen = false PennantUI.TrainingResults.open({}) end, "p15_training_results")
-  S(10, function() local t = T() if t and t.finish then t:finish() end Pennant.toHub() Pennant.hub:render(true) end, "p16_hub_week2")
+  -- the week's interstitials, staged: the series plan, the globe on the way out of town, a
+  -- clubhouse event (and what came of it)
+  S(24, function() home() local L = Pennant.L
+    local ks = PWeek.keySeries(L)
+    if not ks then local g = PL.nextGame(L, L.user) ks = { opp = g.h == L.user and g.a or g.h, d0 = L.day, d1 = L.day + 2, round = 1, why = "THE CLUB ON YOUR HEELS" } end
+    PennantUI.SeriesPlan.open({ stub = ks }) end, "p41_series_plan")
+  S(10, function() press("right") end, "p41b_series_plan_run")
+  S(6, function() local t = T() if t and t.stub then t.t = 99 t:AButtonDown() end end, nil)
+  S(22, function() home() PennantUI.Travel.open({ from = "HCL", to = "ELC", quick = true }) end, "p22_travel")
+  S(40, function() end, nil)
+  S(20, function() local t = T() if t and t.finish then t:finish() end home() local L = Pennant.L
+    local g, d = PL.nextGame(L, L.user)
+    L.club.ev = { d = d, key = "bus" }
+    PennantUI.Clubhouse.open({ ev = L.club.ev }) end, "p42_clubhouse")
+  S(14, function() local t = T() if t and t.e then t.t = 99 press("down") t:AButtonDown() end end, "p42b_clubhouse_result")
+  S(4, function() local t = T() if t and t.e then t.t = 99 t:AButtonDown() end Pennant.L.club.ev = nil end, nil)
+  -- a week of baseball: the run (the wire), the featured game's pregame, then the week's report
+  S(10, function() home() local c = Pennant.L.club c.prog, c.int = "bat", 2 PennantUI.runWeek() Tour.pn = { feat = false } end, nil)
+  U(function()
+    local t = T()
+    if isA(t, PennantUI.WeekReport) then return true end
+    if isA(t, PennantUI.SeriesPlan) then t.t = 99 t:AButtonDown() return false end
+    if isA(t, PennantUI.Travel) then if (t.f or 0) > 10 then t:finish() end return false end
+    if isA(t, PennantUI.Advance) and (t.shown or 0) >= 7 and not Tour.pn.wire then Tour.pn.wire = true shot("p12a_wire") end
+    if t and t.onChoice then
+      if not Tour.pn.feat then Tour.pn.feat = true Tour.pn.featF = 0 end
+      Tour.pn.featF = Tour.pn.featF + 1
+      if Tour.pn.featF == 12 then shot("p43_featured_game") end
+      if Tour.pn.featF >= 14 then t.onChoice("sim") end
+      return false
+    end
+    if isA(t, PennantUI.Clubhouse) or isA(t, PennantUI.Goals) or isA(t, PennantUI.Trainer) or isA(t, PennantUI.Call)
+      or isA(t, PennantUI.CallUp) or isA(t, PennantUI.FrontPage) or isA(t, PennantUI.LandmarkCard) or isA(t, PennantUI.Telegram) then
+      t.t = 99 if t.AButtonDown then t:AButtonDown() end if T() == t and t.AButtonDown then t:AButtonDown() end
+    end
+    return false
+  end, 30 * 400, nil, "p44_week_report", 20)
+  S(20, function() local t = T() if t and t.rep then press("B") end end, "p15_training_results")
+  S(10, function() local t = T() if t and t.finish then t:finish() end end, nil)
+  S(30, function() local t = T() if isA(t, PennantUI.WeekReport) then t.t = 99 t:AButtonDown() end home() end, "p16_week2")
+  -- goals: a cleared goal's reward, the month's turn and the next month's pick, the ladder
+  S(24, function() home() local L = Pennant.L local c = L.club
+    c.goals[#c.goals + 1] = { m = 4, text = "FINISH APRIL .500 OR BETTER", state = "done", res = "14-12" }
+    c.rewards = { { m = 4, text = "FINISH APRIL .500 OR BETTER" } }
+    PennantUI.Goals.open({ reward = true }) end, "p45_goal_reward")
+  S(24, function() local t = T() if t and t.mode then t.t = 99 press("down") t:AButtonDown() end
+    local L = Pennant.L local c = L.club
+    c.monthNote = { m = 4, state = "done", text = "FINISH APRIL .500 OR BETTER", next = "", nm = 5 }
+    c.goalOffer = { PWeek.makeGoal(L, 5, "wins"), PWeek.makeGoal(L, 5, "series") }
+    c.goal = c.goalOffer[1]
+    if isA(T(), PennantUI.Goals) then App.pop() end
+    PennantUI.Goals.open({ note = true }) end, "p46_goal_month")
+  S(16, function() local t = T() if t and t.mode then t.t = 99 t:AButtonDown() end end, "p46b_goal_pick")
+  S(8, function() local t = T() if t and t.mode then t.t = 99 press("down") t:AButtonDown() end end, nil)
+  S(20, function() home() PennantUI.Goals.open({}) end, "p47_goals")
+  -- (a device perf run of the week screens alone: perftour.flag "pennantweek")
+  if Tour.short then S(20, function() home() end, "p48_week_again") S(10, function() Pennant.quit() PSave.delete(3) end, nil) return end
+  S(20, function() home() PennantUI.WeekReport.open({ rep = Pennant.L.club.lastRep, review = true }) end, nil)
+  S(10, function() home() end, nil)
   S(20, function() PennantUI.League.open({ tab = "stand" }) end, "p17_standings")
   S(20, function() T().tab = "sched" T():render() end, "p18_schedule")
   S(20, function() T().tab = "lead" T():render() end, "p19_leaders")
   S(20, function() local L = Pennant.L local k for key, b in pairs(L.boxes) do if b.h == L.user or b.a == L.user then k = key end end
     if k then PennantUI.Box.open({ key = k }) end end, "p20_box")
   -- the Trainer's Room (a staged injury to the cleanup hitter), then the call-up ticket
-  S(20, function() Pennant.toHub() local L = Pennant.L local T = L.teams[L.user]
+  S(20, function() home() local L = Pennant.L local T = L.teams[L.user]
     local p = L.players[T.order[4]] p.inj = { k = "sprained ankle", d = 9 }
     L.trainerQ = { { id = p.id, day = L.day } } L.trainerSeen = nil
     Tour.pn = { hurt = p.id }
     PennantUI.trainerFollowUp(function() end) end, "p37_trainer")
   S(16, function() local t = T() if t and t.fixes then t.sel = 1 t:AButtonDown() end end, "p38_callup")
   S(4, function() local t = T() if t and t.AButtonDown and t ~= Pennant.hub then t:AButtonDown() end
-    local p = Pennant.L.players[Tour.pn.hurt] if p then p.inj = nil end Pennant.L.trainerQ = nil Pennant.toHub() end, nil)
+    local p = Pennant.L.players[Tour.pn.hurt] if p then p.inj = nil end Pennant.L.trainerQ = nil home() end, nil)
   -- a club on the phone
-  S(16, function() Pennant.toHub() local L = Pennant.L
+  S(16, function() home() local L = Pennant.L
     local give, get = PRoster.aiOffer(L, L.teams[L.user], L.teams.MRL)
     if not give then give, get = L.teams[L.user].farm[1], L.teams.MRL.ml[3] end
     L.tradeCall = { from = "MRL", give = give, get = get, day = L.day }
     PennantUI.Call.open({}) end, "p39_trade_call")
-  S(4, function() local t = T() if t and t.c then t.sel = 3 t:AButtonDown() end Pennant.toHub() end, nil)
+  S(4, function() local t = T() if t and t.c then t.sel = 3 t:AButtonDown() end home() end, nil)
   S(16, function() Pennant.L.clinchPage = { day = Pennant.L.day } PennantUI.frontPageFollowUp(function() end) end, "p40_clinch")
-  S(10, function() local t = T() if t and t.AButtonDown and t ~= Pennant.hub then t:AButtonDown() end Pennant.L.clinchPage = nil Pennant.toHub() end, nil)
-  -- the geoscape: the trip drawing itself in, drawn, a stop three to the right, the race card,
-  -- the planet spun by the crank (perf runs time each)
+  S(10, function() local t = T() if t and t.AButtonDown and t ~= Pennant.hub then t:AButtonDown() end Pennant.L.clinchPage = nil home() end, nil)
+  -- the geoscape (the Office's road map now): the trip drawing itself in, drawn, a stop three to
+  -- the right, the race card, the planet spun by the crank (perf runs time each)
   local function settled() local t = T() return t and t.trip and not t.anim and not t.tween end
-  S(26, function() Pennant.toHub() PennantUI.RoadMap.open({}) end, "p21a_roadmap_drawing")
+  S(26, function() home() PennantUI.RoadMap.open({}) end, "p21a_roadmap_drawing")
   U(settled, 600, nil, "p21_roadmap", 4)
   U(settled, 600, function() press("right", 3) end, "p21b_roadmap_stop", 4)
   S(8, function() local t = T() if t and t.focus then t.focus = 6 t:paintColumn() press("A") end end, "p21c_roadmap_race")
   S(60, function() press("B") local t = T() if t then t.spin = 6 end end, "p21d_roadmap_spin")
-  S(22, function() App.pop() PennantUI.Travel.open({ from = "HCL", to = "ELC" }) end, "p22_travel")
-  S(60, function() end, nil)
-  S(36, function() local t = T() if t and t.finish then t:finish() end Pennant.toHub()
-    PennantUI.Travel.open({ from = "HCL", to = "PEM", landmark = { key = "old_faithful", name = "Old Faithful", window = true, t = 0.35,
+  S(22, function() App.pop() home() PennantUI.Travel.open({ from = "HCL", to = "PEM", landmark = { key = "old_faithful", name = "Old Faithful", window = true, t = 0.35,
       text = "Old Faithful went off on schedule. The pitching coach took notes." } }) end, "p22b_flight")
   S(60, function() end, nil)
-  S(14, function() local e = PLand.byKey("rushmore")
+  S(14, function() local t = T() if t and t.finish then t:finish() end home() local e = PLand.byKey("rushmore")
     PennantUI.LandmarkCard.open({ lm = { key = "rushmore", name = e.name, text = "The team stopped at Mount Rushmore. The shortstop asked which one was the commissioner.", effect = "Morale is fair." } }) end, "p23_landmark")
   S(14, function() press("A") local e = PLand.byKey("eiffel_tower")
     PennantUI.LandmarkCard.open({ lm = { key = "eiffel_tower", name = e.name, text = e.lines[1]:gsub("{p}", "Moose Mullane"), effect = "Spirits are up. (Mood +1)" } }) end, "p23b_landmark")
-  S(6, function() press("A") Pennant.toHub() end, nil)
+  S(6, function() press("A") home() end, nil)
   -- game day and live games: you bat and pitch, first with the Arcade controls, then Scout
-  -- PLAY BALL the first time: the "bat yourself?" offer (dismissed here; the tour opens the pregame)
-  S(20, function() Pennant.L.settings.offered = nil if PL.gameFor(Pennant.L, Pennant.L.user) then Pennant.hub:playBall() end end, "p24a_first_game")
+  -- (the week run's pregame for the featured game; the tour lets it sim, then opens the plain one)
+  S(20, function() if PL.gameFor(Pennant.L, Pennant.L.user) then PennantUI.GameDay.open({ featured = "featured", onChoice = function() App.pop() end }) end end, "p24a_featured_game")
   S(20, function() if App.top() ~= Pennant.hub then App.pop() end Pennant.L.settings.playMode = "play" PennantUI.GameDay.open({}) end, "p24_gameday")
   local function liveGame(scheme, tag, withDugout)
     S(4, function()
@@ -271,22 +332,24 @@ local function buildPennant()
   S(10, function()
     local t = T()
     for _ = 1, 4 do t = T() if t ~= Pennant.hub and t and (t.rows or t.map2 or t.lm) and t.AButtonDown then t:AButtonDown() end end
+    local c = Pennant.L.club c.rewards, c.monthNote, c.goalOffer = nil, nil, nil
     Pennant.toHub()
   end, nil)
   U(function() local t = T() return (t == Pennant.hub and PL.gameFor(Pennant.L, Pennant.L.user) ~= nil) or (t and t.state == "done") end, 30 * 60, function()
     local L = Pennant.L
     if not PL.gameFor(L, L.user) then PennantUI.Advance.open({ days = 1 }) end
   end, nil, 2)
-  S(4, function() local t = T() if t and t.state == "done" then t:AButtonDown() end Pennant.toHub() end, nil)
+  S(4, function() local t = T() if t and t.state == "done" then t:AButtonDown() end local c = Pennant.L.club c.rewards, c.monthNote, c.goalOffer = nil, nil, nil Pennant.toHub() end, nil)
   S(20, function() if PL.gameFor(Pennant.L, Pennant.L.user) then PennantUI.GameDay.open({}) end end, nil)
   liveGame("scout", "p26_scout", false)
   -- the rest of the season, the playoffs, awards, the offseason
   U(function() local t = T() if t and t.state == "done" and t.caughtUp then t.shown = #PWire.lines end return t and t.state == "done" end, 30 * 400, function() Pennant.toHub() PennantUI.Advance.open({ untilPhase = "awards", noStops = true }) end, "p31_season_done", 4)
   S(10, function() local t = T() if t.items then t.todoSel = #t:items() end press("A") end, nil)
-  S(20, function() for _ = 1, 4 do local t = T() if t ~= Pennant.hub and t and (t.rows or t.map2 or t.lm) and t.AButtonDown then t:AButtonDown() end end Pennant.toHub() Pennant.hub:render(true) end, "p32_hub_awards")
+  S(20, function() for _ = 1, 4 do local t = T() if t ~= Pennant.hub and t and (t.rows or t.map2 or t.lm) and t.AButtonDown then t:AButtonDown() end end
+    local c = Pennant.L.club c.rewards, c.monthNote, c.goalOffer, c.wk = nil, nil, nil, nil Pennant.toHub() Pennant.hub:render(true) end, "p32_hub_awards")
   S(30, function() PennantUI.Awards.open({}) end, "p33_awards")
   U(function() local t = T() return t and getmetatable(t) == PennantUI.Offseason end, 900, function() activate("go") end, "p34_offseason", 10)
-  S(20, function() activate("go") end, "p35_new_season")
+  S(20, function() local c = Pennant.L.club c.rewards, c.monthNote, c.goalOffer = nil, nil, nil activate("go") end, "p35_new_season")
   S(20, function() PennantUI.League.open({ tab = "hist" }) end, "p36_history")
   S(10, function() Pennant.toHub() Pennant.quit() PSave.delete(3) end, nil)
 end
@@ -582,6 +645,7 @@ function Tour.start()
     local only = pf and pf:readline()
     if pf then pf:close() end
     if only and only:match("^pennant") then
+      Tour.short = only:match("^pennantweek") ~= nil
       S(40, function() end, nil)
       buildPennant()
       S(10, function() Tour.finish() end, nil)
@@ -607,8 +671,9 @@ function Tour.start()
   outDir = line and line:gsub("%s+$", "") or nil
   if not outDir or outDir == "" then return end
   playdate.file.delete("tour.done")
-  if only == "pennant" then
-    -- the Pennant section alone (it needs no server or fixtures)
+  if only == "pennant" or only == "pennantweek" then
+    -- the Pennant section alone (it needs no server or fixtures); "pennantweek": the week screens only
+    Tour.short = only == "pennantweek"
     S(40, function() end, nil)
     buildPennant()
     S(10, function() Tour.finish() end, nil)

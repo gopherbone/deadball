@@ -42,6 +42,8 @@ function PEng.player(p, norm, slim)
   local nb, np = norm and norm.bat or 0, norm and norm.pit or 0
   local function R(v, off) return clamp(floor(v + b - (off or 0) + 0.5), 15, 85) end
   -- (slim: background games; names and faces only matter to BallCast)
+  -- series plans / clubhouse events: rating offsets for the user's club today (pennant/week.lua)
+  local M = PEng.modFor and PEng.modFor(p)
   local t = { id = pid(p.id), bats = p.bats, throws = p.throws, pos = p.pos, mood = (p.mood or 0) * 2 }
   if not slim then t.name, t.face, t.traits = PM.name(p), "face:" .. p.face, {} end
   if p.pos == "P" or not slim then t.recentPitches = p.rp or { 0, 0, 0, 0, 0 } end
@@ -49,6 +51,7 @@ function PEng.player(p, norm, slim)
   if p.pos == "P" then
     t.batting = { contact = 22, power = 20, eye = 25, gap = 20, lift = 40, pull = 50, speed = 30, baserunning = 30, vsL = 0 }
     t.fielding = { range = 40, hands = 45, arm = 55, accuracy = 45, reaction = 45, framing = 50, positions = { P = 1 } }
+    if M then np = np - (p.role == "SP" and M.sp or M.rp) end
     local stuff = r.stf * 0.75 + r.velo * 0.25
     local ps = {}
     for i, pt in ipairs(p.pitches) do
@@ -61,8 +64,10 @@ function PEng.player(p, norm, slim)
     if p.pos2 then pos[p.pos2] = 0.75 end
     pos["1B"] = pos["1B"] or 0.55
     pos.DH = 1
-    t.batting = { contact = R(r.con, nb), power = R(r.pow, nb), eye = R(r.eye, nb), gap = R((r.con + r.pow) / 2, nb),
-      lift = clamp(floor(48 + (r.pow - 50) * 0.4), 25, 75), pull = clamp(floor(50 + (r.pow - 50) * 0.3), 30, 70), speed = R(r.spd), baserunning = R(r.spd * 0.6 + 20), vsL = 0 }
+    local mc, mp, me, ms = 0, 0, 0, 0
+    if M then mc, mp, me, ms = M.con, M.pow, M.eye, M.spd end
+    t.batting = { contact = R(r.con + mc, nb), power = R(r.pow + mp, nb), eye = R(r.eye + me, nb), gap = R((r.con + mc + r.pow + mp) / 2, nb),
+      lift = clamp(floor(48 + (r.pow - 50) * 0.4), 25, 75), pull = clamp(floor(50 + (r.pow - 50) * 0.3), 30, 70), speed = R(r.spd + ms), baserunning = R((r.spd + ms) * 0.6 + 20), vsL = 0 }
     t.fielding = { range = R(r.fld * 0.8 + r.spd * 0.2), hands = R(r.fld), arm = R(r.arm), accuracy = R((r.fld + r.arm) / 2),
       reaction = R(r.fld), framing = p.pos == "C" and R(r.fld) or 50, positions = pos }
   end

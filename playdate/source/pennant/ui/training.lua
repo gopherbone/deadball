@@ -4,10 +4,13 @@
 local gfx <const> = playdate.graphics
 PennantUI = PennantUI or {}
 
-local Training = PUI.define({ title = function() return "Training \u{2022} week " .. ((Pennant.L and Pennant.L.week) or 1) end, hint = "Left/right: focus  A: intensity  crank: scroll" })
+-- Under the week turn (pennant/week.lua) the club program sets everyone's plan each day; a player
+-- changed here gets an individual plan (marked *) that the program leaves alone.
+local Training = PUI.define({ title = function() return "Individual training" end, hint = "Left/right: focus  A: intensity (his own plan from now on)  crank: scroll" })
 PennantUI.Training = Training
 
 function Training:init(args)
+  if PWeek and Pennant.L then PWeek.applyPlans(Pennant.L) end
   self.tab = args.tab or "bat"
   self.focusId = args.focusId
   if self.focusId then
@@ -34,7 +37,10 @@ end
 
 local function fociFor(p) return p.pos == "P" and PL.FOCI_PIT or PL.FOCI_BAT end
 
+local function own(p) if PWeek then PWeek.setOwn(Pennant.L, p.id, true) end end
+
 local function cycleFocus(p, d)
+  own(p)
   local list = fociFor(p)
   local cur = 1
   for i, k in ipairs(list) do if k == (p.plan and p.plan.f) then cur = i end end
@@ -43,7 +49,9 @@ local function cycleFocus(p, d)
 end
 
 local function cycleInt(p)
+  own(p)
   p.plan = p.plan or { i = 2 }
+  p.plan.xm, p.plan.rk, p.plan.fx = nil, nil, nil
   p.plan.i = ((p.plan.i or 2) + 1) % 4
 end
 
@@ -77,7 +85,9 @@ function Training:layout(Lb)
   gil.data.repaint = function() PUI.repaint(self, IX, gy, IW + 1, 17, paintI) end
   Lb:button("Apply", AX, gy, AW, 16, function()
     for _, p in ipairs(self:players()) do
+      own(p)
       p.plan = p.plan or {}
+      p.plan.xm, p.plan.rk, p.plan.fx = nil, nil, nil
       local list = fociFor(p)
       local want = gl[self.gf[self.tab]] or gl[1]
       local ok = false
@@ -123,7 +133,8 @@ function PennantUI.trainingRow(p, y)
   PUI.srcRectC = PUI.srcRectC or playdate.geometry.rect.new(0, 6, 24, 12)
   if img then img:draw(4, y, gfx.kImageUnflipped, PUI.srcRectC) end
   y = y - 1
-  Text.draw((p.pos == "P" and (p.role or "P") or p.pos) .. " " .. Text.ellipsize(PM.short(p), UI.fonts.body, 94), 32, y + 1, UI.fonts.body)
+  local mine = PWeek and Pennant.L and Pennant.L.club and Pennant.L.club.own[tostring(p.id)]
+  Text.draw((p.pos == "P" and (p.role or "P") or p.pos) .. " " .. Text.ellipsize((mine and "*" or "") .. PM.short(p), UI.fonts.body, 94), 32, y + 1, UI.fonts.body)
   if p.inj then PUI.cross(162, y + 2) else PUI.arrow(162, y + 2, p.cond) end
   PUI.fatigue(180, y + 5, p.fat, 30)
   local f = plan.f
@@ -137,7 +148,7 @@ function PennantUI.trainingRow(p, y)
     if k <= i then gfx.fillRect(300 + (k - 1) * 9, y + 4, 7, 7) else gfx.drawRect(300 + (k - 1) * 9, y + 4, 7, 7) end
   end
   Text.draw(INT_GLYPH[i + 1], 330, y + 1, i == 3 and UI.fonts.bold or UI.fonts.body)
-  local g = p.inj and 0 or PL.weekly(p, f or "con", i)
+  local g = p.inj and 0 or PL.weekly(p, f or "con", i) * (plan.xm or 1)
   local room = key and ((p.cap[key] or 80) - (p.r[key] or 0)) or 1
   Text.draw(room <= 0 and "max" or string.format("+%.1f", g), 390, y + 1, UI.fonts.body, nil, "right")
 end

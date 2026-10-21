@@ -175,7 +175,10 @@ function PL.view(p, abbr, norm)
   local nb, np = norm and norm.bat or 0, norm and norm.pit or 0
   local v = { id = "p" .. p.id, name = PM.name(p), short = PM.short(p), face = "face:" .. p.face,
     bats = p.bats, throws = p.throws, pos = p.pos, fat = p.fat or 0, teamAbbr = abbr }
+  -- series plans / clubhouse events (pennant/week.lua)
+  local M = PEng.modFor and PEng.modFor(p)
   if p.pos == "P" then
+    if M then np = np - (p.role == "SP" and M.sp or M.rp) end
     v.velo = clamp(r.velo + b * 0.5 - np, 15, 85)
     v.ctl = clamp(r.ctl + b - np, 15, 85)
     v.stf = clamp(r.stf + b - np, 15, 85)
@@ -185,10 +188,12 @@ function PL.view(p, abbr, norm)
     -- pitchers don't bat (DH)
     v.con, v.pow, v.eye, v.spd, v.fld, v.arm = 25, 20, 25, 30, 40, 50
   else
-    v.con = clamp(r.con + b - nb, 15, 85)
-    v.pow = clamp(r.pow + b - nb, 15, 85)
-    v.eye = clamp(r.eye + b - nb, 15, 85)
-    v.spd = clamp(r.spd + b * 0.5, 15, 85)
+    local mc, mp, me, ms = 0, 0, 0, 0
+    if M then mc, mp, me, ms = M.con, M.pow, M.eye, M.spd end
+    v.con = clamp(r.con + b - nb + mc, 15, 85)
+    v.pow = clamp(r.pow + b - nb + mp, 15, 85)
+    v.eye = clamp(r.eye + b - nb + me, 15, 85)
+    v.spd = clamp(r.spd + b * 0.5 + ms, 15, 85)
     v.fld = clamp(r.fld + b * 0.5, 15, 85)
     v.arm = r.arm
   end
@@ -506,10 +511,11 @@ function PL.trainDay(L, p, rng, offDay)
   local valid = false
   for _, k in ipairs(p.pos == "P" and PL.FOCI_PIT or PL.FOCI_BAT) do if k == f then valid = true end end
   if not valid then f = (p.pos == "P") and "ctl" or "con" plan.f = f end
-  -- fatigue / condition / injury risk
-  p.fat = clamp((p.fat or 0) + TRAIN_FAT[i + 1], 0, 100)
+  -- fatigue / condition / injury risk (a club program sets plan.rk / plan.fx / plan.xm: pennant/week.lua)
+  p.fat = clamp((p.fat or 0) + TRAIN_FAT[i + 1] + (i > 0 and plan.fx or 0), 0, 100)
+  local rk = plan.rk or (i == 3 and 0.0018 or 0)
+  if i > 0 and rk > 0 and not p.inj and rng:chance(rk * (1 + (p.fat or 0) / 30)) then PL.injure(L, p, rng, true) return end
   if i == 3 and not p.inj then
-    if rng:chance(0.0018 * (1 + (p.fat or 0) / 30)) then PL.injure(L, p, rng, true) return end
     if rng:chance(0.04) then p.cond = max(1, p.cond - 1) end
   elseif i == 0 and rng:chance(0.12) then
     p.cond = min(5, p.cond + 1)
@@ -519,7 +525,7 @@ function PL.trainDay(L, p, rng, offDay)
   local room = (p.cap[key] or 80) - (p.r[key] or 50)
   local rf = room <= 0 and 0.05 or min(1, 0.35 + room / 12)
   local cf = ({ 0.7, 0.85, 1, 1.1, 1.25 })[p.cond or 3]
-  local xp = BASE_XP[i + 1] * ageFactor(p.age) * rf * cf * rng:range(0.75, 1.25) * (p.lvl == "F" and 1.15 or 1)
+  local xp = BASE_XP[i + 1] * ageFactor(p.age) * rf * cf * rng:range(0.75, 1.25) * (p.lvl == "F" and 1.15 or 1) * (plan.xm or 1)
   p.xp[key] = (p.xp[key] or 0) + xp
   while p.xp[key] >= PL.XP_PER_POINT do
     p.xp[key] = p.xp[key] - PL.XP_PER_POINT
@@ -596,6 +602,8 @@ function PL.finishDay(L, Y)
   -- before: snapshot the user's arrows
   local before = {}
   for _, id in ipairs(L.teams[L.user].ml) do local p = P(L, id) before[id] = p.cond end
+  -- the user's club program sets everyone's training plan for the day (pennant/week.lua)
+  if PWeek then PWeek.applyPlans(L) end
   for abbr, T in pairs(L.teams) do
     local rs = (not off) and PL.roadStreak(L, abbr, L.day) or 0
     local g = (not off) and PL.gameFor(L, abbr) or nil
@@ -699,6 +707,8 @@ function PL.finishDay(L, Y)
   elseif L.phase == "playoffs" then
     PL.playoffAdvance(L, Y)
   end
+  -- monthly goals (pennant/week.lua)
+  if PWeek then PWeek.dayClosed(L) end
   return report
 end
 
@@ -1045,6 +1055,7 @@ function PL.offseason(L, Y)
   PL.computeNorm(L)
   PL.news(L, "Opening Day " .. L.year .. ". Every club is 0-0.", true)
   L.offRep = rep
+  if PWeek then PWeek.ensure(L) end
   return rep
 end
 
@@ -1082,6 +1093,7 @@ function PL.init(L)
   L.alerts = {}
   PL.computeNorm(L)
   PL.news(L, "Opening Day " .. L.year .. ". Every club is 0-0.", true)
+  if PWeek then PWeek.ensure(L) end
 end
 
 -- The race --------------------------------------------------------------------------------------------

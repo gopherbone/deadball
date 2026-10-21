@@ -73,7 +73,8 @@ function Scene:body()
   local k = 0
   for _, id in ipairs(T.farm) do
     local p = L.players[id]
-    if p.pos ~= "P" then k = k + 1 p.plan = { f = "pow", i = (k % 2 == 0) and 3 or 2 } end
+    -- (individual plans: the club program leaves them be)
+    if p.pos ~= "P" then k = k + 1 p.plan = { f = "pow", i = (k % 2 == 0) and 3 or 2 } PWeek.setOwn(L, p.id, true) end
   end
   self.started = true
   for season = 1, self.seasons do
@@ -146,6 +147,13 @@ function Scene:body()
       return true
     end)()
     log("  save: %d datastore files, %d ms total, worst file %d ms; load %d ms; round trip %s", steps, saveMs, worstStep, loadMs, same and "OK" or "MISMATCH")
+    -- the week turn's club state: kept by the round trip, defaulted for a save from before it
+    if L2 then
+      local kept = L2.club and L2.club.fac and L2.club.fac.bat == L.club.fac.bat and L2.club.energy == L.club.energy
+      L2.club = nil
+      local ok = pcall(function() PWeek.ensure(L2) PWeek.units(L2, L2.user) PWeek.preview(L2, "bat", 2) end)
+      log("  week state: round trip %s; old-save migration %s", kept and "OK" or "MISMATCH", (ok and L2.club and L2.club.energy) and "OK" or "FAILED")
+    end
     if season < self.seasons then
       self.msg = "offseason"
       local rep = PL.offseason(L)
@@ -168,7 +176,12 @@ if playdate.file.exists("pennant-sim.flag") then
   local f = playdate.file.open("pennant-sim.flag", playdate.file.kFileRead)
   local line = f and f:readline()
   if f then f:close() end
-  if line and line:match("^bench") then
+  if line and line:match("^programs") then
+    -- "programs [games] [seed]": one season per week-program policy on the same league
+    local n, seed = line:match("^programs%s*(%d*)%s*(%d*)")
+    PennantTest.progOpts = { games = tonumber(n), seed = tonumber(seed) }
+    playdate.frameTimer.performAfterDelay(20, function() PennantTest.programs() end)
+  elseif line and line:match("^bench") then
     playdate.frameTimer.performAfterDelay(20, function() PennantTest.bench() end)
   elseif line and line:match("^bots") then
     -- "bots [scheme] [games] [seed]": e.g. "bots scout 120 777"
@@ -394,6 +407,149 @@ function Bots:body()
       PM.rate3(PM.avg(s)), PM.rate3(PM.obp(s)), PM.rate3(PM.slg(s)), 100 * (s.k or 0) / math.max(1, s.pa or 1), 100 * (s.bb or 0) / math.max(1, s.pa or 1), (s.hr or 0) / math.max(1, s.pa or 1)) end
     log("bots %-7s %-6s  HCL bats: %s", scheme, skill or "", line(bat))
     log("bots %-7s %-6s  vs HCL:   %s", scheme, skill or "", line(opp))
+  end
+  log("done")
+  PennantTest.finish()
+end
+
+-- Week programs ("pennant-sim.flag" first line "programs [games] [seed]"): the same league played
+-- once per program policy (pennant/week.lua), the user club run through the real week turn
+-- (beginWeek / endWeek, events, plans, goals, rewards; every game simmed). Prints the season
+-- line, unit grades start -> end vs the AI clubs, and the mean rating gains per key.
+local Progs = { opaque = true }
+Progs.__index = Progs
+function PennantTest.programs() App.push(setmetatable({}, Progs)) end
+function Progs:enter() self.co = coroutine.create(function() self:body() end) self.msg = "" end
+function Progs:update()
+  self.t0 = now()
+  if self.co and coroutine.status(self.co) ~= "dead" then
+    local ok, e = coroutine.resume(self.co)
+    if not ok then log("programs ERROR %s", tostring(e)) self.co = nil PennantTest.finish() end
+  end
+  gfx.clear(gfx.kColorWhite)
+  Text.draw("Pennant programs: " .. tostring(self.msg), 200, 110, UI.fonts.body, nil, "center")
+end
+function Progs:Y() if now() - self.t0 > 40 then coroutine.yield() end end
+
+local BATK <const> = { "con", "pow", "eye", "spd", "fld", "arm" }
+local PITK <const> = { "velo", "ctl", "stf", "sta" }
+
+function Progs:season(policy, opt)
+  local L = PGen.league(opt.seed or 777, "HCL", opt.games or 84, function() self:Y() end)
+  PL.init(L)
+  Pennant.L = L
+  local c = L.club
+  local T = L.teams.HCL
+  local snap = {}
+  for id, p in pairs(L.players) do snap[id] = PM.snapshot(p) end
+  local u0 = {}
+  for _, cl in ipairs(PennantClubs) do u0[cl.abbr] = PWeek.units(L, cl.abbr) end
+  local rot = { "bat", "arms", "def", "gym", "farm" }
+  local ri, rests, fails, events, wk = 0, 0, 0, 0, 0
+  local function choose()
+    if policy == "coach" then
+      for _, list in ipairs({ T.ml, T.farm }) do for _, id in ipairs(list) do c.own[tostring(id)] = true end end
+      PL.aiPlan(L, T)
+      c.prog, c.int = "farm", 2
+      return
+    end
+    local prog, int = policy, 2
+    if policy == "bathard" then prog, int = "bat", 3 end
+    if policy == "rotate" then ri = ri % 5 + 1 prog = rot[ri] end
+    if PWeek.energy(L) < 40 and PWeek.canRest(L) and policy ~= "farm" then
+      prog = "rest" rests = rests + 1
+      if policy == "rotate" then ri = ri - 1 end
+    end
+    c.prog, c.int = prog, int
+  end
+  local injuries = 0
+  while L.phase ~= "awards" do
+    self.msg = policy .. " " .. PL.date(L, math.min(L.day, #L.sched))
+    if not c.wk or PWeek.weekDone(L) then
+      if c.wk then local r = PWeek.endWeek(L) if r and r.fail then fails = fails + 1 end end
+      if c.goalOffer then PWeek.pickGoal(L, 1) end
+      while c.rewards and #c.rewards > 0 do PWeek.claim(L, "fac") end
+      c.monthNote = nil
+      if L.phase == "season" or PWeek.userSeries(L) then
+        choose()
+        PWeek.beginWeek(L)
+        wk = wk + 1
+        local ks = PWeek.keySeries(L)
+        if ks and policy ~= "coach" then PWeek.choosePlan(L, ks, PWeek.planOptions(L, ks.opp)[1]) end
+      end
+    end
+    for _, st in ipairs(PWeek.dueStops(L)) do
+      if st.stop.id == "clubhouse" then PWeek.resolveEvent(L, PL.rng(L, 5):int(3)) events = events + 1 end
+    end
+    L.alerts = {}
+    for _, g in ipairs(PL.pending(L)) do PEng.simNow(L, g) self:Y() end
+    L.trainerQ = nil
+    PL.finishDay(L)
+    for _, a in ipairs(L.alerts) do if a.kind == "inj" and L.players[a.id] and L.players[a.id].team == "HCL" then injuries = injuries + 1 end end
+    self:Y()
+  end
+  -- results
+  local b, p, G = rates(L)
+  local st = {}
+  for _, TT in ipairs(PL.standings(L)) do st[#st + 1] = string.format("%s %d-%d", TT.abbr, TT.w, TT.l) end
+  local cleared = 0
+  for _, g in ipairs(c.goals) do if g.state == "done" then cleared = cleared + 1 end end
+  local facs = {}
+  for _, k in ipairs(PWeek.PROGS) do facs[#facs + 1] = k .. c.fac[k] end
+  log("programs %-7s HCL %d-%d (%s), champ %s, R/G %.2f, weeks %d, rests %d, fails %d, events %d, inj %d, goals %d/%d, energy %d, fac %s",
+    policy, T.w, T.l, PUI.ord(PL.rank(L, "HCL")), tostring(L.champ), (b.r or 0) / G, wk, rests, fails, events, injuries,
+    cleared, #c.goals, PWeek.energy(L), table.concat(facs, ","))
+  log("programs %-7s standings %s", policy, table.concat(st, ", "))
+  local u1 = PWeek.units(L, "HCL")
+  local ai = {}
+  for _, cl in ipairs(PennantClubs) do
+    if cl.abbr ~= "HCL" then
+      local a = PWeek.units(L, cl.abbr)
+      for _, k in ipairs(PWeek.UNITS) do ai[k] = (ai[k] or 0) + (a[k] - u0[cl.abbr][k]) / 7 end
+    end
+  end
+  local parts = {}
+  for _, k in ipairs(PWeek.UNITS) do parts[#parts + 1] = string.format("%s %.1f>%.1f (%+.1f, AI %+.1f)", k, u0.HCL[k], u1[k], u1[k] - u0.HCL[k], ai[k]) end
+  log("programs %-7s units %s", policy, table.concat(parts, "  "))
+  -- per-key gains: big-leaguers who were there at the start
+  local function gains(filter)
+    local s, n = {}, {}
+    for id, q in pairs(L.players) do
+      if snap[id] and q.lvl == "ML" and filter(q) then
+        local keys = q.pos == "P" and PITK or BATK
+        local grp = q.pos == "P" and "p" or "b"
+        n[grp] = (n[grp] or 0) + 1
+        for _, k in ipairs(keys) do s[k] = (s[k] or 0) + (q.r[k] - snap[id][k]) end
+      end
+    end
+    local out = {}
+    for _, k in ipairs(BATK) do out[#out + 1] = string.format("%s %+.1f", k, (s[k] or 0) / math.max(1, n.b or 0)) end
+    for _, k in ipairs(PITK) do out[#out + 1] = string.format("%s %+.1f", k, (s[k] or 0) / math.max(1, n.p or 0)) end
+    return table.concat(out, " ")
+  end
+  log("programs %-7s HCL gains %s", policy, gains(function(q) return q.team == "HCL" end))
+  log("programs %-7s AI  gains %s", policy, gains(function(q) return q.team ~= "HCL" end))
+  local fs, fn = 0, 0
+  for _, id in ipairs(T.farm) do
+    local q = L.players[id]
+    if snap[id] then
+      local r = q.r
+      local now1 = PM.ovr(q)
+      q.r = snap[id]
+      local was = PM.ovr(q)
+      q.r = r
+      fs, fn = fs + now1 - was, fn + 1
+    end
+  end
+  log("programs %-7s farm OVR %+.1f (n=%d)", policy, fs / math.max(1, fn), fn)
+end
+
+function Progs:body()
+  local opt = PennantTest.progOpts or {}
+  for _, policy in ipairs({ "coach", "bat", "bathard", "arms", "def", "gym", "farm", "rotate" }) do
+    self:season(policy, opt)
+    Pennant.L = nil
+    collectgarbage("collect")
   end
   log("done")
   PennantTest.finish()

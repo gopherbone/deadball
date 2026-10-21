@@ -263,6 +263,8 @@ function PSave.load(slot)
   L.history = L.history or {}
   L.alerts = L.alerts or {}
   L.slot = slot
+  -- the week turn's club state (pennant/week.lua): defaults for saves from before it
+  if PWeek then PWeek.ensure(L) end
   return L
 end
 

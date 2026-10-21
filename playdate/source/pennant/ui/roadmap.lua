@@ -776,8 +776,9 @@ function Travel:enter(args)
   local r = PRoutes.path(self.from, self.to)
   self.kind = r.mode
   self.leg = G.leg(self.from, self.to)
-  -- 1-2 s by the leg's length on the planet
-  self.dur = max(30, min(60, floor(self.leg.span * 1.2)))
+  -- 1-2 s by the leg's length on the planet; as an interstitial in the week run (quick) about 1 s
+  self.quick = args.quick
+  self.dur = args.quick and max(20, min(34, floor(self.leg.span * 0.7))) or max(30, min(60, floor(self.leg.span * 1.2)))
   self.f = 0
   self.u = 0
   self.paused = false
@@ -864,7 +865,7 @@ function Travel:update()
   end
   if self.u >= 1 and not self.paused and (not self.windowT or self.windowT >= 75) then
     self.hold = (self.hold or 0) + 1
-    if self.hold > 12 then self:finish() end
+    if self.hold > (self.quick and 6 or 12) then self:finish() end
   end
 end
 

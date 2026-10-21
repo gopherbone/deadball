@@ -59,8 +59,20 @@ end
 
 -- Pregame ---------------------------------------------------------------------------------------------
 
-local GameDay = PUI.define({ title = "Game day", hint = "A: choose how to play today's game" })
+local GameDay = PUI.define({ title = function(self) return self.onChoice and "\u{2605} Tonight's big game" or "Game day" end, hint = "A: choose how to play today's game" })
 PennantUI.GameDay = GameDay
+
+--- args.onChoice(mode): the week run's pregame (the featured game, or one picked in the Office):
+--- "manage" | "play" | "sim"; B = let it sim.
+function GameDay:init(args)
+  self.onChoice = args and args.onChoice
+  self.why = args and args.featured
+end
+
+function GameDay:goBack()
+  if self.onChoice then Sfx.back() self.onChoice("sim") return end
+  Page.goBack(self)
+end
 
 function GameDay:resume(r) Page.resume(self, r) self:render(true) end
 
@@ -115,11 +127,15 @@ function GameDay:layout(Lb)
   if #probs > 0 then
     Text.draw(Text.ellipsize("! " .. probs[1], UI.fonts.bold, 386), 6, by - 16, UI.fonts.bold)
   end
-  Lb:button("Manage", 4, by, 92, 18, function() PennantLive.start("manage") end, { id = "manage", hint = "Watch in BallCast, make the dugout's calls" })
+  local oc = self.onChoice
+  if oc and self.why and #probs == 0 then
+    Text.draw(self.why == "featured" and "\u{2605} The week's big one. Play it, or let the coaches have it." or "\u{25b6} You marked this one to play live.", 6, by - 16, UI.fonts.bold)
+  end
+  Lb:button("Manage", 4, by, 92, 18, function() if oc then oc("manage") else PennantLive.start("manage") end end, { id = "manage", hint = "Watch in BallCast, make the dugout's calls" })
   local s = L.settings
-  Lb:button("Play", 100, by, 92, 18, function() PennantLive.start("play") end, { id = "play",
+  Lb:button("Play", 100, by, 92, 18, function() if oc then oc("play") else PennantLive.start("play") end end, { id = "play",
     hint = "Bat and pitch: " .. PScheme.NAME[s.batScheme or "arcade"] .. " / " .. PScheme.NAME[s.pitchScheme or "arcade"] .. " (change in Options)" })
-  Lb:button("Simulate", 196, by, 92, 18, function() PennantUI.Advance.open({ days = 1, fromGameDay = true }) end, { id = "sim", hint = "The coaches play it out" })
+  Lb:button("Simulate", 196, by, 92, 18, function() if oc then oc("sim") else PennantUI.Advance.open({ days = 1, fromGameDay = true }) end end, { id = "sim", hint = oc and "The coaches play it out; the week goes on" or "The coaches play it out" })
   Lb:button("Lineup", 292, by, 96, 18, function() PennantUI.Lineup.open({}) end, { id = "lineup", hint = "Order, positions, platoon cards, staff" })
   Lb:mark(PUI.VIEW_H - 2)
 end
@@ -180,7 +196,95 @@ function Advance:enter(args)
   self.lineImg = {}
   self.calDay, self.flip = L.day, 0
   self.todoSel = 1
-  self:queueDay()
+  -- the week turn (ui/week.lua): runs to the week's end, stops only for what needs the player
+  self.week = args.week
+  if self.week then self.multi = true end
+  self:startDay()
+end
+
+--- Before a day of a week run: travel between series (the globe), the registered stops (the
+--- clubhouse event; future interstitials), the live game (featured, or picked in the Office).
+function Advance:startDay()
+  if not self.week then self:queueDay() return end
+  local L = Pennant.L
+  self.state = "pre"
+  local steps = {}
+  local g = PL.gameFor(L, L.user)
+  if g and not g.done and self.args.skipTravel ~= L.day and L.settings.travel ~= false then
+    local from = PennantUI.cityOn(L, L.day - 1)
+    if from ~= g.h then
+      local lm = L.settings.landmarks ~= false and PLand.maybe(L, from, g.h) or nil
+      steps[#steps + 1] = function(nx) PennantUI.Travel.open({ from = from, to = g.h, landmark = lm, quick = true, onDone = nx }) end
+    end
+  end
+  for _, st in ipairs(PWeek.dueStops(L)) do
+    if st.stop.open then steps[#steps + 1] = function(nx) st.stop.open(L, st.payload, nx) end end
+  end
+  local live, why = PWeek.liveToday(L)
+  if live and not self.args.untilPhase then
+    steps[#steps + 1] = function(nx) self:liveGame(why, nx) end
+  end
+  local i = 0
+  local function nx()
+    i = i + 1
+    local f = steps[i]
+    if f then f(nx) else self.state = "day" self:queueDay() end
+  end
+  nx()
+end
+
+--- The pregame for a game played live inside the run; the run resumes after it.
+function Advance:liveGame(why, nx)
+  PennantUI.GameDay.open({ featured = why, onChoice = function(mode)
+    App.pop()
+    if mode == "sim" or not (BallCast and BallCast.scene) then nx() return end
+    PennantUI.liveReturn = nx
+    PennantLive.start(mode)
+  end })
+end
+
+--- After a day of a week run: what can't wait (the clinch, a regular's injury, a club on the
+--- phone, a cleared goal's reward).
+function Advance:hasFollow()
+  local L = Pennant.L
+  local c = L.club
+  local T = L.teams[L.user]
+  -- (a bench player's or a reliever's injury: the assistant GM covers it, no stop)
+  local reg = {}
+  for _, id in ipairs(T.order or {}) do reg[id] = true end
+  for _, id in ipairs(T.rot or {}) do reg[id] = true end
+  if L.trainerQ then
+    local q = {}
+    for _, e in ipairs(L.trainerQ) do if reg[e.id] then q[#q + 1] = e end end
+    L.trainerQ = #q > 0 and q or nil
+  end
+  if L.clinchPage and not L.clinchPage.shown then return true end
+  local e = PL.trainerPending(L)
+  if e and not e.snoozed and not L.trainerSeen then return true end
+  local tc = L.tradeCall
+  if tc and L.day - tc.day <= 1 and not tc.shown then return true end
+  if c.rewards and #c.rewards > 0 then return true end
+  return false
+end
+
+function Advance:weekFollow(done)
+  local L = Pennant.L
+  local steps = {
+    function(nx) PennantUI.frontPageFollowUp(nx) end,
+    function(nx) PennantUI.trainerFollowUp(nx) end,
+    function(nx) PennantUI.callFollowUp(nx) end,
+    function(nx)
+      local c = L.club
+      if c.rewards and #c.rewards > 0 then PennantUI.Goals.open({ reward = true, onDone = nx }) else nx() end
+    end,
+  }
+  local i = 0
+  local function nx()
+    i = i + 1
+    local f = steps[i]
+    if f then f(nx) else done() end
+  end
+  nx()
 end
 
 function Advance:queueDay()
@@ -195,6 +299,10 @@ function Advance:wantMore()
   local a = self.args
   if self.stopped then return false end
   if L.phase == "awards" then return false end
+  if self.week then
+    if a.untilPhase then return L.phase ~= a.untilPhase end
+    return not PWeek.weekDone(L)
+  end
   if a.days then return self.days < a.days end
   if a.untilOff then
     local day = PL.today(L)
@@ -241,6 +349,12 @@ function Advance:afterClose(rep, travel)
   end
   self.rep = rep
   PWire.endDay(L, rep)
+  if self.week then
+    -- (the week run stops only for what needs the player; the rest is on the wire)
+    PWire.stop = nil
+    if self:hasFollow() then self.state = "followwait" else self:next() end
+    return
+  end
   -- a stop: shown once the wire has caught up (the weekly report just opens, then on we go)
   if self.multi and PWire.stop and not self.args.noStops then
     self.pending = PWire.stop
@@ -255,7 +369,7 @@ end
 function Advance:next()
   if self:wantMore() then
     self.state = "day"
-    self:queueDay()
+    self:startDay()
   else
     self.state = "saving"
     Pennant.autosave()
@@ -263,6 +377,11 @@ function Advance:next()
 end
 
 function Advance:update()
+  -- the week run lands on its report once the wire has been read (A skips the reading)
+  if self.week and self.state == "done" and self:caughtUp() and not self.autoGo then
+    self.weekHold = (self.weekHold or 0) + 1
+    if self.weekHold > 20 then self.autoGo = true end
+  end
   if self.autoGo then
     self.autoGo = false
     self:finish()
@@ -328,6 +447,12 @@ function Advance:work()
           self.state = "stop"
           Sfx.stinger("new_mail")
         end
+      end
+      break
+    elseif self.state == "followwait" then
+      if self.shown >= #PWire.lines then
+        self.state = "follow"
+        self:weekFollow(function() self.state = "day" self:next() end)
       end
       break
     elseif self.state == "saving" then
@@ -488,8 +613,9 @@ function Advance:draw()
   if self.back > 0 then Text.draw("\u{25bc} " .. self.back .. " newer", LOG_X + LOG_W - 6, LOG_Y + LOG_H - 14, UI.fonts.bold, nil, "right") end
   -- a stop, or the end
   if self.state == "stop" then self:drawStop()
-  elseif self:caughtUp() and self.multi then self:drawDone() end
-  local hint = (self.state == "stop" and "A: deal with it   B: keep going") or (self:caughtUp() and "A: go   up/down: choose") or (self.state == "done" and "A: skip ahead") or "B: stop after today   crank: read back"
+  elseif self:caughtUp() and self.multi and not self.week then self:drawDone() end
+  local hint = (self.state == "stop" and "A: deal with it   B: keep going") or (self:caughtUp() and (self.week and "A: the week's report" or "A: go   up/down: choose")) or (self.state == "done" and "A: skip ahead")
+    or (self.week and "A: skip the reading   B: stop after today   crank: read back") or "B: stop after today   crank: read back"
   PUI.hintBar(hint)
 end
 
@@ -558,6 +684,17 @@ function Advance:caughtUp() return self.state == "done" and self.shown >= #(PWir
 
 function Advance:finish(jump)
   App.pop()
+  if self.week then
+    local L = Pennant.L
+    if self.args.untilPhase or not PWeek.weekDone(L) then
+      -- (stopped part way: the Week screen offers to carry on)
+      Pennant.toHub()
+      if Pennant.hub then Pennant.hub:render(true) end
+    else
+      PennantUI.weekEnd()
+    end
+    return
+  end
   PennantUI.followUps(self.travel)
   if jump then PennantUI.jump(jump) end
 end
@@ -571,6 +708,12 @@ function Advance:AButtonDown()
     self.pending = nil
     self.state = "saving"
     Pennant.autosave()
+    return
+  end
+  if self.week then
+    if self.state ~= "done" or not self:caughtUp() then self.shown = #PWire.lines self.back = 0 return end
+    Sfx.select()
+    self.autoGo = true
     return
   end
   if self.state ~= "done" then return end
@@ -740,12 +883,30 @@ function Awards:layout(Lb)
       if col == 2 then col = 0 y = y + 13 end
     end
   end
-  Lb:button("Begin the offseason", 110, y + 2, 180, 18, function() PennantUI.Winter.open({}) end,
+  Lb:button("Begin the offseason", 110, y + 2, 180, 18, function() PennantUI.seasonEnd(function() PennantUI.Winter.open({}) end) end,
     { id = "go", hint = "Aging, retirements, rookies, then a new season" })
   Lb:mark(y + 20)
 end
 
 function Awards:initialFocus() for i, l in ipairs(self.links) do if l.id == "go" then return i end end return 1 end
+
+--- The end of a pennant race (after awards night, before the winter): Pennant.seasonEndHooks run
+--- in order, each hook(L, next) opening whatever it likes over the stack and calling next() when
+--- done. Future: the run summary / legacy alumni pick, and after a pennant the "continue career /
+--- end the run" choice (L.champ == L.user) go here.
+Pennant = Pennant or {}
+Pennant.seasonEndHooks = Pennant.seasonEndHooks or {}
+function PennantUI.seasonEnd(onDone)
+  local L = Pennant.L
+  local hooks = Pennant.seasonEndHooks
+  local i = 0
+  local function nx()
+    i = i + 1
+    local h = hooks[i]
+    if h then h(L, nx) else onDone() end
+  end
+  nx()
+end
 
 -- Offseason report ---------------------------------------------------------------------------------------
 
