@@ -38,7 +38,8 @@ local function zy(pz) return floor(14 + (4.6 - pz) * PX + 0.5) end
 local kzTemplate, kzPa, kzN = nil, nil, 0
 local function template()
   if kzTemplate then return kzTemplate end
-  local img = gfx.image.new(KZ_W, KZ_H, gfx.kColorClear)
+  -- (opaque: no mask, the inset blits a little faster every frame; it's all painted anyway)
+  local img = gfx.image.new(KZ_W, KZ_H, gfx.kColorBlack)
   gfx.pushContext(img)
   gfx.setColor(gfx.kColorBlack)
   gfx.fillRect(0, 0, KZ_W, KZ_H)
@@ -138,19 +139,32 @@ local function kzone(tl, bi, b, tau)
   return kzImg, n, list
 end
 
---- the inset at (x, y), the latest pitch ringed (drawn live over the baked stamps: a circle and
---- its marker again, cached number images)
+--- the inset at (x, y), the latest pitch ringed over the baked stamps (a circle and its marker
+--- again). The ring is its own small image, made once per pitch (RING_*: the ring and the
+--- number tab reach past the inset's edge, so it isn't baked into the inset): drawing the
+--- circles and the stamp live cost that every frame on the device.
+local RING_W <const>, RING_H <const>, RING_X <const>, RING_Y <const> = 28, 20, 9, 11
+local ringImg, ringBeat, ringN
 local function drawKzone(tl, bi, b, tau, x, y)
   local img, n, list = kzone(tl, bi, b, tau)
   img:draw(x, y)
   if n > 0 then
-    local mx, my = kzPos(list[n].plan.pitch)
-    gfx.setColor(gfx.kColorBlack)
-    gfx.drawCircleAtPoint(x + mx, y + my, 7)
-    gfx.setColor(gfx.kColorWhite)
-    gfx.drawCircleAtPoint(x + mx, y + my, 6)
-    -- (its number back on top of the ring)
-    stampAt(n, list[n].e.r, x + mx, y + my)
+    local bj = list[n]
+    if ringBeat ~= bj or ringN ~= n or not ringImg then
+      ringImg = ringImg or gfx.image.new(RING_W, RING_H, gfx.kColorClear)
+      ringImg:clear(gfx.kColorClear)
+      gfx.pushContext(ringImg)
+      gfx.setColor(gfx.kColorBlack)
+      gfx.drawCircleAtPoint(RING_X, RING_Y, 7)
+      gfx.setColor(gfx.kColorWhite)
+      gfx.drawCircleAtPoint(RING_X, RING_Y, 6)
+      -- (its number back on top of the ring)
+      stampAt(n, bj.e.r, RING_X, RING_Y)
+      gfx.popContext()
+      ringBeat, ringN = bj, n
+    end
+    local mx, my = kzPos(bj.plan.pitch)
+    ringImg:draw(x + mx - RING_X, y + my - RING_Y)
   end
   return n, list
 end
@@ -275,6 +289,48 @@ end
 
 --- strike-zone box + pitch-tracker trail, projected onto the plate (pitch cams only)
 local trail = {}
+-- the held trail as an image: the points it was drawn from, its top-left on screen
+local trImg, trKey, trX, trY = nil, {}, 0, 0
+local function drawTrail(n, ox, oy)
+  gfx.setLineCapStyle(gfx.kLineCapStyleRound)
+  gfx.setColor(gfx.kColorBlack)
+  gfx.setLineWidth(4)
+  for i = 1, n - 1 do gfx.drawLine(trail[i * 2 - 1] - ox, trail[i * 2] - oy, trail[i * 2 + 1] - ox, trail[i * 2 + 2] - oy) end
+  gfx.setColor(gfx.kColorWhite)
+  gfx.setLineWidth(2)
+  for i = 1, n - 1 do gfx.drawLine(trail[i * 2 - 1] - ox, trail[i * 2] - oy, trail[i * 2 + 1] - ox, trail[i * 2 + 2] - oy) end
+  gfx.setLineWidth(1)
+  gfx.setLineCapStyle(gfx.kLineCapStyleButt)
+  gfx.setColor(gfx.kColorBlack)
+end
+--- draw the trail's n points from the cached image (made now if they moved): false = not
+--- cacheable here (a point off the top / left: drawn live instead)
+local function trailCached(n)
+  local same = trImg ~= nil and #trKey == n * 2
+  local x0, y0, x1, y1 = 1e9, 1e9, -1e9, -1e9
+  for i = 1, n * 2, 2 do
+    local x, y = trail[i], trail[i + 1]
+    if same and (trKey[i] ~= x or trKey[i + 1] ~= y) then same = false end
+    if x < x0 then x0 = x end
+    if x > x1 then x1 = x end
+    if y < y0 then y0 = y end
+    if y > y1 then y1 = y end
+  end
+  if not same then
+    -- (integer offsets, on-screen points only: the lines land on exactly the pixels they would)
+    if x0 < 4 or y0 < 4 or x1 > 2000 or y1 > 2000 then return false end
+    local ox, oy = floor(x0) - 4, floor(y0) - 4
+    trImg = gfx.image.new(floor(x1) - ox + 6, floor(y1) - oy + 6, gfx.kColorClear)
+    gfx.pushContext(trImg)
+    drawTrail(n, ox, oy)
+    gfx.popContext()
+    for k = #trKey, 1, -1 do trKey[k] = nil end
+    for i = 1, n * 2 do trKey[i] = trail[i] end
+    trX, trY = ox, oy
+  end
+  trImg:draw(trX, trY)
+  return true
+end
 local function tracker(R, plan, tau)
   local p = plan.pitch
   if not p or tau < p.tRel + 0.04 or tau > p.tPlate + 1.4 then return end
@@ -309,6 +365,11 @@ local function tracker(R, plan, tau)
   if n < 2 then return end
   local fade = tau > p.tPlate + 0.9 and (tau - p.tPlate - 0.9) / 0.5 or 0
   if fade >= 1 then return end
+  if fade == 0 and tau >= p.tPlate then
+    -- the whole trail, held (the ball is in): drawn once into an image while it doesn't move on
+    -- screen (the wide round-capped lines cost ~2 ms a frame on the device)
+    if trailCached(n) then return end
+  end
   gfx.setLineCapStyle(gfx.kLineCapStyleRound)
   gfx.setColor(gfx.kColorBlack)
   gfx.setLineWidth(4)
@@ -499,6 +560,8 @@ function O.release()
   kzImg, kzKey, kImg, kImgBack = nil, nil, nil, nil
   kzTemplate, kzPa, kzN, kzBeats = nil, nil, 0, {}
   spBase, spPark, spImg, spBeat = nil, nil, nil, nil
+  ringImg, ringBeat, ringN = nil, nil, nil
+  trImg, trKey = nil, {}
   powImgs = {}
   O.kzList = nil
 end

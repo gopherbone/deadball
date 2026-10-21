@@ -933,6 +933,20 @@ function S:camGlide(want, cc, bi, dt, reset)
   local out = self.camGlideOut or {}
   self.camGlideOut = out
   local fresh = reset or not prev or not sameShot(cc, self.camShot) or bi ~= self.camBi
+  if not fresh and not g then
+    -- (a held framing, no glide on: the wanted camera passes straight through, as below)
+    local held = true
+    for i = 1, 7 do if want[i] ~= prev[i] then held = false break end end
+    if held then
+      local pv = self.camGlideVel or {}
+      for i = 1, 7 do pv[i] = 0 end
+      self.camGlideVel, self.camGlideDt = pv, dt
+      local last = self.camGlideLast or {}
+      for i = 1, 7 do local w = want[i]; out[i] = w; last[i] = w end
+      self.camGlideLast = last
+      return out
+    end
+  end
   local jump = false
   if fresh then
     g = nil
@@ -1178,7 +1192,8 @@ function S:update()
       local want = R3.shot(R, b, tau, cc, self.camWant)
       -- the stands guard on the wanted camera, before the follow smooths it: guarding the smoothed
       -- one (as it was) pulled the eye in mid-move, a jolt whenever a moving eye crossed a stand
-      Cam.safeEye(R.park, want)
+      self.safeMemo = self.safeMemo or {}
+      Cam.safeEye(R.park, want, self.safeMemo)
       self.camWant = want
       -- a shot whose wanted framing jumps (the deep shot cutting in on the catch, the runner shot
       -- switching runners): glide to it instead (smootherstep over CAM_GLIDE s from where the
@@ -1198,8 +1213,19 @@ function S:update()
         -- eases in and out instead of starting at full speed, and the move doesn't depend on the
         -- frame rate (the old per-frame lerp did both: moves started with a jolt and stuttered
         -- whenever a frame ran long)
-        for i = 1, 7 do
-          cur[i], vel[i] = smoothCD(cur[i], vel[i], want[i], i == 7 and CAM_SMOOTH_FOV or CAM_SMOOTH, cdt)
+        -- (on a held framing, at rest: a step would change nothing)
+        local rest = true
+        for i = 1, 7 do if cur[i] ~= want[i] or vel[i] ~= 0 then rest = false break end end
+        if not rest then
+          local settled = true
+          for i = 1, 7 do
+            local c, v = smoothCD(cur[i], vel[i], want[i], i == 7 and CAM_SMOOTH_FOV or CAM_SMOOTH, cdt)
+            cur[i], vel[i] = c, v
+            if settled and (abs(c - want[i]) > 1e-3 or abs(v) > 1e-2) then settled = false end
+          end
+          -- (within a hair of a held framing: on it exactly, so the stands guard's memo and the
+          -- park cache see a camera that has stopped)
+          if settled then for i = 1, 7 do cur[i], vel[i] = want[i], 0 end end
         end
       end
       self.camCur, self.camVel, self.camDtSkip = cur, vel, 0

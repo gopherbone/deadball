@@ -865,8 +865,10 @@ static void renderScene(float ox, float oy)
 // ---------------------------------------------------------------------------
 // sprites
 
+static void jerseyCacheClear(void);
 static void freeSpriteCache(Sprite* s)
 {
+	jerseyCacheClear();   // (its number stamps were keyed on these bitmaps)
 	for ( int b = 0; b < BUCKETS; b++ )
 	{
 		if ( s->cache[b] ) { pd->graphics->freeBitmap(s->cache[b]->bmp); pd->system->realloc(s->cache[b], 0); s->cache[b] = NULL; }
@@ -1244,7 +1246,23 @@ static int lookColor(const LookRule* R, const LookXf* X, int i, int j)
 	return -1;
 }
 
-static void runRule(const LookRule* R, const LookXf* X, int needInterior)
+// The jersey number's stamp depends only on the bitmap pixel (i, j), the bitmap and the rule
+// (not on where the figure lands on screen), and worked out per pixel it cost ~0.5 ms a figure
+// a frame on the device: it's worked out once per (bitmap, rule) into a grid of bitmap px, and
+// a held pose (most frames) only looks it up.
+#define JC_N 12
+typedef struct {
+	const uint8_t* data; int w, h, rb;   // the bitmap
+	LookRule R; float fs, srcPx; int style;
+	int gi0, gj0, gw, gh;                // the grid's box (bitmap px)
+	uint8_t* g;                          // 0 black, 1 white, 2 keep, 3 off the figure (not counted)
+	int used;
+} JerseyGrid;
+static JerseyGrid jcache[JC_N];
+static int jcClock = 0;
+static void jerseyCacheClear(void) { for ( int k = 0; k < JC_N; k++ ) jcache[k].data = NULL; }
+
+static void runRule(const LookRule* R, const LookXf* X, int needInterior, const JerseyGrid* G)
 {
 	// screen box of the rule's source rect
 	float minx = 1e9f, maxx = -1e9f, miny = 1e9f, maxy = -1e9f;
@@ -1275,15 +1293,69 @@ static void runRule(const LookRule* R, const LookXf* X, int needInterior)
 			int i = (int)floorf(X->pax + X->iu * u + X->iv * v);
 			int j = (int)floorf(X->pay + X->ju * u + X->jv * v);
 			if ( i < R->i0 || i >= R->i1 || j < R->j0 || j >= R->j1 ) continue;
-			if ( !lkOpaque(X, i, j) ) continue;
-			if ( needInterior && !lkInterior(X, i, j) ) continue;
-			statLookPx++;
-			int col = lookColor(R, X, i, j);
-			if ( col < 0 ) continue;
+			int col;
+			if ( G )
+			{
+				int gi = i - G->gi0, gj = j - G->gj0;
+				if ( (unsigned)gi >= (unsigned)G->gw || (unsigned)gj >= (unsigned)G->gh ) continue;
+				col = G->g[gj * G->gw + gi];
+				if ( col == 3 ) continue;
+				statLookPx++;
+				if ( col == 2 ) continue;
+			}
+			else
+			{
+				if ( !lkOpaque(X, i, j) ) continue;
+				if ( needInterior && !lkInterior(X, i, j) ) continue;
+				statLookPx++;
+				col = lookColor(R, X, i, j);
+				if ( col < 0 ) continue;
+			}
 			uint8_t db = (uint8_t)(0x80 >> (x & 7));
 			if ( col ) drow[x >> 3] |= db; else drow[x >> 3] &= (uint8_t)~db;
 		}
 	}
+}
+
+// the jersey grid for rule R on bitmap X (cached; NULL: work it out per pixel instead)
+static const JerseyGrid* jerseyGrid(const LookRule* R, const LookXf* X)
+{
+	jcClock++;
+	int lru = 0;
+	for ( int k = 0; k < JC_N; k++ )
+	{
+		JerseyGrid* G = &jcache[k];
+		if ( G->data == X->data && G->w == X->w && G->h == X->h && G->rb == X->rb && G->fs == X->fs && G->srcPx == X->srcPx
+			&& G->style == jerseyAwayStyle && memcmp(&G->R, R, sizeof *R) == 0 )
+		{
+			G->used = jcClock;
+			return G;
+		}
+		if ( !jcache[lru].data ) continue;
+		if ( !G->data || G->used < jcache[lru].used ) lru = k;
+	}
+	JerseyGrid* G = &jcache[lru];
+	int gi0 = (int)floorf(R->i0), gj0 = (int)floorf(R->j0);
+	int gw = (int)ceilf(R->i1) - gi0, gh = (int)ceilf(R->j1) - gj0;
+	if ( gw <= 0 || gh <= 0 || gw * gh > 16384 ) return NULL;
+	uint8_t* g = pd->system->realloc(G->g, (size_t)(gw * gh));
+	if ( !g ) { G->data = NULL; return NULL; }
+	G->g = g;
+	for ( int j = gj0; j < gj0 + gh; j++ )
+		for ( int i = gi0; i < gi0 + gw; i++ )
+		{
+			int v = 3;
+			if ( lkOpaque(X, i, j) && lkInterior(X, i, j) )
+			{
+				int col = lookColor(R, X, i, j);
+				v = col < 0 ? 2 : col;
+			}
+			g[(j - gj0) * gw + (i - gi0)] = (uint8_t)v;
+		}
+	G->data = X->data; G->w = X->w; G->h = X->h; G->rb = X->rb; G->fs = X->fs; G->srcPx = X->srcPx;
+	G->style = jerseyAwayStyle; memcpy(&G->R, R, sizeof *R);
+	G->gi0 = gi0; G->gj0 = gj0; G->gw = gw; G->gh = gh; G->used = jcClock;
+	return G;
 }
 
 // stamps for billboard look `look` on sprite s, drawn with cached bitmap bmp (cs = its px per
@@ -1322,7 +1394,7 @@ static void lookPass(const Sprite* s, LCDBitmap* bmp, float cs, uint32_t look, f
 		{
 			R.ax = hx; R.ay = hy + 0.1f * hr; R.r = hr * 0.95f;
 			R.i0 = hx - hr; R.i1 = hx + hr + 1; R.j0 = hy - hr; R.j1 = hy + hr + 1;
-			runRule(&R, &X, 1);
+			runRule(&R, &X, 1, NULL);
 		}
 		if ( !(look & 0x8000) )
 		{
@@ -1333,7 +1405,7 @@ static void lookPass(const Sprite* s, LCDBitmap* bmp, float cs, uint32_t look, f
 				float ax = wx + (wx - LX(e)) * 0.3f, ay = wy + (wy - LY(e)) * 0.3f;
 				R.ax = ax; R.ay = ay; R.r = 1.6f * csy;
 				R.i0 = ax - R.r; R.i1 = ax + R.r + 1; R.j0 = ay - R.r; R.j1 = ay + R.r + 1;
-				runRule(&R, &X, 1);
+				runRule(&R, &X, 1, NULL);
 			}
 		}
 	}
@@ -1347,7 +1419,7 @@ static void lookPass(const Sprite* s, LCDBitmap* bmp, float cs, uint32_t look, f
 			R.ax = LX(e); R.ay = LY(e); R.bx = LX(w); R.by = LY(w);
 			R.i0 = fminf(R.ax, R.bx) - R.r; R.i1 = fmaxf(R.ax, R.bx) + R.r + 1;
 			R.j0 = fminf(R.ay, R.by) - R.r; R.j1 = fmaxf(R.ay, R.by) + R.r + 1;
-			runRule(&R, &X, 1);
+			runRule(&R, &X, 1, NULL);
 		}
 	}
 	if ( hair && s->faceCode > 0 )
@@ -1358,7 +1430,7 @@ static void lookPass(const Sprite* s, LCDBitmap* bmp, float cs, uint32_t look, f
 		R.nx = s->faceCode == 2 ? hx : hx + (nx - hx) * 0.55f;
 		R.g = fmaxf(0.22f, 1.2f / hr);       // moustache thickness (in head radii): ~1 px
 		R.i0 = hx - hr; R.i1 = hx + hr + 1; R.j0 = hy - hr; R.j1 = hy + hr + 1;
-		runRule(&R, &X, 1);
+		runRule(&R, &X, 1, NULL);
 	}
 	if ( socks )
 	{
@@ -1372,7 +1444,7 @@ static void lookPass(const Sprite* s, LCDBitmap* bmp, float cs, uint32_t look, f
 			R.ax = LX(kn); R.ay = LY(kn); R.bx = LX(an); R.by = LY(an);
 			R.i0 = fminf(R.ax, R.bx) - R.r; R.i1 = fmaxf(R.ax, R.bx) + R.r + 1;
 			R.j0 = fminf(R.ay, R.by) - R.r; R.j1 = fmaxf(R.ay, R.by) + R.r + 1;
-			runRule(&R, &X, 1);
+			runRule(&R, &X, 1, NULL);
 		}
 	}
 	// the number: once a glyph row is at least ~1 screen px (smaller, the baked number is the
@@ -1410,7 +1482,7 @@ static void lookPass(const Sprite* s, LCDBitmap* bmp, float cs, uint32_t look, f
 			}
 			R.i0 = floorf(mnx) - 1; R.i1 = ceilf(mxx) + 1; R.j0 = floorf(mny) - 1; R.j1 = ceilf(mxy) + 1;
 			float t0 = pd->system->getElapsedTime();
-			runRule(&R, &X, 1);
+			runRule(&R, &X, 1, jerseyGrid(&R, &X));
 			statJerseyS += pd->system->getElapsedTime() - t0;
 			statJerseys++;
 		}
@@ -1421,7 +1493,7 @@ static void lookPass(const Sprite* s, LCDBitmap* bmp, float cs, uint32_t look, f
 		R.type = LK_HELMET; R.ax = hx; R.ay = hy; R.r = hr * 1.05f; R.nx = nx;
 		R.g = fmaxf(0.6f, 0.28f * hr);
 		R.i0 = hx - hr - 1; R.i1 = hx + hr + 2; R.j0 = hy - hr - 1; R.j1 = hy + hr + 2;
-		runRule(&R, &X, 1);
+		runRule(&R, &X, 1, NULL);
 	}
 	#undef LX
 	#undef LY

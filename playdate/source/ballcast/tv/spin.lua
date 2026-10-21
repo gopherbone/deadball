@@ -97,6 +97,7 @@ local function frameAt(b, tau, row, rpm)
 end
 
 local function ease(t) t = K.clamp(t, 0, 1); return 1 - (1 - t) ^ 3 end
+local hdrImg, textB, textA, textZ, textR
 
 --- per frame (pitch cams). opts: { speed, scrubbing, logOpen }
 function Sp.draw(b, tau, camName, opts)
@@ -119,9 +120,12 @@ function Sp.draw(b, tau, camName, opts)
   gfx.fillRect(X0, Y0, BOX_W, BOX_H)
   gfx.setColor(gfx.kColorWhite)
   gfx.fillRect(X0 + 2, Y0 + 10, BOX_W - 4, BOX_H - 12)
-  A.text("tiny", "SPIN CAM", "w"):draw(X0 + 4, Y0 + 2)
+  hdrImg = hdrImg or A.text("tiny", "SPIN CAM", "w")
+  hdrImg:draw(X0 + 4, Y0 + 2)
   local ty = TYPES[b.e.t] or TYPES.FB
-  local name, rpmText, rpm = Sp.text(b)
+  -- (the labels once per pitch, not a string build every frame)
+  if textB ~= b then textB, textA, textZ, textR = b, Sp.text(b) end
+  local name, rpmText, rpm = textA, textZ, textR
   local power = b.plan.power
   local bx, by = X0 + (BOX_W - 40) // 2, Y0 + 11
   local fi = frameAt(b, tau, ty[1], rpm or ty[2])
@@ -160,6 +164,6 @@ function Sp.draw(b, tau, camName, opts)
   return true
 end
 
-function Sp.release() tbl, labels = nil, {} end
+function Sp.release() tbl, labels, hdrImg, textB = nil, {}, nil, nil end
 
 return Sp

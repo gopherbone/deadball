@@ -91,7 +91,8 @@ function Live:setCamera(c)
   local g = self.camG or {}
   self.camG = g
   for i = 1, 7 do g[i] = c[i] end
-  c = Cam.safeEye(self.park, g)
+  self.safeMemo = self.safeMemo or {}
+  c = Cam.safeEye(self.park, g, self.safeMemo)
   self.cam = c
   self.far = c[3] > FAR_Z
   bc3d.camera(c[1], c[2], c[3], c[4], c[5], c[6], c[7])
@@ -127,7 +128,13 @@ end
 -- every 3 frames, so then the cache is refreshed at that rate; otherwise at least every 30 frames.
 -- (0.3 px: at 1 px a slow push-in or pan held the park still for a few frames, then jumped it a
 -- whole pixel under the smoothly moving players: the picture visibly stepped)
+-- A slow zoom on a long lens (the pitch cam's push-in: eye and target held, under CACHE_TELE_FOV
+-- deg, under CACHE_TELE_MV px a frame) may drift CACHE_TELE_PX before a re-render, and then the
+-- rest of the frame (players, ball, overlays: R:project) is drawn from the cached render's camera
+-- too, so the whole picture holds and steps together (under a px a step) instead of the park
+-- stepping under the players. (It re-rendered every other frame of the push.)
 local CACHE_PX <const>, CACHE_MAX_AGE <const>, CACHE_AGE_EXCITED <const> = 0.3, 30, 3
+local CACHE_TELE_FOV <const>, CACHE_TELE_PX <const>, CACHE_TELE_MV <const> = 8, 0.55, 0.25
 function Live:background(ox, oy, crowd)
   self.ox, self.oy = ox or 0, oy or 0
   crowd = crowd or 0.3
@@ -140,6 +147,7 @@ function Live:background(ox, oy, crowd)
     -- an excited crowd bobs every 3 frames: re-render at that rate (far shots: crowd is specks)
     local maxAge = (crowd > 0.45 and not self.far) and CACHE_AGE_EXCITED or CACHE_MAX_AGE
     local same = k ~= nil and self.pkAge < maxAge
+    local tele = false
     if same then
       -- how far would the picture move? eye/target drift as an angle at the target distance,
       -- plus the zoom change, in screen px; reuse the last render below CACHE_PX
@@ -149,10 +157,19 @@ function Live:background(ox, oy, crowd)
       local e = math.abs(c[1] - k[1]) + math.abs(c[2] - k[2]) + math.abs(c[3] - k[3])
       local t = math.abs(c[4] - k[4]) + math.abs(c[5] - k[5]) + math.abs(c[6] - k[6])
       local px = (e + t) / dist * (self.scale or 300) + math.abs(c[7] - k[7]) * 200 / math.max(c[7], 1)
-      if px > CACHE_PX then same = false end
+      -- (the long lens's slow zoom: see above)
+      local lz = self.lastZoom
+      tele = e + t == 0 and c[7] < CACHE_TELE_FOV and lz ~= nil and math.abs(c[7] - lz) * 200 / c[7] <= CACHE_TELE_MV
+      if px > (tele and CACHE_TELE_PX or CACHE_PX) then same = false end
     end
+    self.lastZoom = c[7]
     if same and bc3d.restore() then
       self.bgCam = k   -- (the camera the park picture on screen was rendered from)
+      if tele and c[7] ~= k[7] then
+        self.cam = k
+        bc3d.camera(k[1], k[2], k[3], k[4], k[5], k[6], k[7])
+        self.scale = bc3d.scale()
+      end
       self.pkAge = self.pkAge + 1
       self.pkHits = (self.pkHits or 0) + 1
       renderCost(0)

@@ -380,9 +380,26 @@ function Cam.standZ(park, x, y)
   local l = g.grid[cellKey(math.floor(x / CELL), math.floor(y / CELL))]
   if not l then return nil end
   local best
+  local polys = g.polys
   for k = 1, #l do
-    local z = surfaceZ(g.polys[l[k]], x, y)
-    if z and (not best or z > best) then best = z end
+    local p = polys[l[k]]
+    -- (its footprint's box first: most of a cell's polygons are nowhere near the point)
+    local bx0 = p.bx0
+    if not bx0 then
+      local xs, ys = p.xs, p.ys
+      local a, b, c, d = xs[1], xs[1], ys[1], ys[1]
+      for i = 2, #xs do
+        local px, py = xs[i], ys[i]
+        if px < a then a = px elseif px > b then b = px end
+        if py < c then c = py elseif py > d then d = py end
+      end
+      p.bx0, p.bx1, p.by0, p.by1 = a, b, c, d
+      bx0 = a
+    end
+    if x >= bx0 and x <= p.bx1 and y >= p.by0 and y <= p.by1 then
+      local z = surfaceZ(p, x, y)
+      if z and (not best or z > best) then best = z end
+    end
   end
   return best
 end
@@ -405,19 +422,17 @@ function Cam.inField(park, x, y, margin)
   return r < ft - margin
 end
 
---- the guard: returns c ({ ex, ey, ez, tx, ty, tz, fov }), adjusted in place if the eye was in
---- the stands
-function Cam.safeEye(park, c)
-  local g = guards[park and park.id or "park-farm"]
-  if not g then return c end
+-- the guard's work: adjusts c in place; → true if the result depends on the target (the
+-- low eye pulled in toward it), not on the eye alone
+local function guardEye(park, c)
   local x, y, z = c[1], c[2], c[3]
-  if Cam.inField(park, x, y, 8) then return c end
+  if Cam.inField(park, x, y, 8) then return false end
   local surf = Cam.standZ(park, x, y)
   -- over a stand and clear of it: fine (the high-home and center-field cameras live there)
-  if surf and z >= surf + 10 then return c end
+  if surf and z >= surf + 10 then return false end
   -- open ground off the field (no seats over or under it): only a ground-level eye gets
   -- pulled in (it would be at the foot of a wall); a raised one is fine
-  if not surf and z >= 26 then return c end
+  if not surf and z >= 26 then return false end
   if z < 45 then
     -- low: pull in along the ground toward the target until on the field
     local tx, ty = c[4], c[5]
@@ -429,9 +444,30 @@ function Cam.safeEye(park, c)
       if Cam.inField(park, tx + (x - tx) * m, ty + (y - ty) * m, 8) then lo = m else hi = m end
     end
     c[1], c[2] = tx + (x - tx) * lo, ty + (y - ty) * lo
+    return true
   elseif surf and z < surf + 10 then
     c[3] = surf + 10
   end
+  return false
+end
+
+--- the guard: returns c ({ ex, ey, ez, tx, ty, tz, fov }), adjusted in place if the eye was in
+--- the stands. memo (optional, a table owned by the caller): the last call's in and out, so the
+--- same eye as last time (and the same target, when the answer depends on it) costs a compare,
+--- not the field / stand tests and the bisection (twice a frame: the wanted and the smoothed camera).
+function Cam.safeEye(park, c, memo)
+  local g = guards[park and park.id or "park-farm"]
+  if not g then return c end
+  if not memo then guardEye(park, c) return c end
+  local x, y, z = c[1], c[2], c[3]
+  if memo.park == park and memo.g == g and memo.done == g.done and memo[1] == x and memo[2] == y and memo[3] == z
+    and (not memo.usesT or (memo[4] == c[4] and memo[5] == c[5])) then
+    c[1], c[2], c[3] = memo[6], memo[7], memo[8]
+    return c
+  end
+  memo.park, memo.g, memo.done, memo[1], memo[2], memo[3], memo[4], memo[5] = park, g, g.done, x, y, z, c[4], c[5]
+  memo.usesT = guardEye(park, c)
+  memo[6], memo[7], memo[8] = c[1], c[2], c[3]
   return c
 end
 
