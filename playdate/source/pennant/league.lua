@@ -194,8 +194,8 @@ function PL.view(p, abbr, norm)
     v.pow = clamp(r.pow + b - nb + mp, 15, 85)
     v.eye = clamp(r.eye + b - nb + me, 15, 85)
     v.spd = clamp(r.spd + b * 0.5 + ms, 15, 85)
-    v.fld = clamp(r.fld + b * 0.5, 15, 85)
-    v.arm = r.arm
+    v.fld = clamp(r.fld + b * 0.5 + (M and M.fld or 0), 15, 85)
+    v.arm = r.arm + (M and M.arm or 0)
   end
   return v
 end

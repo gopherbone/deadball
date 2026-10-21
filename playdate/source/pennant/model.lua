@@ -8,7 +8,7 @@
 --   cond 1..5 (Power Pro arrows: 1 = worst), mood -2..2, fat 0..100, inj = { k = "hamstring", d = days } | nil,
 --   team (club abbr), lvl ("ML" | "F" farm), plan = { f = focus, i = intensity 0..3 },
 --   st (season stats), car (career totals), wk (last week's ratings), s0 (season-start ratings),
---   yrs (pro seasons), mlYrs, rk (rookie this season)
+--   yrs (pro seasons), mlYrs, rk (rookie this season), tr (a legacy trait: pennant/legacy.lua)
 
 PM = PM or {}
 
@@ -193,6 +193,7 @@ function PM.pack(p)
     packStats(p.car and p.car.b, PM.BAT_STATS), packStats(p.car and p.car.p, PM.PIT_STATS),
     p.wk and packR(p.wk) or 0, p.s0 and packR(p.s0) or 0, p.yrs or 0, p.mlYrs or 0, p.rk and 1 or 0,
     p.pitchDev or "", p.hand or "", p.awards or "", p.late or 0, p.road or 0, p.rp or 0, p.sat or 0, packWkx(p.wkx),
+    p.tr or "",
   }
 end
 
@@ -210,6 +211,7 @@ function PM.unpack(a)
     yrs = a[32] or 0, mlYrs = a[33] or 0, rk = a[34] == 1, pitchDev = (a[35] or "") ~= "" and a[35] or nil,
     awards = (a[37] or "") ~= "" and a[37] or nil, late = a[38] or 0, road = a[39] or 0,
     rp = type(a[40]) == "table" and a[40] or nil, sat = a[41] or 0, wkx = unpackWkx(a[42]),
+    tr = (a[43] or "") ~= "" and a[43] or nil,
   }
   return p
 end

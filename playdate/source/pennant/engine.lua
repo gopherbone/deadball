@@ -36,6 +36,7 @@ local function form(p)
   return b
 end
 
+local CLUTCH <const> = { "CLUTCH" }
 function PEng.player(p, norm, slim)
   local r = p.r
   local b = form(p)
@@ -46,6 +47,8 @@ function PEng.player(p, norm, slim)
   local M = PEng.modFor and PEng.modFor(p)
   local t = { id = pid(p.id), bats = p.bats, throws = p.throws, pos = p.pos, mood = (p.mood or 0) * 2 }
   if not slim then t.name, t.face, t.traits = PM.name(p), "face:" .. p.face, {} end
+  -- (the engine's own clutch trait, pennant/legacy.lua's CLUTCH)
+  if p.tr == "CLUTCH" then t.traits = CLUTCH end
   if p.pos == "P" or not slim then t.recentPitches = p.rp or { 0, 0, 0, 0, 0 } end
   if p.inj then t.injury = { daysLeft = p.inj.d } end
   if p.pos == "P" then
@@ -68,8 +71,10 @@ function PEng.player(p, norm, slim)
     if M then mc, mp, me, ms = M.con, M.pow, M.eye, M.spd end
     t.batting = { contact = R(r.con + mc, nb), power = R(r.pow + mp, nb), eye = R(r.eye + me, nb), gap = R((r.con + mc + r.pow + mp) / 2, nb),
       lift = clamp(floor(48 + (r.pow - 50) * 0.4), 25, 75), pull = clamp(floor(50 + (r.pow - 50) * 0.3), 30, 70), speed = R(r.spd + ms), baserunning = R((r.spd + ms) * 0.6 + 20), vsL = 0 }
-    t.fielding = { range = R(r.fld * 0.8 + r.spd * 0.2), hands = R(r.fld), arm = R(r.arm), accuracy = R((r.fld + r.arm) / 2),
-      reaction = R(r.fld), framing = p.pos == "C" and R(r.fld) or 50, positions = pos }
+    -- (a legacy trait's arm / glove: pennant/legacy.lua)
+    local ma, mf = M and M.arm or 0, M and M.fld or 0
+    t.fielding = { range = R((r.fld + mf) * 0.8 + r.spd * 0.2), hands = R(r.fld + mf), arm = R(r.arm + ma), accuracy = R((r.fld + mf + r.arm + ma) / 2),
+      reaction = R(r.fld + mf), framing = p.pos == "C" and R(r.fld + mf) or 50, positions = pos }
   end
   return t
 end

@@ -211,7 +211,8 @@ function PSave.begin(L, slot)
       else
         local T = L.teams[L.user]
         idx[slot] = { v = PSave.VERSION, team = L.user, year = L.year, date = PL.date(L, math.min(L.day, #L.sched)), w = T.w, l = T.l, rank = PL.rank(L, L.user),
-          phase = L.phase, gen = gen, at = playdate.getSecondsSinceEpoch(), season = L.season, titles = PUI.titles and PUI.titles() or nil }
+          phase = L.phase, gen = gen, at = playdate.getSecondsSinceEpoch(), season = L.season, titles = PUI.titles and PUI.titles() or nil,
+          run = L.run and L.run.n or nil, ended = (L.run and L.run.ended) or nil }
         writeIndex(idx)
         job.done = true
         return true
@@ -265,6 +266,8 @@ function PSave.load(slot)
   L.slot = slot
   -- the week turn's club state (pennant/week.lua): defaults for saves from before it
   if PWeek then PWeek.ensure(L) end
+  -- runs and the legacy layer (pennant/legacy.lua): a career from before runs becomes one
+  if PLegacy then PLegacy.ensure(L) end
   return L
 end
 

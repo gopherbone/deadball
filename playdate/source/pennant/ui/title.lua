@@ -42,7 +42,9 @@ function Title:layout(L)
       PUI.logo(e.team, x + 60, y + 9, 16)
       Text.draw(PUI.teamName(e.team), x + 82, y + 3, UI.fonts.bold)
       local phase = e.phase == "season" and (e.w .. "-" .. e.l .. ", " .. PUI.ord(e.rank or 1)) or (e.phase == "playoffs" and "Playoffs" or "Offseason")
-      Text.draw(string.format("%d \u{2022} %s \u{2022} %s \u{2022} season %d", e.year, e.date or "", phase, e.season or 1), x + 82, y + 18, UI.fonts.body)
+      if e.ended then phase = "RUN OVER: a new run" end
+      local runS = (e.run and e.run > 0) and ("run " .. e.run) or ("season " .. (e.season or 1))
+      Text.draw(string.format("%d \u{2022} %s \u{2022} %s \u{2022} %s", e.year, e.date or "", phase, runS), x + 82, y + 18, UI.fonts.body)
       -- the slot's pennants
       local px = x + w - 8
       for i = 1, math.min(4, #(e.titles or {})) do
@@ -62,15 +64,17 @@ function Title:layout(L)
     y = y + h + 6
   end
   local bx = 40
-  L:button("New career", bx, y + 2, 100, 20, function()
+  L:button("New career", bx, y + 2, 84, 20, function()
     local free = nil
     for k = 1, PSave.SLOTS do if not self.idx[k] then free = k break end end
     if free then self:newGame(free) else
       Dialog.alert("All slots in use", "Delete a save first (or start over in a slot with Delete).")
     end
   end, { id = "new", hint = "Generate a fresh league and pick a club" })
-  L:button("Delete...", bx + 110, y + 2, 80, 20, function() self:deleteMenu() end, { id = "del", hint = "Erase a save slot" })
-  L:button(Pennant.opts.fromMode and "Main menu" or (Pennant.opts.fromBoot and "Go online" or "Desktop"), bx + 200, y + 2, 80, 20, function() Pennant.quit() end, { id = "quit", hint = "Leave Pennant" })
+  L:button("Delete...", bx + 90, y + 2, 64, 20, function() self:deleteMenu() end, { id = "del", hint = "Erase a save slot" })
+  -- the legacy layer (pennant/legacy.lua): every run's alumni, every slot's
+  L:button("Hall of Fame", bx + 160, y + 2, 84, 20, function() PennantUI.HallOfFame.open({}) end, { id = "hof", hint = "The All-Time Lineup and the alumni hall (shared by every slot)" })
+  L:button(Pennant.opts.fromMode and "Main menu" or (Pennant.opts.fromBoot and "Go online" or "Desktop"), bx + 250, y + 2, 70, 20, function() Pennant.quit() end, { id = "quit", hint = "Leave Pennant" })
   L:mark(PUI.VIEW_H - 2)
 end
 
@@ -92,6 +96,12 @@ function Title:continue(k)
   PUI.busy("Opening the ledgers", function() L, err = PSave.load(k) end)
   playdate.frameTimer.performAfterDelay(4, function()
     if not L then Dialog.alert("Couldn't load", tostring(err)) return end
+    -- (a run that's over waits in its slot for a new one)
+    if L.run and L.run.ended then
+      Toast.show("That run is over: a new run starts in slot " .. k .. ".", nil)
+      PennantUI.NewGame.open({ slot = k })
+      return
+    end
     Sfx.chime()
     Pennant.start(L)
   end)
@@ -239,16 +249,32 @@ function NewGame:initialFocus() return 1 end
 function NewGame:go()
   if not self.pick then Sfx.error() Toast.show("Pick a club first.", "bad") return end
   local L = self.L
-  L.user = self.pick
-  L.games = LENGTHS[self.lenIdx][1]
-  L.settings.batScheme = self.scheme or "arcade"
-  L.settings.pitchScheme = self.scheme or "arcade"
-  PGen.schedule(L, PRng.new(self.seed + 5), L.games)
-  PL.init(L)
-  L.slot = self.slot
-  PUI.busy("Printing the schedule", function() PSave.saveNow(L, self.slot) end)
-  playdate.frameTimer.performAfterDelay(4, function()
-    Sfx.coin()
-    Pennant.start(L)
-  end)
+  if self.inited and L.user ~= self.pick then
+    -- (a second go after backing out of the legacy pick: the league is set up again)
+    self.inited = false
+  end
+  if not self.inited then
+    L.user = self.pick
+    L.games = LENGTHS[self.lenIdx][1]
+    L.settings.batScheme = self.scheme or "arcade"
+    L.settings.pitchScheme = self.scheme or "arcade"
+    PGen.schedule(L, PRng.new(self.seed + 5), L.games)
+    PL.init(L)
+    self.inited = true
+  end
+  -- the run (pennant/legacy.lua): two legacies and the deck, once the hall has them
+  local function start(choice)
+    PLegacy.beginRun(L, choice)
+    L.slot = self.slot
+    PUI.busy("Printing the schedule", function() PSave.saveNow(L, self.slot) end)
+    playdate.frameTimer.performAfterDelay(4, function()
+      Sfx.coin()
+      Pennant.start(L)
+    end)
+  end
+  if PLegacy.unlocked() then
+    PennantUI.LegacyPick.open({ L = L, onDone = start })
+  else
+    start({})
+  end
 end

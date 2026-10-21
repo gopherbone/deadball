@@ -75,6 +75,33 @@ end
 
 -- Pennant '96 (offline season mode) ----------------------------------------------------------
 -- Uses save slot 3 and erases it at the end. Run alone with a second line "pennant" in tour.flag.
+
+--- The legacy layer's fixture hall (pennant/legacy.lua): in memory only (PLegacy.mem), so the
+--- tour never touches the real alumni file. Nine alumni from three runs, two with legacies.
+local function legacyFixture()
+  local A = PLegacy.normalize({ v = PLegacy.VERSION })
+  A.unlocked, A.runs, A.banked, A.seq = true, 3, 9, 9
+  local function al(id, fn, ln, pos, role, grade, score, line, note, sparks, run, fin, par, face)
+    A.alumni[#A.alumni + 1] = { id = id, fn = fn, ln = ln, pos = pos, role = role, grade = grade, score = score, line = line, note = note,
+      sparks = sparks, run = run, runKey = "rT" .. run, year = 1995 + run, club = run == 3 and "HCL" or "ELC", fin = fin, par = par, face = face, r = {} }
+  end
+  local B = "\u{2022}"
+  al(1, "Jack", "Paige", "SS", nil, "A", 668, ".301 " .. B .. " 31 HR", "SERIES MVP", { { k = "stat", a = "pow", s = 3 }, { k = "trait", t = "CLUTCH", s = 2 }, { k = "pennant", s = 1 } },
+    3, "PENNANT", { { n = "R. Kessler", aid = 5, sp = { { k = "stat", a = "con", s = 2 } } }, { n = "D. Okafor", aid = 6, sp = { { k = "stat", a = "spd", s = 1 } } } }, 112)
+  al(2, "Tom", "Morrow", "P", "SP", "S", 702, "18-6 " .. B .. " 2.71", "PITCHER OF YR", { { k = "stat", a = "ctl", s = 3 }, { k = "trait", t = "ACE", s = 3 }, { k = "pennant", s = 1 } },
+    3, "PENNANT", { { n = "L. Ruiz", aid = 7, sp = { { k = "stat", a = "velo", s = 2 } } }, { n = "M. Holt", aid = 8, sp = { { k = "stat", a = "arm", s = 2 } } } }, 240)
+  al(3, "Dee", "Okafor", "C", nil, "B", 604, ".274 " .. B .. " 14 HR", "41% CS", { { k = "stat", a = "arm", s = 2 }, { k = "trait", t = "CANNON", s = 2 } }, 2, "PLAYOFFS", {}, 318)
+  al(4, "Rob", "Kessler", "CF", nil, "B", 611, ".288 " .. B .. " 38 SB", "SB CROWN", { { k = "stat", a = "spd", s = 2 }, { k = "trait", t = "THIEF", s = 2 } }, 2, "PLAYOFFS", {}, 455)
+  al(5, "Luis", "Ruiz", "P", "RP", "B", 596, "34 SV " .. B .. " 1.98", "SAVES LEADER", { { k = "stat", a = "velo", s = 2 }, { k = "trait", t = "CLOSER", s = 2 } }, 2, "PLAYOFFS", {}, 502)
+  al(6, "Mo", "Holt", "1B", nil, "C", 552, ".262 " .. B .. " 26 HR", "9 YRS IN", { { k = "stat", a = "con", s = 1 } }, 1, "5TH", {}, 610)
+  al(7, "Ed", "Vance", "P", "SP", "C", 548, "11-9 " .. B .. " 3.88", "5TH", { { k = "stat", a = "sta", s = 1 } }, 1, "5TH", {}, 733)
+  al(8, "Sal", "Delgado", "LF", nil, "D", 512, ".255 " .. B .. " 12 HR", "6TH", { { k = "stat", a = "eye", s = 2 } }, 1, "6TH", {}, 801)
+  al(9, "Gus", "Pickles", "3B", nil, "LEGEND", 806, ".333 " .. B .. " 40 HR", "MVP", { { k = "stat", a = "pow", s = 3 }, { k = "trait", t = "SLUGGER", s = 3 }, { k = "pennant", s = 1 } },
+    3, "PENNANT", { { n = "M. Holt", aid = 6, sp = { { k = "stat", a = "con", s = 1 } } } }, 922)
+  A.hof.slots = PLegacy.hofSuggest(A)
+  return A
+end
+
 local function buildPennant()
   local function T() return App.top() end
   local function live() return PennantLive and PennantLive.cur end
@@ -83,7 +110,7 @@ local function buildPennant()
   S(16, function() App.push(Boot.ModeSelect) end, "p00_mode_select")
   S(10, function() press("right") end, "p00b_mode_select_offline")
   S(4, function() App.pop() end, nil)
-  S(10, function() if PSave then PSave.delete(3) end Pennant.open() end, nil)
+  S(10, function() if PSave then PSave.delete(3) end PLegacy.mem = PLegacy.normalize({ v = PLegacy.VERSION }) Pennant.open() end, nil)
   S(20, function() end, "p01_title")
   U(function() local t = T() return t and t.generating == false end, 600, function() PennantUI.NewGame.open({ slot = 3 }) end, nil, 4)
   S(8, function() focusId("club:HCL") press("A") end, "p02_new_club")
@@ -94,8 +121,9 @@ local function buildPennant()
   end
   local function home() calm() Pennant.toHub() if Pennant.hub then Pennant.hub:render(true) end end
   local function isA(t, S2) return t and getmetatable(t) == S2 end
-  -- (the season opens on April's goal pick, over the Week screen)
-  U(function() return Pennant.hub ~= nil and isA(T(), PennantUI.Goals) end, 300, function() T():go() end, "p03a_goal_pick", 10)
+  -- (run 1: the alumni hall's card, then the season opens on April's goal pick, over the Week screen)
+  U(function() return isA(T(), PennantUI.Inspire) end, 300, function() T():go() end, "p02b_alumni_intro", 10)
+  U(function() return Pennant.hub ~= nil and isA(T(), PennantUI.Goals) end, 300, function() local t = T() if isA(t, PennantUI.Inspire) then t.t = 99 t:AButtonDown() end end, "p03a_goal_pick", 10)
   S(30, function() local t = T() if isA(t, PennantUI.Goals) then t.t = 99 press("down") t:AButtonDown() end end, "p03_week")
   S(12, function() press("right") end, "p03b_week_arms")
   S(12, function() press("up") end, "p03c_week_arms_hard")
@@ -175,8 +203,43 @@ local function buildPennant()
   S(16, function() local t = T() if t and t.mode then t.t = 99 t:AButtonDown() end end, "p46b_goal_pick")
   S(8, function() local t = T() if t and t.mode then t.t = 99 press("down") t:AButtonDown() end end, nil)
   S(20, function() home() PennantUI.Goals.open({}) end, "p47_goals")
+  -- the legacy layer (pennant/legacy.lua, ui/legacy.lua) on the fixture hall: a new run's legacy
+  -- pick and deck, Opening Day, the deck at the programs, an inspiration, the Office's page, the
+  -- Hall of Fame (the season end's screens come after awards night)
+  S(20, function() home() PLegacy.mem = legacyFixture() Tour.pn.choice = nil
+    PennantUI.LegacyPick.open({ L = Pennant.L, onDone = function(ch) Tour.pn.choice = ch end }) end, "p50_legacy_pick")
+  S(16, function() press("left") end, "p50b_legacy_pick_slot")
+  S(16, function() press("right") press("A") end, "p51_deck_pick")
+  S(10, function() activate("go") end, nil)
+  S(70, function() home() local L = Pennant.L
+    PLegacy.beginRun(L, Tour.pn.choice or { leg = { PLegacy.mem.alumni[1], PLegacy.mem.alumni[2] }, deck = {} })
+    PennantUI.Inspire.open({ mode = "opening" }) end, "p52_opening_day")
+  S(20, function() local t = T() if isA(t, PennantUI.Inspire) then t.skip = true end end, "p52b_opening_day_done")
+  S(20, function() local t = T() if isA(t, PennantUI.Inspire) then t.t = 99 t:AButtonDown() end
+    local L = Pennant.L local R = L.run
+    -- (bonds up, so a Rally Week shows; the program with the deck selected)
+    for _, d in ipairs(R.deck) do R.bond[tostring(d.id)] = 86 end
+    local c = L.club
+    for i, k in ipairs(PWeek.PROGS) do if #PLegacy.present(L, k) > 0 then c.prog = k end end
+    for i, k in ipairs(PWeek.PROGS) do for _, e in ipairs(PLegacy.present(L, k)) do if e.rally then c.prog = k end end end
+    home() if Pennant.hub then Pennant.hub.sel = 1 for i, k in ipairs(PWeek.PROGS) do if k == c.prog then Pennant.hub.sel = i end end Pennant.hub.base = nil end end, "p53_week_deck")
+  S(8, function() PLegacy.flash = 1 - (PLegacy.flash or 0) if Pennant.hub then Pennant.hub.frameDirty = true Pennant.hub.t = 1 end end, "p53b_week_deck_flash")
+  S(36, function() local L = Pennant.L PLegacy.inspire(L, 1) PennantUI.Inspire.open({ mode = "insp", i = 1 }) end, "p54_inspiration_rolling")
+  S(90, function() end, "p54b_inspiration")
+  S(20, function() local t = T() if isA(t, PennantUI.Inspire) then t.t = 99 t:AButtonDown() end home() PennantUI.LegacyInfo.open({}) end, "p55_legacy_office")
+  S(20, function() home() PennantUI.HallOfFame.open({}) end, "p56_hall_of_fame")
+  S(20, function() home() PennantUI.AlumniHall.open({}) end, "p57_alumni_hall")
+  S(6, function() home() end, nil)
   -- (a device perf run of the week screens alone: perftour.flag "pennantweek")
-  if Tour.short then S(20, function() home() end, "p48_week_again") S(10, function() Pennant.quit() PSave.delete(3) end, nil) return end
+  if Tour.short then
+    -- (the season end's reveal, on this season so far: the device perf run only, the full tour
+    -- shows the real one after awards night)
+    S(40, function() home() PennantUI.RunEnd.open({}) end, "p60_run_end_grades")
+    S(110, function() end, "p61_run_end_sparks")
+    S(20, function() press("A") press("right") press("A") end, "p62_banking")
+    S(10, function() local t = T() if isA(t, PennantUI.RunEnd) then App.pop() end home() end, nil)
+  end
+  if Tour.short then S(20, function() home() end, "p48_week_again") S(10, function() Pennant.quit() PSave.delete(3) PLegacy.mem = nil end, nil) return end
   S(20, function() home() PennantUI.WeekReport.open({ rep = Pennant.L.club.lastRep, review = true }) end, nil)
   S(10, function() home() end, nil)
   S(20, function() PennantUI.League.open({ tab = "stand" }) end, "p17_standings")
@@ -346,12 +409,27 @@ local function buildPennant()
   U(function() local t = T() if t and t.state == "done" and t.caughtUp then t.shown = #PWire.lines end return t and t.state == "done" end, 30 * 400, function() Pennant.toHub() PennantUI.Advance.open({ untilPhase = "awards", noStops = true }) end, "p31_season_done", 4)
   S(10, function() local t = T() if t.items then t.todoSel = #t:items() end press("A") end, nil)
   S(20, function() for _ = 1, 4 do local t = T() if t ~= Pennant.hub and t and (t.rows or t.map2 or t.lm) and t.AButtonDown then t:AButtonDown() end end
-    local c = Pennant.L.club c.rewards, c.monthNote, c.goalOffer, c.wk = nil, nil, nil, nil Pennant.toHub() Pennant.hub:render(true) end, "p32_hub_awards")
+    local c = Pennant.L.club c.rewards, c.monthNote, c.goalOffer, c.wk = nil, nil, nil, nil
+    local R = Pennant.L.run if R then for _, r in pairs(R.insp or {}) do r.unseen = nil end R.showOD = nil end
+    Pennant.toHub() Pennant.hub:render(true) end, "p32_hub_awards")
   S(30, function() PennantUI.Awards.open({}) end, "p33_awards")
-  U(function() local t = T() return t and getmetatable(t) == PennantUI.Offseason end, 900, function() activate("go") end, "p34_offseason", 10)
-  S(20, function() local c = Pennant.L.club c.rewards, c.monthNote, c.goalOffer = nil, nil, nil activate("go") end, "p35_new_season")
+  -- (the tour's club takes the pennant, so the whole end shows: 3 keeps, the career prompt)
+  S(30, function() local L = Pennant.L L.champ = L.user activate("go") end, "p60_run_end_grades")
+  U(function() local t = T() return isA(t, PennantUI.RunEnd) and t.phase == "bank" end, 400, nil, "p61_run_end_sparks", 6)
+  S(16, function() press("A") press("right") press("A") end, "p62_banking")
+  S(24, function() press("B") press("A") end, "p63_hall_of_fame_update")
+  S(24, function() local t = T() if isA(t, PennantUI.HallOfFame) then t:goBack() end end, "p64_continue_career")
+  S(10, function() press("right") end, "p64b_end_run")
+  U(function() local t = T() return t and getmetatable(t) == PennantUI.Offseason end, 900, function() press("left") local t = T() if isA(t, PennantUI.RunChoice) then t.t = 99 t:AButtonDown() end end, "p34_offseason", 10)
+  -- (the endless career's next season: the legacy at half on Opening Day)
+  S(40, function() local c = Pennant.L.club c.rewards, c.monthNote, c.goalOffer = nil, nil, nil activate("go") end, "p65_career_opening_day")
+  S(20, function() local t = T() if isA(t, PennantUI.Inspire) then t.t = 99 t.skip = true t:AButtonDown() t:AButtonDown() end calm() Pennant.toHub() end, "p35_new_season")
   S(20, function() PennantUI.League.open({ tab = "hist" }) end, "p36_history")
-  S(10, function() Pennant.toHub() Pennant.quit() PSave.delete(3) end, nil)
+  -- ending the run: the slot waits for a new one, the new run opens on the club pick, then the legacy
+  S(30, function() Pennant.toHub() PennantUI.endRun(Pennant.L) end, nil)
+  U(function() local t = T() return t and t.generating == false end, 600, nil, "p66_new_run", 4)
+  S(16, function() focusId("club:HCL") press("A") activate("go") end, "p67_new_run_legacy")
+  S(10, function() Pennant.quit() PSave.delete(3) PLegacy.mem = nil end, nil)
 end
 
 local function build()

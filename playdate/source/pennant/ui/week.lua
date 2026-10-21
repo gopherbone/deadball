@@ -33,8 +33,10 @@ function Week.open(args) local s = setmetatable({}, Week) App.push(s, args) retu
 local CX0 <const>, CW <const>, CG <const>, CY <const>, CH <const> = 103, 55, 4, 40, 107
 local SEL_REST <const> = 6
 
---- Future legacy hook: faces / marks in a program card's "with" slot (the icon box). nil = none.
-function PWeek.withSlot(L, prog) return nil end
+--- The legacy hook: faces / marks in a program card's "with" slot (the icon box). nil = none.
+--- (pennant/ui/legacy.lua draws the alumni deck there; PWeek.withKey is its part of the card key)
+PWeek.withSlot = PWeek.withSlot or function(L, prog) return nil end
+PWeek.withKey = PWeek.withKey or function(L, prog) return "" end
 
 function Week:enter()
   local c = PWeek.ensure(L_())
@@ -86,6 +88,14 @@ function Week:pending()
     PennantUI.weekEnd()
     return true
   end
+  -- the legacy (pennant/legacy.lua): run 1's alumni card, Opening Day's sparks, an inspiration
+  local R = L.run
+  if R and PennantUI.Inspire then
+    if R.intro then PennantUI.Inspire.open({ mode = "intro" }) return true end
+    if R.showOD and R.od then PennantUI.Inspire.open({ mode = "opening" }) return true end
+    local i = PLegacy.unseenInsp(L)
+    if i then PennantUI.Inspire.open({ mode = "insp", i = i }) return true end
+  end
   if c.rewards and #c.rewards > 0 then PennantUI.Goals.open({ reward = true }) return true end
   if c.monthNote then PennantUI.Goals.open({ note = true }) return true end
   if c.goalOffer then PennantUI.Goals.open({ pick = true }) return true end
@@ -114,6 +124,8 @@ function Week:rebuildInner()
   self.intImg = {}
   self.base = self:paintBase()
   self.frameDirty = true
+  -- a Rally Week ready: its card's alumni flash
+  self.rally = PLegacy and PLegacy.rallyAny(L) or false
 end
 
 function Week:preview(prog, int)
@@ -408,7 +420,7 @@ end
 
 --- One program card (cached by prog / intensity / selected).
 function Week:card(prog, int, on)
-  local key = prog .. int .. (on and "s" or "")
+  local key = prog .. int .. (on and "s" or "") .. PWeek.withKey(L_(), prog)
   local img = self.cards[key]
   if img then return img end
   local L = L_()
@@ -493,6 +505,12 @@ function Week:detailImg(prog, int)
   if prog ~= "rest" then
     local pv = self:preview(prog, int)
     s = s .. string.format("  +%.1f a player", pv.per or 0)
+    -- the alumni here this week (pennant/legacy.lua)
+    local mm = PWeek.mentorMods(L, prog)
+    if mm then
+      local x = PWeek.gainMult(mm)
+      s = (mm[2] and "\u{2605} RALLY WEEK" or mm[1].label) .. string.format(" x%.2f: ", x) .. s
+    end
   end
   s = Text.ellipsize(s, F().body, 292)
   Text.draw(s, 0, Text.boxY(F().body, 0, 14, s), F().body)
@@ -591,6 +609,10 @@ function Week:update(covered)
   self.frame:draw(0, 0)
   if covered then return end
   self.t = self.t + 1
+  if self.rally and self.t % 15 == 0 and PLegacy then
+    PLegacy.flash = 1 - (PLegacy.flash or 0)
+    self.frameDirty = true
+  end
   if self.check and self.t > 1 then
     self.check = false
     if self:pending() then return end
@@ -601,7 +623,7 @@ function Week:update(covered)
     for int = 1, 3 do
       for i, k in ipairs(PWeek.PROGS) do
         for _, on in ipairs({ false, true }) do
-          if not self.cards[k .. int .. (on and "s" or "")] then self:card(k, int, on) return end
+          if not self.cards[k .. int .. (on and "s" or "") .. PWeek.withKey(L, k)] then self:card(k, int, on) return end
         end
       end
     end
@@ -727,6 +749,8 @@ function Office:layout(Lb)
     { "Last week's report", "The last week, unit by unit", function()
       if c.lastRep then PennantUI.WeekReport.open({ rep = c.lastRep, review = true }) else Toast.show("No week played yet.", nil) end end },
     { "Road map", "The season's road trips on the globe", function() PennantUI.RoadMap.open({}) end },
+    { "Legacy & alumni", "This run's legacies, the season's cap, the deck's bonds", function() PennantUI.LegacyInfo.open({}) end },
+    { "Hall of Fame", "The All-Time Lineup from every run's alumni", function() PennantUI.HallOfFame.open({}) end },
     { "Options", "Controls, travel animation, call-ups, save", function() PennantUI.Hub.optionsMenu() end },
     { "Save & quit", "Leave Pennant (it saves every day anyway)", function() Pennant.hub:goBack() end },
   }
@@ -740,7 +764,7 @@ function Office:layout(Lb)
   end
   local own = 0
   for _ in pairs(c.own) do own = own + 1 end
-  local yy = y + 6 * 30
+  local yy = y + ((#items + 1) // 2) * 30
   if own > 0 then
     Lb:button("Back to the program (" .. own .. ")", 6, yy, 186, 18, function() PWeek.clearOwn(L) PWeek.applyPlans(L) Toast.show("Everyone is on the club program again.", nil) self:render(true) end,
       { id = "clearown", hint = own .. " players have their own training plan. A: put them back on the program" })

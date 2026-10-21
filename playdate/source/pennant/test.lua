@@ -181,6 +181,12 @@ if playdate.file.exists("pennant-sim.flag") then
     local n, seed = line:match("^programs%s*(%d*)%s*(%d*)")
     PennantTest.progOpts = { games = tonumber(n), seed = tonumber(seed) }
     playdate.frameTimer.performAfterDelay(20, function() PennantTest.programs() end)
+  elseif line and line:match("^legacy") then
+    -- "legacy [runs] [seed] [heat] [games] [base]": a chain of runs, each banking alumni for the
+    -- next one's legacy and deck (pennant/testlegacy.lua)
+    local n, seed, heat, games, base = line:match("^legacy%s*(%d*)%s*(%d*)%s*(%d*)%s*(%d*)%s*(%a*)")
+    PennantTest.legOpts = { runs = tonumber(n), seed = tonumber(seed), heat = tonumber(heat), games = tonumber(games), base = base == "base" }
+    playdate.frameTimer.performAfterDelay(20, function() PennantTest.legacy() end)
   elseif line and line:match("^bench") then
     playdate.frameTimer.performAfterDelay(20, function() PennantTest.bench() end)
   elseif line and line:match("^bots") then
