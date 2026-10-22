@@ -6,7 +6,7 @@
   a program with a Rally Week ready, else the one the most deck alumni turned up at, else the
   next in the rotation; REST under 40 energy. "base": the same leagues with no legacy at all (the control).
   Prints per run: the record, the legacy and chemistry, the season's legacy points per rating
-  (Opening Day's in brackets, against the cap), the inspirations, the deck's weeks, the units vs
+  (Opening Day's in brackets, against the cap), the alumni visits, the deck's weeks, the units vs
   the AI, the graded candidates, the hall.
 ]]
 
@@ -113,7 +113,7 @@ function Leg:run(i, opt)
     local p = {}
     for _, a in ipairs(R.leg) do
       local sp = {}
-      for _, s in ipairs(a.sparks) do sp[#sp + 1] = G.sparkShort(s) .. (s.k == "trait" and G.STARS[s.s] or "") end
+      for _, s in ipairs(a.sparks) do sp[#sp + 1] = G.pointerShort(s) .. (s.k == "trait" and G.STARS[s.s] or "") end
       local gp = 0
       for _, x in ipairs(a.par or {}) do gp = gp + #(x.sp or {}) end
       p[#p + 1] = a.ln .. "(" .. a.grade .. ":" .. table.concat(sp, "/") .. ", +" .. gp .. " inherited)"
@@ -135,7 +135,7 @@ function Leg:run(i, opt)
   log("legacy run %d units lineup %.1f>%.1f>%.1f rot %.1f>%.1f>%.1f pen %.1f>%.1f>%.1f (AI at the end: lineup %.1f rot %.1f pen %.1f)", i,
     u00.lineup, u0.lineup, u1.lineup, u00.rot, u0.rot, u1.rot, u00.pen, u0.pen, u1.pen, ai.lineup, ai.rot, ai.pen)
   local cs = {}
-  for _, cd in ipairs(E.cands) do cs[#cs + 1] = string.format("%s %s %d %s", cd.ln, cd.grade, cd.score, G.sparkShort(cd.sparks[1])) end
+  for _, cd in ipairs(E.cands) do cs[#cs + 1] = string.format("%s %s %d %s", cd.ln, cd.grade, cd.score, G.pointerShort(cd.sparks[1])) end
   log("legacy run %d cands %s", i, table.concat(cs, ", "))
   local st = G.hofStats(A)
   log("legacy run %d hall %d alumni, banked %d, deck slots %d, FR %d (%s), unlocked %s", i, #A.alumni, A.banked, G.deckSlots(A), st.fr, st.grade, tostring(A.unlocked))

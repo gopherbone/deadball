@@ -307,7 +307,7 @@ function Ticket:update(covered)
   if self.bounce > 0 then self.bounce -= 1 end
   if self.nudge and self.nudge > 0 then self.nudge -= 1 end
   if self.holdT and not covered then
-    if playdate.buttonIsPressed(playdate.kButtonA) then
+    if App.isHeld("A") then
       self.holdT += 1
       if self.holdT >= HOLD_FRAMES then self.holdT = nil self:place() end
     else

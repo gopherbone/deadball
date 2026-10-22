@@ -1,29 +1,31 @@
---[[ Pennant's LEGACY layer (docs/PENNANT_ENGINE.md "Legacy"): runs, alumni, sparks, the deck,
+--[[ Pennant's LEGACY layer (docs/PENNANT_ENGINE.md "Legacy"): runs, alumni, pointers, the deck,
   the Hall of Fame, Pennant Heat. Pure rules (playdate APIs only for the alumni file).
 
   A RUN is one season (a pennant can turn it into an endless career). At its end the season's best
-  players are graded (an alumni score: ratings, awards, the postseason, traits) and get SPARKS (a
-  stat spark on one of their two best ratings, a trait spark, a PENNANT spark); the player banks 1 /
+  players are graded (an alumni score: ratings, awards, the postseason, traits) and get POINTERS (a
+  stat pointer on one of their two best ratings, a trait pointer, a PENNANT pointer); the player banks 1 /
   2 / 3 of them (any finish / the playoffs / the pennant) into the ALUMNI HALL, which lives in its
   own file (pennant-alumni.json) shared by every save slot. After a playoff season, a new run picks
-  two alumni as LEGACIES (their sparks fire on Opening Day and may fire again at two inspirations;
-  their own legacies' sparks fire at half) and a DECK of alumni who turn up at the weekly programs
+  two alumni as LEGACIES (their pointers pay off on Opening Day and may take again at two alumni visits;
+  their own legacies' pointers count at half) and a DECK of alumni who turn up at the weekly programs
   (bond, Rally Weeks). The Hall of Fame is an All-Time Lineup built from the Hall.
 
   L.run (saved with the league meta):
     key, seed, n          the run's id / dice seed / number
-    heat                  Pennant Heat (AI clubs + ratings in games; +5% ★★★ spark odds a level)
+    heat                  Pennant Heat (AI clubs + ratings in games; +5% ★★★ pointer odds a level)
     season0, endless      the run's first season; seasons continued past it (endless career)
     leg, chem, chemWhy    the two legacies (alumni copies), chemistry 0-100 and its sources
     deck, bond            deck entries { id, fn, ln, face, grade, score, spec, pos }; bond by id
     gains, gainSeason     legacy points this season by rating (cap G.CAP)
     od, showOD, intro     the last Opening Day's rolls; the reveal still to show; run 1's card
-    insp                  inspiration results by "i1"/"i2"
-    endc                  this season's end: candidates (graded, sparked), banked flag, keep slots
+    insp                  alumni visit results by "i1"/"i2"
+    endc                  this season's end: candidates (graded, given pointers), banked flag, keep slots
     banked                player id -> alum id (each player banked once; re-banking updates him)
     ended, old            the run is over (the slot waits for a new run); a save from before runs
-  All dice are seeded by the run's seed and the context (season, week, spark), so reloading a
+  All dice are seeded by the run's seed and the context (season, week, pointer), so reloading a
   save rerolls nothing.
+  (Pointers were called "sparks" once: the saved keys keep that name, an alum's `sparks`, a reveal
+  row's `spark`, and the dice context "spark", so old saves and alumni files read as they are.)
 ]]
 
 PLegacy = PLegacy or {}
@@ -35,16 +37,16 @@ G.FILE = "pennant-alumni"
 G.VERSION = 1
 G.MAX = 40                      -- alumni storage
 
--- Tuning (scratchpad research REPORT.md "Sparks / legacy", "Alumni deck"; tuned in the legacy
+-- Tuning (scratchpad research REPORT.md "Pointers / legacy", "Alumni deck"; tuned in the legacy
 -- chain self-test: pennant/test.lua "legacy")
-G.OD = { 1, 2, 4 }              -- Opening Day points per ★ / ★★ / ★★★ (a legacy's stat spark)
+G.OD = { 1, 2, 4 }              -- Opening Day points per ★ / ★★ / ★★★ (a legacy's stat pointer)
 G.OD_GP = { 0.5, 1, 2 }         -- their legacies' (half)
-G.PROC = { 0.60, 0.75, 0.90 }   -- inspiration: a stat spark fires (x (1 + chemistry / 100), cap 95%)
+G.PROC = { 0.60, 0.75, 0.90 }   -- alumni visit: a stat pointer takes (x (1 + chemistry / 100), cap 95%)
 G.GAIN = { { 1, 2 }, { 1, 3 }, { 2, 5 } }
-G.TPROC = { 0.15, 0.25, 0.40 }  -- a trait spark passes the trait to one more player
+G.TPROC = { 0.15, 0.25, 0.40 }  -- a trait pointer passes the trait to one more player
 G.GP_X = 0.5                    -- grandparents: half the odds
 G.CAP = 10                      -- legacy points per rating per season (overflow: facility xp)
-G.STACK = { 1, 0.75, 0.5 }      -- the same rating's sparks in one event
+G.STACK = { 1, 0.75, 0.5 }      -- the same rating's pointers in one event
 G.INSP_AT = { 9 / 26, 18 / 26 } -- inspirations (a 26-week season's weeks 9 and 18)
 G.DECK_SPEC, G.DECK_OTHER, G.DECK_ABSENT = 200, 60, 60
 G.MENTOR_X = 0.05               -- +5% gains per alum at the program
@@ -66,7 +68,7 @@ end
 function G.aPlus(grade) return (G.GRADE_RANK[grade] or 0) >= G.GRADE_RANK.A end
 
 -- Traits: small game-time nudges (PEng.modFor), earned by a season's numbers or passed on by a
--- trait spark. One per player. CLUTCH is also the engine's own clutch trait in live games.
+-- trait pointer. One per player. CLUTCH is also the engine's own clutch trait in live games.
 G.TRAITS = {
   CLUTCH = { who = "bat", mod = { con = 2, eye = 2 }, d = "Big spots: contact, eye +2" },
   SLUGGER = { who = "bat", mod = { pow = 4 }, d = "Power +4 in games" },
@@ -150,20 +152,20 @@ function G.short(a) return (a.fn or "?"):sub(1, 1) .. ". " .. (a.ln or "?") end
 function G.initials(a) return ((a.fn or "?"):sub(1, 1) .. (a.ln or "?"):sub(1, 1)):upper() end
 function G.posOf(a) return a.pos == "P" and (a.role or "P") or a.pos end
 
--- Sparks -------------------------------------------------------------------------------------------
+-- Pointers -------------------------------------------------------------------------------------------
 
-function G.sparkName(s)
+function G.pointerName(s)
   if s.k == "stat" then return PM.LABEL[s.a]:upper() .. " " .. STARS[s.s] end
   if s.k == "trait" then return s.t .. " " .. STARS[s.s] end
   return "PENNANT \u{2605}"
 end
-function G.sparkShort(s)
+function G.pointerShort(s)
   if s.k == "stat" then return PM.SHORT[s.a] .. " " .. STARS[s.s] end
   if s.k == "trait" then return s.t end
   return "PENNANT"
 end
 
---- ★ / ★★ / ★★★ odds (%) from the spark's rating; Heat moves 5% a level into ★★★.
+--- ★ / ★★ / ★★★ odds (%) from the pointer's rating; Heat moves 5% a level into ★★★.
 function G.starOdds(v, heat)
   local o
   if v >= 70 then o = { 15, 60, 25 } elseif v >= 60 then o = { 45, 45, 10 } else o = { 80, 20, 0 } end
@@ -182,8 +184,8 @@ local function statKeys(p)
   return keys
 end
 
---- The stat spark: one of his ratings, weighted to his top two (45 / 35, the rest share 20).
-function G.statSpark(p, rng, heat, award)
+--- The stat pointer: one of his ratings, weighted to his top two (45 / 35, the rest share 20).
+function G.statPointer(p, rng, heat, award)
   local keys = statKeys(p)
   local r = rng:int(100)
   local a
@@ -316,7 +318,7 @@ local function copy(t)
 end
 G.copy = copy
 
---- The deck specialty: the stat spark's program, else his position's.
+--- The deck specialty: the stat pointer's program, else his position's.
 function G.specialty(a)
   for _, s in ipairs(a.sparks or {}) do if s.k == "stat" then return G.ATTR_PROG[s.a] end end
   if a.pos == "P" then return "arms" end
@@ -353,7 +355,7 @@ end
 
 function G.chemMark(c) return c >= 60 and 3 or (c >= 30 and 2 or 1) end   -- ◎ ○ △
 
---- Every spark a run's legacies carry: { who, via, gen (1 legacy, 2 his legacy), s }.
+--- Every pointer a run's legacies carry: { who, via, gen (1 legacy, 2 his legacy), s }.
 function G.sources(leg)
   local out = {}
   for _, a in ipairs(leg or {}) do
@@ -494,9 +496,9 @@ local function applyStats(L, list, caps)
   end
 end
 
---- Opening Day: every legacy stat spark fires (+1 / +2 / +4 per ★, theirs at half) on its unit;
---- a trait spark passes the trait to 1 / 2 / 3 players; ★★★ starts its program's facility at LV2;
---- a PENNANT spark: energy +10, mood +1. half: the endless career's later seasons (half points,
+--- Opening Day: every legacy stat pointer takes (+1 / +2 / +4 per ★, theirs at half) on its unit;
+--- a trait pointer passes the trait to 1 / 2 / 3 players; ★★★ starts its program's facility at LV2;
+--- a PENNANT pointer: energy +10, mood +1. half: the endless career's later seasons (half points,
 --- no facility, traits to fewer). The rolls are kept for the reveal (R.od, R.showOD).
 function G.openingDay(L, half)
   local R = L.run
@@ -506,7 +508,7 @@ function G.openingDay(L, half)
   local c = L.club
   for _, src in ipairs(G.sources(R.leg)) do
     local s = src.s
-    local row = { who = src.who, via = src.via, gen = src.gen, spark = G.sparkName(s), ok = true }
+    local row = { who = src.who, via = src.via, gen = src.gen, spark = G.pointerName(s), ok = true }
     if s.k == "stat" then
       local amt = (src.gen == 1 and G.OD or G.OD_GP)[s.s] * (half and 0.5 or 1)
       if amt >= 0.5 then
@@ -540,7 +542,7 @@ function G.openingDay(L, half)
   return R.od
 end
 
--- Inspirations (weeks 9 and 18 of 26: here scaled to the season's weeks) ----------------------------
+-- Alumni visits (weeks 9 and 18 of 26: here scaled to the season's weeks) ----------------------------
 
 function G.inspWeeks(L)
   local n = #PWeek.weeks(L)
@@ -548,7 +550,7 @@ function G.inspWeeks(L)
   return { a, max(a + 2, floor(n * G.INSP_AT[2] + 0.5)) }
 end
 
---- An inspiration's due: the run's first season, legacies, the week reached, not yet held.
+--- An alumni visit's due: the run's first season, legacies, the week reached, not yet held.
 function G.inspDue(L)
   local R = L.run
   if not (R and R.leg) or (R.endless or 0) > 0 or R.season0 ~= L.season or L.phase ~= "season" then return nil end
@@ -559,8 +561,8 @@ function G.inspDue(L)
   return nil
 end
 
---- Inspiration i: each stat spark may fire again (60 / 75 / 90% x (1 + chemistry / 100), theirs at
---- half the odds) for +1-2 / +1-3 / +2-5; trait sparks 15 / 25 / 40% to pass the trait on once more.
+--- Alumni visit i: each stat pointer may take again (60 / 75 / 90% x (1 + chemistry / 100), theirs at
+--- half the odds) for +1-2 / +1-3 / +2-5; trait pointers 15 / 25 / 40% to pass the trait on once more.
 --- Seeded by the run and i; held once (the result is kept).
 function G.inspire(L, i)
   local R = L.run
@@ -572,7 +574,7 @@ function G.inspire(L, i)
   local rows, stats = {}, {}
   for _, src in ipairs(G.sources(R.leg)) do
     local s = src.s
-    local row = { who = src.who, via = src.via, gen = src.gen, spark = G.sparkName(s) .. (src.gen == 2 and " (HALF)" or "") }
+    local row = { who = src.who, via = src.via, gen = src.gen, spark = G.pointerName(s) .. (src.gen == 2 and " (HALF)" or "") }
     local gx = src.gen == 2 and G.GP_X or 1
     if s.k == "stat" then
       local p = min(0.95, G.PROC[s.s] * (1 + chem / 100) * gx)
@@ -581,7 +583,7 @@ function G.inspire(L, i)
       local amt = g[1] + rng:int(g[2] - g[1] + 1) - 1
       row.pct = floor(p * 100 + 0.5)
       if roll < p then stats[#stats + 1] = { a = s.a, amt = amt, row = row }
-      else row.res, row.ok = "NO SPARK", false end
+      else row.res, row.ok = "DIDN'T TAKE", false end
       rows[#rows + 1] = row
     elseif s.k == "trait" then
       local p = G.TPROC[s.s] * gx
@@ -589,7 +591,7 @@ function G.inspire(L, i)
       if rng:float() < p then
         local got = G.grantTrait(L, s.t, 1)
         row.res, row.ok = #got > 0 and ("+1 " .. s.t .. ": " .. got[1].ln:upper()) or "NO ROOM", #got > 0
-      else row.res, row.ok = "NO SPARK", false end
+      else row.res, row.ok = "DIDN'T TAKE", false end
       rows[#rows + 1] = row
     end
   end
@@ -599,7 +601,7 @@ function G.inspire(L, i)
   for _, r in ipairs(rows) do if r.ok then fired = fired + 1 end end
   local res = { i = i, w = PWeek.span(L).w, rows = rows, caps = caps, fired = fired, season = L.season }
   R.insp[key] = res
-  PL.news(L, "INSPIRATION: the legacy fired " .. fired .. " of " .. #rows .. " sparks.", true)
+  PL.news(L, "ALUMNI VISIT: " .. fired .. " of " .. #rows .. " pointers took.", true)
   if PEng.invalidate then PEng.invalidate() end
   return res
 end
@@ -718,7 +720,7 @@ function PWeek.newSeason(L)
   if R and R.leg and (R.endless or 0) > 0 and R.odSeason ~= L.season and L.phase == "season" then G.openingDay(L, true) end
 end
 
---- An inspiration is held when its week comes round (after the day closes, whatever is running:
+--- An alumni visit is held when its week comes round (after the day closes, whatever is running:
 --- a week, a sim to the end); the reveal shows when the player is next there (G.unseenInsp).
 local dayClosed0 = PWeek.dayClosed
 function PWeek.dayClosed(L)
@@ -736,7 +738,7 @@ end
 
 PWeek.addStop({ id = "inspire", due = function(L) return (G.unseenInsp(L)) end })
 
--- The season's end: grades, sparks, the keep ---------------------------------------------------------
+-- The season's end: grades, pointers, the keep ---------------------------------------------------------
 
 G.LEAD = { avg = "BATTING TITLE", hr = "HR CROWN", rbi = "RBI CROWN", sb = "SB CROWN", w = "WINS LEADER", era = "ERA TITLE", pk = "K CROWN", sv = "SAVES LEADER" }
 
@@ -793,7 +795,7 @@ function G.score(L, p)
 end
 
 --- The season's end (once; kept in R.endc so a reload shows the same): traits earned, the six best
---- graded and sparked. Returns R.endc.
+--- graded and given pointers. Returns R.endc.
 function G.seasonEnd(L)
   local R = G.ensure(L)
   if R.endc and R.endc.season == L.season then return R.endc end
@@ -821,7 +823,7 @@ function G.seasonEnd(L)
     local e = list[i]
     local p = e.p
     local srng = PRng.new(hash(R.seed, "spark", L.season, p.id))
-    local sparks = { G.statSpark(p, srng, R.heat, e.award) }
+    local sparks = { G.statPointer(p, srng, R.heat, e.award) }
     local grade = G.gradeOf(e.score)
     if p.tr then sparks[#sparks + 1] = { k = "trait", t = p.tr, s = (G.GRADE_RANK[grade] >= G.GRADE_RANK.S and 3) or (G.GRADE_RANK[grade] >= G.GRADE_RANK.B and 2) or 1 } end
     if L.champ == L.user then sparks[#sparks + 1] = { k = "pennant", s = 1 } end

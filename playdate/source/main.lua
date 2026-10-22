@@ -102,6 +102,7 @@ end
 frame = function()
   Game.frame += 1
   local t0 = playdate.getCurrentTimeMilliseconds()
+  App.inputTick()
   Api.update()
   Game.tick()
   gfx.clear(gfx.kColorWhite)

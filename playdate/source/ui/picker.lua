@@ -273,6 +273,7 @@ end
 -- key repeat for up/down
 local baseUpdate = Picker.update
 function Picker:update(covered)
+  if self.held and not App.isHeld(self.held < 0 and "up" or "down") then self.held = nil end
   if self.held and not covered then
     self.heldT += 1
     if self.heldT > 8 and self.heldT % 2 == 0 then self:setSel(self.sel + self.held) end

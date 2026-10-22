@@ -467,6 +467,7 @@ function S:enter(args)
   self.bannerKey = nil
   self.lastMs = playdate.getCurrentTimeMilliseconds()
   self.tickerBeat = -1
+  self.aDownAt, self.uiKey = nil, nil
   K.DEBUG = self.args.debug and true or K.DEBUG
   -- a replay is watched hands-off: don't let the device lock mid-inning
   playdate.setAutoLockDisabled(true)
@@ -603,6 +604,31 @@ local function hook(self, name, ...)
     if src:input(self, name, ...) then return true end
   end
   return src.ownsInput == true
+end
+
+--- (app/scene.lua) Buttons down when the screen or a panel on it changed: a tap/hold begun before
+--- doesn't carry into it (no next shot on its release, no game log from it).
+function S:inputLatched(set)
+  if set.A then self.aDownAt = nil end
+  if self.src and self.src.inputLatched then self.src:inputLatched(self, set) end
+end
+
+--- What's taking input on this screen right now: the mode, the game log, a TV segment or the swing
+--- cam inset, and a local source's panel (Pennant: dugout call, time-out menu, how-to card, the
+--- at-bat panels). When it changes, the buttons held across it are latched (App.latch): the new
+--- thing only answers presses made while it's up.
+function S:latchOnChange()
+  local src = self.src
+  local st = src and src.inputState and self.tl and src:inputState(self) or false
+  local k = self.uiKey
+  if not k then k = {} self.uiKey = k end
+  local tvOn, pip = TV.active(), TV.pipUp and TV.pipUp() or false
+  local ui = src and src.ui or false
+  if k.mode ~= self.mode or k.log ~= self.logOpen or k.tv ~= tvOn or k.pip ~= pip or k.st ~= st or k.ui ~= ui then
+    local first = k.mode == nil
+    k.mode, k.log, k.tv, k.pip, k.st, k.ui = self.mode, self.logOpen, tvOn, pip, st, ui
+    if not first then App.latch() end
+  end
 end
 
 function S:AButtonDown()
@@ -997,6 +1023,7 @@ function S:update()
   if S.debugDt then dt = S.debugDt end   -- (harness: a fixed clock step per frame)
   self.lastMs = now
   gfx.clear(gfx.kColorWhite)
+  if App.top() == self then self:latchOnChange() end
 
   if self.mode == "loading" or self.mode == "waiting" or self.mode == "error" then
     self:drawSplash()
@@ -1032,7 +1059,8 @@ function S:update()
     return
   end
 
-  -- hold A for the game log
+  -- hold A for the game log (a press made on this screen, still down)
+  if self.aDownAt and not App.isHeld("A") then self.aDownAt = nil end
   if self.aDownAt and not self.logOpen and now - self.aDownAt > 450 then
     self.aDownAt = nil
     self:openLog()
@@ -1046,6 +1074,14 @@ function S:update()
   local tau = self.t - b.start
   local slo = b.plan.slo and tau >= b.plan.slo[1] and tau <= b.plan.slo[2]
   local srcRate = self.src and self.src.frame and self.src:frame(self, bi, b, tau, dt)
+  if self.src and self.src.finished then
+    -- (the source ended the game this frame and popped us, e.g. Pennant's "Leave (sims the
+    -- rest)": draw where we landed instead of the torn-down replay)
+    local t = App.top()
+    if t and t ~= self and t.update then t:update(false) end
+    return
+  end
+  if self.src and App.top() == self then self:latchOnChange() end   -- (a panel it just put up)
   if self.src then
     -- (the source may have fed or taken back beats)
     bi = TL.beatAt(tl, math.min(self.t, tl.total))

@@ -59,14 +59,27 @@ end
 
 -- Pregame ---------------------------------------------------------------------------------------------
 
-local GameDay = PUI.define({ title = function(self) return self.onChoice and "\u{2605} Tonight's big game" or "Game day" end, hint = "A: choose how to play today's game" })
+local GameDay = PUI.define({ title = function(self)
+  if not self.onChoice then return "Game day" end
+  return (self.why == "featured" or self.why == "playoff") and "\u{2605} Tonight's big game" or "Tonight's game: live"
+end, hint = "A: choose how to play today's game" })
 PennantUI.GameDay = GameDay
 
---- args.onChoice(mode): the week run's pregame (the featured game, or one picked in the Office):
---- "manage" | "play" | "sim"; B = let it sim.
+--- args.onChoice(mode): the week run's pregame (any game that isn't SIM: the featured one, a
+--- playoff game, one picked on the Week screen's strip or in the Office): mode = "watch" | "bat" |
+--- "pitch" | "both" | "sim"; B = let it sim. args.mode: the mode it was set to (the selector starts
+--- there; left/right change it, A goes with it). args.featured: why it's live (PWeek.modeFor).
 function GameDay:init(args)
   self.onChoice = args and args.onChoice
   self.why = args and args.featured
+  self.mode = (args and args.mode) or PWeek.lastLive(Pennant.L)
+end
+
+--- Go with the selected mode (SIM: the coaches play it).
+function GameDay:go()
+  local m = self.mode
+  if self.onChoice then self.onChoice(m) return end
+  if m == "sim" then PennantUI.Advance.open({ days = 1, fromGameDay = true }) else PennantLive.start(m) end
 end
 
 function GameDay:goBack()
@@ -129,18 +142,26 @@ function GameDay:layout(Lb)
   end
   local oc = self.onChoice
   if oc and self.why and #probs == 0 then
-    Text.draw(self.why == "featured" and "\u{2605} The week's big one. Play it, or let the coaches have it." or "\u{25b6} You marked this one to play live.", 6, by - 16, UI.fonts.bold)
+    local WHY = { featured = "\u{2605} The week's big one. Play it, or let the coaches have it.", playoff = "\u{2605} A playoff game. Every one counts.",
+      all = "\u{25b6} Every game is live (the Office's default).", picked = "\u{25b6} You set this one to play live." }
+    Text.draw(WHY[self.why] or WHY.picked, 6, by - 16, UI.fonts.bold)
   end
-  Lb:button("Manage", 4, by, 92, 18, function() if oc then oc("manage") else PennantLive.start("manage") end end, { id = "manage", hint = "Watch in BallCast, make the dugout's calls" })
+  -- the mode selector: left/right change it, A goes with it
   local s = L.settings
-  Lb:button("Play", 100, by, 92, 18, function() if oc then oc("play") else PennantLive.start("play") end end, { id = "play",
-    hint = "Bat and pitch: " .. PScheme.NAME[s.batScheme or "arcade"] .. " / " .. PScheme.NAME[s.pitchScheme or "arcade"] .. " (change in Options)" })
-  Lb:button("Simulate", 196, by, 92, 18, function() if oc then oc("sim") else PennantUI.Advance.open({ days = 1, fromGameDay = true }) end end, { id = "sim", hint = oc and "The coaches play it out; the week goes on" or "The coaches play it out" })
+  local m = self.mode
+  local how = PWeek.MODE_DESC[m]
+  if m == "bat" or m == "both" then how = how .. " (" .. PScheme.NAME[s.batScheme or "arcade"] .. (m == "both" and (" / " .. PScheme.NAME[s.pitchScheme or "arcade"]) or "") .. ")"
+  elseif m == "pitch" then how = how .. " (" .. PScheme.NAME[s.pitchScheme or "arcade"] .. ")" end
+  local label = "\u{25c0} " .. (m == "sim" and "SIM IT" or ("PLAY: " .. PWeek.MODE_NAME[m])) .. " \u{25b6}"
+  Lb:button(label, 4, by, 188, 18, function() self:go() end, { id = "mode",
+    hint = "A: " .. how .. "   \u{25c0}\u{25b6}: watch / bat / pitch / both / sim",
+    data = { adj = function(d) self.mode = PWeek.cycleMode(self.mode, d) end } })
+  Lb:button("Simulate", 196, by, 92, 18, function() if oc then oc("sim") else PennantUI.Advance.open({ days = 1, fromGameDay = true }) end end, { id = "sim", hint = oc and "B: the coaches play it out; the week goes on" or "The coaches play it out" })
   Lb:button("Lineup", 292, by, 96, 18, function() PennantUI.Lineup.open({}) end, { id = "lineup", hint = "Order, positions, platoon cards, staff" })
   Lb:mark(PUI.VIEW_H - 2)
 end
 
-function GameDay:initialFocus() for i, l in ipairs(self.links) do if l.id == "manage" then return i end end return 1 end
+function GameDay:initialFocus() for i, l in ipairs(self.links) do if l.id == "mode" then return i end end return 1 end
 
 -- Advance (simulate days) ------------------------------------------------------------------------------
 
@@ -220,9 +241,9 @@ function Advance:startDay()
   for _, st in ipairs(PWeek.dueStops(L)) do
     if st.stop.open then steps[#steps + 1] = function(nx) st.stop.open(L, st.payload, nx) end end
   end
-  local live, why = PWeek.liveToday(L)
+  local live, why, mode = PWeek.liveToday(L)
   if live and not self.args.untilPhase then
-    steps[#steps + 1] = function(nx) self:liveGame(why, nx) end
+    steps[#steps + 1] = function(nx) self:liveGame(why, mode, nx) end
   end
   local i = 0
   local function nx()
@@ -234,12 +255,15 @@ function Advance:startDay()
 end
 
 --- The pregame for a game played live inside the run; the run resumes after it.
-function Advance:liveGame(why, nx)
-  PennantUI.GameDay.open({ featured = why, onChoice = function(mode)
+function Advance:liveGame(why, mode, nx)
+  PennantUI.GameDay.open({ featured = why, mode = mode, onChoice = function(m)
     App.pop()
-    if mode == "sim" or not (BallCast and BallCast.scene) then nx() return end
+    local L = Pennant.L
+    -- (remembered for the day: the strip shows how it was played until the week turns)
+    PWeek.setMode(L, L.day, m)
+    if m == "sim" or not (BallCast and BallCast.scene) then nx() return end
     PennantUI.liveReturn = nx
-    PennantLive.start(mode)
+    PennantLive.start(m)
   end })
 end
 

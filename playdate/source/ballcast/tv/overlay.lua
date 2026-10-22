@@ -514,7 +514,9 @@ function O.draw(G, scene, bi, b, tau, camName, slo, R)
   local hideKz = src and src.hideKzone
   local track = src and src.pitchTrack
   if hideKz then
-    if b.kind == "p" and b.plan.pitch and R and R.project and (camName == "pitch" or camName == "behindPlate") then tracker(R, b.plan, tau) end
+    -- (the source's own zone panel has the at-bat; the spray chart still takes the free spot)
+    if b.kind == "p" and b.plan.pitch and R and R.project and (camName == "pitch" or camName == "behindPlate") then tracker(R, b.plan, tau)
+    elseif track and O.sprayShown(b, tau) then sprayImg(G, b):draw(4, 62) end
   elseif b.kind == "p" and b.plan.pitch and (camName == "pitch" or camName == "behindPlate") then
     if R and R.project then tracker(R, b.plan, tau) end
     drawKzone(tl, bi, b, tau, 4, 62)

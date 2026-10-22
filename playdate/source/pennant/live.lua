@@ -5,7 +5,8 @@
     change / IBB / pitch around / shift; one press = the coach's call),
   * direct batting: the K-zone inset with your bat's height (up/down), a power swing (left/right),
     the pitch coming in and a subtle timing strip; press A to swing,
-  * direct pitching: pick the pitch (crank), aim on the K-zone (d-pad), A for the effort meter,
+  * direct pitching: pick the pitch from a menu (up/down, A; the last one thrown is ready), aim on
+    the K-zone (d-pad), A for the effort meter,
     A again to throw,
   * B: the dugout's own menu (call time, direct control on/off, simulate to the end, leave).
   The game is always created with every control on; anything the player leaves to the coaches
@@ -28,14 +29,18 @@ local function nid(s) return PEng.nid(s) end
 local function P(id) local L = Pennant.L return L.players[nid(id) or -1] end
 local function short(id) local p = P(id) return p and PM.short(p) or tostring(id) end
 
---- mode: "manage" (dugout calls, coaches bat and pitch) | "play" (you bat and pitch too), or nil
---- to keep the batting/pitching choices from the last game (settings.directBat / directPitch).
+--- mode: "watch" / "manage" (dugout calls, coaches bat and pitch) | "bat" (you bat, the coaches
+--- pitch) | "pitch" (you pitch, the coaches bat) | "both" / "play" (you bat and pitch), or nil to
+--- keep the batting/pitching choices from the last game (settings.directBat / directPitch).
+local DIRECT <const> = { manage = { false, false }, watch = { false, false }, bat = { true, false }, pitch = { false, true },
+  both = { true, true }, play = { true, true } }
 function PennantLive.start(mode)
   local L = Pennant.L
   local st = L.settings
-  if mode then
-    st.directBat, st.directPitch = mode == "play", mode == "play"
-    st.playMode = mode
+  local dm = mode and DIRECT[mode]
+  if dm then
+    st.directBat, st.directPitch = dm[1], dm[2]
+    st.playMode = (dm[1] or dm[2]) and "play" or "manage"
   elseif st.directBat == nil then
     st.directBat = st.playMode == "play"
     st.directPitch = st.playMode == "play"
@@ -256,11 +261,11 @@ end
 
 -- Per-frame --------------------------------------------------------------------------------------------
 
-local function held(btn) return playdate.buttonIsPressed(btn) end
+local function held(btn) return App.isHeld(btn) end
 
 function Live:frame(scene, bi, b, tau, dt)
   local tl = scene.tl
-  self:updateHideKzone()
+  self:updateHideKzone(b)
   -- (the rest of the league waits: BallCast has the frame; the Advance screen after the game
   -- plays the other games with a progress bar)
   if not tl then return nil end
@@ -337,8 +342,9 @@ Live.INPUT_MAP = {
   dugout = { up = true, down = true, A = true, B = true },               -- manager's call (B: back / time out)
   bat_arcade = { A = true, AUp = true, B = true, crank = true },         -- swing / power swing, crank = cursor height
   bat_scout = { up = true, down = true, left = true, right = true, A = true, B = true },  -- approach; B tap/hold polled
-  pitch_arcade = { A = true, B = true, crank = true },                   -- crank = pitch, A = meter, d-pad polled
-  pitch_scout = { up = true, down = true, left = true, right = true, A = true, AUp = true, B = true, crank = true },
+  pitch_menu = { up = true, down = true, A = true, B = true },           -- which pitch (both schemes), A = on to aim
+  pitch_arcade = { A = true, B = true },                                 -- A = meter, A = stop; d-pad polled
+  pitch_scout = { up = true, down = true, left = true, right = true, A = true, AUp = true, B = true },
   play = { A = true, B = true },                                         -- ball in play / between batters: A = next shot, B = time out
 }
 
@@ -361,7 +367,7 @@ function Live:idleDecision(scene)
   if self.pause and self.pause.reason == "done" then return false end
   if self.help then return true end
   local u = self.ui
-  return u ~= nil and (u.kind == "dugout" or u.kind == "bat_scout" or u.kind == "pitch_arcade" or u.kind == "pitch_scout")
+  return u ~= nil and (u.kind == "dugout" or u.kind == "bat_scout" or u.kind == "pitch_menu" or u.kind == "pitch_arcade" or u.kind == "pitch_scout")
 end
 
 --- (scene hook) The strip of the screen our panels leave free, for BallCast's decision angles.
@@ -369,6 +375,7 @@ function Live:decisionFrame()
   local u = self.ui
   if u and u.kind == "dugout" then return 4, 224 end                 -- the dugout panel is on the right
   if u and (u.kind == "pitch_scout" or u.kind == "bat_scout") then return 96, 292 end  -- scouting card left, zone right
+  if u and u.kind == "pitch_menu" then return u.sch == "scout" and 96 or 4, 292 end   -- the menu right (Scout: its card left)
   if u and u.kind == "pitch_arcade" then return 4, 292 end                              -- zone right
   return 4, 396
 end
@@ -387,6 +394,16 @@ function Live:inputState(scene)
   local u = self.ui
   if u and Live.INPUT_MAP[u.kind] then return u.kind end
   return "play"
+end
+
+--- (BallCast's inputLatched) Buttons held across a change of panel (or screen): a hold begun before
+--- it doesn't carry in: no power swing loaded, no reach-back throw on its release, no take/time out
+--- from a B still down from the menu.
+function Live:inputLatched(scene, set)
+  local u = self.ui
+  if not u then return end
+  if set.A then u.charging, u.aDown, u.aHeld = false, false, 0 if u.kind == "bat_arcade" then u.power = false end end
+  if set.B then u.bHeld = nil end
 end
 
 function Live:input(scene, btn, change)

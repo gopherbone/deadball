@@ -5,10 +5,14 @@
   Shared: one strike zone (the inset on the right) with this at-bat's pitches so far marked on it
   (numbered, the latest ringed: hollow = ball, filled = strike or foul, X = hit by pitch; the
   markers come from BallCast's K-ZONE, ballcast/tv/overlay.lua, so they show once the picture has
-  shown the pitch arrive). Once the pitch is away, BallCast's own K-ZONE inset on the left takes
-  over (with the call and the count for a moment), and after a ball in play its spray chart.
-  Nothing else stays up: the old LAST card is gone. Scout's scouting card sits on the left while
-  its decision is up. First use of a scheme shows its how-to card.
+  shown the pitch arrive). Once the pitch is away the zone stays up while it plays (drawTrack, with
+  the call and the count for a moment): BallCast's own K-ZONE inset on the left is off all through a
+  half you play, and back when the coaches have it. After a ball in play, BallCast's spray chart
+  (left). Nothing else stays up: the old LAST card is gone. Scout's scouting card sits on the left
+  while its decision is up. First use of a scheme shows its how-to card.
+
+  Pitching, both schemes: the pitch menu first (on the pitch this pitcher threw last), then Arcade's
+  aim and meter or Scout's spot. The crank doesn't pick the pitch any more.
 ]]
 
 local gfx <const> = playdate.graphics
@@ -25,7 +29,8 @@ local function kzy(z) return floor(KY + 14 + KH / 2 - 7 - z * SZ + 0.5) end
 local CX, CY, CW, CH = 2, 58, 92, 92
 
 local function P(id) local L = Pennant.L return L.players[PEng.nid(id) or -1] end
-local function held(btn) return playdate.buttonIsPressed(btn) end
+-- (polled holds count only a press made since this panel came up: app/scene.lua's input latch)
+local function held(btn) return App.isHeld(btn) end
 
 local function panel(x, y, w, h)
   gfx.setColor(gfx.kColorBlack)
@@ -120,14 +125,14 @@ local HELP <const> = {
     "Left: look in   Right: look away",
     "A: see it and swing   B: take   hold B: time out" } },
   arcade_pitch = { "ARCADE PITCHING", {
-    "Crank: pick the pitch.  D-pad: aim anywhere.",
-    "A starts the meter; A again stops it.",
-    "Stop in the band for accuracy; far right",
-    "reaches back (faster, wilder, more tiring)." } },
+    "Pick the pitch (up/down, A): last one's ready.",
+    "D-pad: aim anywhere.  A starts the meter,",
+    "A again stops it: in the band for accuracy,",
+    "far right reaches back (faster, wilder)." } },
   scout_pitch = { "SCOUT PITCHING", {
-    "The catcher's call is already set: A throws it.",
-    "D-pad: one of 13 spots.  Crank: the pitch.",
-    "Hold A when you throw to reach back.",
+    "Pick the pitch (up/down, A): last one's ready.",
+    "The catcher's spot is set: A throws it there.",
+    "D-pad: one of 13 spots.  Hold A: reach back.",
     "The card on the left scouts the hitter." } },
 }
 
@@ -361,12 +366,15 @@ function Live:scoutBatFrame(scene, p)
   local u = self.ui
   u.t = u.t + 1
   -- B: a tap takes the pitch, a hold calls time
-  if held(playdate.kButtonB) then u.bHeld = (u.bHeld or 0) + 1
+  -- (a hold cut short by the input latch, a menu or screen over it, is no tap: App.latches)
+  if held(playdate.kButtonB) then
+    if not u.bHeld then u.bLatch = App.latches.B end
+    u.bHeld = (u.bHeld or 0) + 1
     if u.bHeld == 15 then self:openMenu() end
   elseif u.bHeld then
     local hold = u.bHeld
     u.bHeld = nil
-    if hold < 15 then self:scoutChoose(scene, "take") end
+    if hold < 15 and u.bLatch == App.latches.B then self:scoutChoose(scene, "take") end
   end
   return nil
 end
@@ -440,19 +448,20 @@ function Live:pitchFrame(scene, p)
   end
   local i = p.info
   if not self.ui then
+    -- first the pitch menu, on the one this pitcher threw last (a fastball to start the game)
     local ars = i.arsenal or {}
     self.rng = self.rng or PRng.new(playdate.getSecondsSinceEpoch())
     local callType, callSpot = PScheme.catcherCall(ars, i.balls, i.strikes, i.batter.bats, self.rng)
-    local k = 1
-    for n, a in ipairs(ars) do if a.kind == callType then k = n end end
-    local pit = P(i.pitcher.id)
-    if sch == "scout" then
-      self.ui = { kind = "pitch_scout", ars = ars, k = k, spot = callSpot, call = { k = k, spot = callSpot }, t = 0 }
-      self:setCard(self:batterCard(i))
-    else
-      local x, z = PScheme.spotXY(callSpot)
-      self.ui = { kind = "pitch_arcade", ars = ars, k = k, x = self.lastX or x, z = self.lastZ or z, stage = "aim", t = 0, command = pit and pit.r.ctl or 50 }
+    self.lastPitch = self.lastPitch or {}
+    local last = self.lastPitch[i.pitcher.id] or "FB"
+    local k, ck = 1, 1
+    for n, a in ipairs(ars) do
+      if a.kind == last then k = n end
+      if a.kind == callType then ck = n end
     end
+    self.ui = { kind = "pitch_menu", sch = sch, ars = ars, k = k, call = { k = ck, spot = callSpot }, t = 0,
+      count = (i.balls or 0) .. "-" .. (i.strikes or 0), lefty = i.pitcher.throws == "L" }
+    if sch == "scout" then self:setCard(self:batterCard(i)) end
   end
   local u = self.ui
   u.t = u.t + 1
@@ -484,15 +493,32 @@ function Live:throw(scene, input, target)
   Sfx.select()
 end
 
+--- The pitch menu: up/down, A picks (on to the scheme's aim / spot step), B is time out.
+function Live:pitchMenuInput(scene, btn)
+  local u = self.ui
+  if btn == "B" then self:openMenu() return true end
+  local n = max(1, #u.ars)
+  if btn == "up" then u.k, u.key = (u.k - 2) % n + 1, nil Sfx.focus() return true end
+  if btn == "down" then u.k, u.key = u.k % n + 1, nil Sfx.focus() return true end
+  if btn ~= "A" then return true end
+  local i = self.pause.info
+  local a = u.ars[u.k]
+  self.lastPitch[i.pitcher.id] = a and a.kind or nil
+  if u.sch == "scout" then
+    self.ui = { kind = "pitch_scout", ars = u.ars, k = u.k, spot = u.call.spot, call = u.call, t = 0 }
+  else
+    local pit = P(i.pitcher.id)
+    local x, z = PScheme.spotXY(u.call.spot)
+    self.ui = { kind = "pitch_arcade", ars = u.ars, k = u.k, x = self.lastX or x, z = self.lastZ or z, stage = "aim", t = 0, command = pit and pit.r.ctl or 50 }
+  end
+  Sfx.select()
+  return true
+end
+
 function Live:arcadePitchInput(scene, btn, change)
   local u = self.ui
   if btn == "B" then self:openMenu() return true end
   if u.stage == "aim" then
-    if btn == "crank" then
-      u.acc = (u.acc or 0) + (change or 0)
-      if abs(u.acc) > 40 then u.k = (u.k - 1 + (u.acc > 0 and 1 or -1)) % #u.ars + 1 u.acc = 0 Sfx.tick() end
-      return true
-    end
     if btn == "A" then u.stage = "meter" u.m = 0 Sfx.select() return true end
     return true
   end
@@ -511,11 +537,6 @@ end
 function Live:scoutPitchInput(scene, btn, change)
   local u = self.ui
   if btn == "B" then self:openMenu() return true end
-  if btn == "crank" then
-    u.acc = (u.acc or 0) + (change or 0)
-    if abs(u.acc) > 40 then u.k = (u.k - 1 + (u.acc > 0 and 1 or -1)) % #u.ars + 1 u.acc = 0 Sfx.tick() end
-    return true
-  end
   local dirs = { up = { 0, -1 }, down = { 0, 1 }, left = { -1, 0 }, right = { 1, 0 } }
   local d = dirs[btn]
   if d then
@@ -563,7 +584,7 @@ function Live:drawArcadePitch(scene, bi, tau)
   self:cached("ap" .. u.k .. u.stage, KX, KY - 1, KW + 2, KH + 32, function()
     kzFrame("PITCH", "ARCADE")
     local y = KY + KH + 2
-    hintStrip((a and (a.kind .. " " .. (a.velo or "") .. "  ") or "") .. (u.stage == "aim" and "crank / A" or "A: stop"), y)
+    hintStrip((a and (a.kind .. " " .. (a.velo or "") .. "  ") or "") .. (u.stage == "aim" and "A: meter" or "A: stop"), y)
     y = y + 15
     gfx.setColor(gfx.kColorWhite)
     gfx.fillRect(KX, y, KW, 12)
@@ -617,6 +638,73 @@ function Live:drawScoutPitch()
   hintStrip(u.aDown and ((u.aHeld or 0) >= 12 and "REACH BACK!" or "hold: reach back") or "A throw *catcher", y + rows * 13 + 4)
 end
 
+-- The pitch menu (first thing up on your pitch, both schemes) ---------------------------------------------
+
+-- each pitch's movement for the menu's glyph: across, down (BallCast's BREAK, ballcast/play.lua)
+local BRK <const> = { SL = { 1.0, 0.4 }, CB = { 0.5, 1.4 }, SPL = { 0, 1.2 }, CH = { -0.4, 0.7 }, SI = { -0.6, 0.5 }, CT = { 0.4, 0.2 } }
+local PMH <const> = 14   -- a row
+
+--- A 9 x 11 glyph: the ball's path in from the top (straight for a fastball), the ball at its end.
+local function moveGlyph(kind, cx, cy)
+  local br = BRK[kind] or { 0, 0 }
+  local ex = cx + floor(br[1] * 3.5 + 0.5)
+  local ey = cy - 1 + floor(br[2] * 3 + 0.5)
+  gfx.drawLine(cx, cy - 5, ex, ey)
+  gfx.fillCircleAtPoint(ex, ey, 2)
+end
+
+local function pitchMenuH(u) return 14 + max(1, #u.ars) * PMH + 15 end
+
+function Live:drawPitchMenu()
+  local u = self.ui
+  local x, y, w = KX, KY, KW
+  local h = pitchMenuH(u)
+  panel(x, y, w, h)
+  gfx.fillRect(x, y, w, 13)
+  Text.draw("PITCH", x + 4, Text.boxY(F().bold, y, 13), F().bold, "white")
+  Text.draw(u.count, x + w - 4, Text.boxY(F().bold, y, 13, u.count), F().bold, "white", "right")
+  local scout = u.sch == "scout"
+  for k, a in ipairs(u.ars) do
+    local on = k == u.k
+    local ry = y + 14 + (k - 1) * PMH
+    if on then gfx.fillRect(x + 1, ry, w - 2, PMH) end
+    gfx.setColor(on and gfx.kColorWhite or gfx.kColorBlack)
+    moveGlyph(a.kind, x + 8, ry + 7)
+    local f = on and F().bold or F().body
+    local col = on and "white" or nil
+    local nm = (PM.PITCH_NAME[a.kind] or a.kind) .. ((scout and k == u.call.k) and "*" or "")
+    Text.draw(Text.ellipsize(nm, f, w - 40), x + 16, Text.boxY(f, ry, PMH, nm), f, col)
+    local g = PM.grade(a.quality or 50)
+    Text.draw(g, x + w - 4, Text.boxY(f, ry, PMH, g), f, col, "right")
+    gfx.setColor(gfx.kColorBlack)
+  end
+  -- the one on the cursor: its velocity (and Scout's catcher)
+  local a = u.ars[u.k]
+  local fy = y + h - 14
+  gfx.drawLine(x + 2, fy - 1, x + w - 3, fy - 1)
+  local s = (a and a.velo and (a.velo .. " mph") or "") .. (scout and "  *catcher" or "")
+  Text.draw(Text.ellipsize(s, F().body, w - 6), x + 4, Text.boxY(F().body, fy, 13, s), F().body)
+  hintStrip("A pick  B time out", y + h + 3)
+end
+
+--- After your pitch or your swing, while the pitch plays: the zone panel again with the at-bat's
+--- pitches (BallCast's own K-ZONE on the left is off in a half you play, Live:updateHideKzone) and
+--- the call with the count under it for a moment (BallCast's words, TVOverlay.callWord).
+function Live:drawTrack(scene, bi, b, tau)
+  local O = BallCast.TVOverlay
+  local pp = b.plan and b.plan.pitch
+  -- (BallCast's SWING CAM picture-in-picture takes the corner after a big swing: it has the pitch)
+  if not pp or (O and O.pipActive) then return end
+  local t0 = b.plan.callT or (pp.tPlate + 0.2)
+  local word = (tau >= t0 and tau <= t0 + 2.2 and O and O.callWord) and O.callWord(b.e) or nil
+  local title = self.ctlBat and "AT BAT" or "PITCH"
+  self:cached("tr" .. title .. (word or ""), KX, KY - 1, KW + 2, KH + 18, function()
+    kzFrame(title, nil)
+    if word then hintStrip(word, KY + KH + 2) end
+  end, "control")
+  self:drawMarks(scene, bi, tau)
+end
+
 -- Dispatch helpers used by live.lua ----------------------------------------------------------------------
 
 function Live:controlInput(scene, btn, change)
@@ -635,17 +723,27 @@ function Live:controlInput(scene, btn, change)
     return true
   end
   if u.kind == "bat_scout" then return self:scoutBatInput(scene, btn) end
+  if u.kind == "pitch_menu" then return self:pitchMenuInput(scene, btn) end
   if u.kind == "pitch_arcade" then return self:arcadePitchInput(scene, btn, change) end
   if u.kind == "pitch_scout" then return self:scoutPitchInput(scene, btn, change) end
   return false
 end
 
---- (frame hook) BallCast's own K-zone inset (left) stays hidden while one of our panels is up (the
---- at-bat's pitches are on our zone then) or a how-to card covers its spot.
-function Live:updateHideKzone()
+--- (frame hook) BallCast's own K-zone inset (left) and its call tab stay hidden while one of our
+--- panels is up or a how-to card covers its spot, and all through a half where you bat or pitch
+--- yourself: the zone lives in the control panel then (Live:drawTrack while a pitch plays). Watching
+--- (the coaches' half, manage mode, simming) keeps BallCast's inset. b: the beat on screen.
+function Live:updateHideKzone(b)
   local u = self.ui
   local panel = u and u.kind ~= "dugout"
-  self.hideKzone = (self.help ~= nil) or (panel and true or false)
+  local bat, ctl = false, false
+  local pre = b and b.pre
+  if pre and not self.simming then
+    bat = (pre.top and self.side == "away") or ((not pre.top) and self.side == "home")
+    ctl = (bat and self.directBat) or ((not bat) and self.directPitch)
+  end
+  self.ctlHalf, self.ctlBat = ctl and true or false, bat and true or false
+  self.hideKzone = (self.help ~= nil) or (panel and true or false) or self.ctlHalf
 end
 
 function Live:drawControl(scene, bi, b, tau)
@@ -658,6 +756,11 @@ function Live:drawControl(scene, bi, b, tau)
     self:cached("sb", KX, KY - 1, KW + 2, KH + 34, function() self:drawScoutBat() end, "control")
     self:drawMarks(scene, bi, tau)
     up = true
+  elseif u and u.kind == "pitch_menu" and self:caughtUp(scene) then
+    -- (keyed by the pause too: the count and the pitcher change under the same cursor)
+    u.key = u.key or ("pm" .. tostring(self.pause) .. u.k)
+    self:cached(u.key, KX, KY, KW + 2, pitchMenuH(u) + 18, function() self:drawPitchMenu() end, "control")
+    up = u.sch == "scout"
   elseif u and u.kind == "pitch_arcade" and self:caughtUp(scene) then
     self:drawArcadePitch(scene, bi, tau)
   elseif u and u.kind == "pitch_scout" and self:caughtUp(scene) then
@@ -666,6 +769,8 @@ function Live:drawControl(scene, bi, b, tau)
     self:cached("ps" .. u.spot .. ":" .. u.k .. ":" .. hs, KX, KY - 1, KW + 2, KH + rows * 13 + 22, function() self:drawScoutPitch() end, "control")
     self:drawMarks(scene, bi, tau)
     up = true
+  elseif not u and self.ctlHalf and b and b.kind == "p" then
+    self:drawTrack(scene, bi, b, tau)
   end
   -- Scout's scouting card on the left, only while its decision is up (nothing stays behind)
   if up and self.card then

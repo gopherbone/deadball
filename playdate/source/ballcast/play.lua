@@ -561,7 +561,8 @@ local function planPitch(b, tl, plan)
     local tw = tPlate + 0.9
     cam(plan, tw, "high")
     local side = batSide(b.pre.bat)
-    plan.batToss = { t = tw, x0 = -side * 3.2, y0 = 0.6, z0 = 2.5, x1 = -side * 4.5, y1 = -1.5, dur = 0.35, h = 1.2, spin = 1, rest = 160 }
+    -- (hit by the pitch: he drops it as it hits him; ball four: tossed aside as he goes)
+    plan.batToss = { t = (r == "H") and tPlate + 0.05 or tw, x0 = -side * 3.2, y0 = 0.6, z0 = 2.5, x1 = -side * 4.5, y1 = -1.5, dur = 0.35, h = 1.2, spin = 1, rest = 160 }
     for _, m in ipairs(b.mvs) do runner(plan, m.id, m.from, m.to, tw, RUN * 0.6) end
     pop(plan, tPlate + 0.3, e.r == "H" and "HIT BY PITCH" or "BALL FOUR", 0, -6, 9, 1.2)
     b.dur = tw + D.walk + (#b.mvs > 1 and 1.2 or 0)
@@ -1358,11 +1359,53 @@ local function planBip(b, tl, plan)
   -- every throw has a receiver who runs to the bag (or cutoff spot) first and gloves it
   local outAt = {}  -- base → time the ball gets there
   local lastT = tBallDone or 1
+  local caughtFly = air and (res == "OUT" or res == "SF" or res == "FOUL_OUT")
+  -- when a runner breaks (section 4 moves him): the batter out of the box, the men on base
+  local function runStart(m)
+    if m.from == 0 and res == "HR" then return 0.85 end                    -- admire it first
+    -- (the men on base hold until it's gone: trotting in from the crack, the man from third
+    -- touched home with the ball still in the air)
+    if res == "HR" then return max(0.05, (plan.wallT or 2) - 0.6) end
+    if m.from == 0 and plan.bunt then return 0.4 end                          -- (the give, then go)
+    if m.from == 3 and plan.bunt and plan.bunt.kind == "squeeze" then return -0.45 end   -- broke with the pitch
+    if m.from == 0 then return 0.25 end
+    if caughtFly then return (tFielded or 1) + 0.1 end
+    return 0.05
+  end
+  local function runSpeed(m)
+    local s = res == "HR" and TROT or RUN
+    if warpRunner and m.id == warpRunner then s = s * 1.8 end
+    return s
+  end
+  -- the man who ends up safe at base n (4 = home) gets there at → (nil: nobody)
+  local function safeAt(n)
+    for _, m in ipairs(b.mvs) do
+      if m.from ~= m.to and m.to == n then return runStart(m) + (n - m.from) * 90 / runSpeed(m) end
+    end
+    return nil
+  end
   for i, th in ipairs(throws) do
     local from = th.from or plan.groundFielder or b.e.f or "SS"
     local d = dist2(th.ax, th.ay, th.bx, th.by)
     local spd = th.slow and throwSpeed * 0.75 or throwSpeed
     local t1 = th.t0 + d / spd
+    -- a throw to a bag a runner reaches safely can't beat him there (it'd look like an out):
+    -- a softer, looping throw, and if that's not enough he double-clutches (holds it, then throws)
+    local tb = (not th.wild and not th.base) and baseAt(th.bx, th.by) or nil
+    local sa = tb and safeAt(tb == 0 and 4 or tb)
+    if sa then
+      local need = sa + 0.1 + 0.1 * K.hash01(b.i, 80 + i)
+      if t1 < need then
+        spd = max(spd * 0.72, d / (need - th.t0))
+        t1 = th.t0 + d / spd
+        if t1 < need then
+          local h0 = th.t0
+          th.t0 = need - d / spd
+          t1 = need
+          seg(plan, { kind = "hold", t0 = h0, t1 = th.t0, ax = th.ax, ay = th.ay, az = 5 })
+        end
+      end
+    end
     local rcv = (not th.wild) and (th.rcv or receiverFor(th.bx, th.by, from)) or nil
     local gz = GLOVE_Z.throw
     if rcv and rcv ~= "C" then th.bx, th.by = cover(plan, rcv, th.bx, th.by, th.ax, th.ay, t1) end
@@ -1409,22 +1452,12 @@ local function planBip(b, tl, plan)
   end
 
   -- 4) runners --------------------------------------------------------------------
-  local caughtFly = air and (res == "OUT" or res == "SF" or res == "FOUL_OUT")
   local endT = lastT
   for _, m in ipairs(b.mvs) do
     if m.from ~= m.to then
-      local t0
-      if m.from == 0 and res == "HR" then t0 = 0.85; plan.homerBatter = true   -- admire it first
-      -- (the men on base hold until it's gone: trotting in from the crack, the man from third
-      -- touched home with the ball still in the air)
-      elseif res == "HR" then t0 = max(0.05, (plan.wallT or 2) - 0.6)
-      elseif m.from == 0 and plan.bunt then t0 = 0.4                            -- (the give, then go)
-      elseif m.from == 3 and plan.bunt and plan.bunt.kind == "squeeze" then t0 = -0.45   -- broke with the pitch
-      elseif m.from == 0 then t0 = 0.25
-      elseif caughtFly then t0 = (tFielded or 1) + 0.1
-      else t0 = 0.05 end
-      local speed = res == "HR" and TROT or RUN
-      if warpRunner and m.id == warpRunner then speed = speed * 1.8 end
+      local t0 = runStart(m)
+      if m.from == 0 and res == "HR" then plan.homerBatter = true end
+      local speed = runSpeed(m)
       local oa = nil
       if m.to == -1 then
         local tgt = min(m.from + 1, 4)
@@ -1438,7 +1471,13 @@ local function planBip(b, tl, plan)
           local r = runner(plan, m.id, m.from, -1, t0, RUN, oa)
           -- make the out a bang-bang play: arrive right as the ball does
           if oa then
-            local need = (90 * r.stopFrac) / RUN
+            local D = 90 * r.stopFrac
+            if m.from == 0 and oa + 0.12 - D / RUN > t0 then
+              -- the batter on a slow play: out of the box as usual and not quite flat out (down to
+              -- 70%), so he isn't left standing in the box (the bat already down) for long
+              r.speed = max(RUN * 0.7, D / (oa + 0.12 - t0))
+            end
+            local need = D / r.speed
             r.t0 = max(0.05, oa - need + 0.12)
             r.t1 = r.t0 + need
             if abs(oa - r.t1) < 0.35 and not plan.slo then
@@ -1471,7 +1510,10 @@ local function planBip(b, tl, plan)
     local side = batSide(batter)
     local bx = -side * 3.2
     local hr = res == "HR"
-    plan.batToss = { t = hr and 0.2 or 0.24, x0 = bx, y0 = 0.6, z0 = 3, dur = hr and 1.0 or 0.5, h = hr and 15 or 4,
+    -- (as he breaks: on a slow play he watches it with the bat still in his hands)
+    local tGo = 0.24
+    for _, r in ipairs(plan.runners) do if r.from == 0 then tGo = max(0.02, r.t0) end end
+    plan.batToss = { t = hr and 0.2 or tGo, x0 = bx, y0 = 0.6, z0 = 3, dur = hr and 1.0 or 0.5, h = hr and 15 or 4,
       spin = hr and 4.5 or 2.2, rest = 20 + floor(K.hash01(b.i, 74) * 140) }
     if hr then plan.batToss.x1, plan.batToss.y1 = bx + side * 3, 5
     else plan.batToss.x1, plan.batToss.y1 = bx - side * (2 + K.hash01(b.i, 75) * 4), -4 - K.hash01(b.i, 76) * 4 end
@@ -1524,28 +1566,69 @@ local function planOther(b, tl, plan)
     local m = b.mvs[1]
     local from = m and m.from or 1
     local id = e.id
-    local tArr = 0.3 + 90 / RUN
-    local r = runner(plan, id, from, e.ok and e.base or -1, 0.3, RUN)
-    if not e.ok then r.stopFrac = 0.92; r.t1 = 0.3 + 90 * 0.92 / RUN end
-    -- pitch + catcher's throw to second
-    local bx, by = basePos(2)
-    seg(plan, { kind = "line", t0 = 0.3, t1 = 0.75, ax = -1.6, ay = 55, az = 6, bx = 0, by = -2, bz = 2.5 })
-    local tThrow = 0.95
-    local tIn = tThrow + 127 / THROW
-    seg(plan, { kind = "line", t0 = tThrow, t1 = tIn, ax = 0, ay = -2, az = 5, bx = bx - 4, by = by, bz = 5.6, arc = 6, throw = true })
-    seg(plan, { kind = "hold", t0 = tIn, t1 = tIn + 0.8, ax = bx - 4, ay = by, az = 5.6 })
-    fmove(plan, "SS", 0.4, tIn - 0.1, ALIGN.SS[1], ALIGN.SS[2], bx - 4, by)
-    fcatch(plan, "SS", tIn, "throw", 0.6)
-    plan.relT = 0.3
-    plan.cthrow = tThrow
-    umpCall(plan, tIn + 0.05, e.ok and "ump_safe" or "ump_strike", 0.9)
-    if not e.ok then r.outAt = tIn + 0.05 end      -- (the tag, not where he pulls up)
-    plan.callT, plan.bannerT = tIn + 0.1, tIn + 0.3
-    plan.slo = { tIn - 0.5, tIn + 0.3 }
-    pop(plan, tIn + 0.1, e.ok and "SAFE!" or "OUT!", bx, by, 10, 1.2)
-    sfx(plan, tIn + 0.1, e.ok and "roar" or "ooh", 0.6)
-    plan.slide = { id = id, t = tIn - 0.3, safe = e.ok and true or false }
-    b.big = e.ok and "STOLEN BASE" or "CAUGHT STEALING"
+    local B = e.base or min(from + 1, 4)
+    local ok = e.ok and true or false
+    local h = K.hash01(b.i, 61)
+    -- Everything is timed off the runner, so the picture makes the sim's call: he breaks with the
+    -- pitcher's first move and has the bag at tArr. Safe: the throw gets there after he does (a
+    -- slow transfer, a softer throw: late). Caught: it's waiting, he slides into the tag short of
+    -- the bag. The pitch, the catcher's release and the throw are solved back from the ball's
+    -- arrival (they differ by a tenth or so between the two, nothing that gives it away).
+    local spd = RUN * 1.06
+    local t0r = 0.5
+    local dist = (B - from) * 90
+    local tArr = t0r + dist / spd
+    local r = runner(plan, id, from, ok and B or -1, t0r, spd)
+    local tIn = ok and (tArr + 0.12 + 0.12 * h) or (tArr - 0.3 - 0.15 * h)
+    local tagT
+    if not ok then
+      -- the tag: on him as he slides in, a step short of the bag
+      r.stopFrac = (dist - 2.5) / dist
+      r.t1 = t0r + dist * r.stopFrac / spd
+      tagT = max(r.t1, tIn + 0.12)
+      r.outAt = tagT
+    end
+    local bx, by = basePos(B)
+    local tRel, tPlate
+    if B == 4 then
+      -- stealing home: the pitch is the throw, the catcher puts the tag on at the plate
+      tPlate = tIn
+      tRel = tPlate - 0.45
+      seg(plan, { kind = "line", t0 = tRel, t1 = tPlate, ax = -1.6, ay = 55, az = 6, bx = 0, by = -2.4, bz = 2.4, tagBall = true })
+      seg(plan, { kind = "hold", t0 = tPlate, t1 = tPlate + 1.0, ax = 0, ay = -2.4, az = 2.4 })
+      plan.receive = tPlate
+    else
+      -- the man covering: the shortstop (or the second baseman) at second, the third baseman at third
+      local rcv = B == 3 and "3B" or (h < 0.7 and "SS" or "2B")
+      local gx, gy = cover(plan, rcv, bx, by, 0, -2, tIn)
+      local rface = atan2(-2 - gy, 0 - gx)
+      local ox, oy, oz = genericGlove("throw", rface)
+      local ex, ey = gx + ox, gy + oy
+      local d = dist2(0, -2, ex, ey)
+      local tv = ok and 96 or 118                    -- ft/s
+      local transfer = ok and 0.42 or 0.28           -- the catcher's catch-and-release
+      local tThrow = tIn - d / tv
+      tPlate = tThrow - transfer
+      tRel = tPlate - 0.45
+      seg(plan, { kind = "line", t0 = tRel, t1 = tPlate, ax = -1.6, ay = 55, az = 6, bx = 0, by = -2, bz = 2.5 })
+      seg(plan, { kind = "hold", t0 = tPlate, t1 = tThrow, ax = 0, ay = -2, az = 2.5 })
+      seg(plan, { kind = "line", t0 = tThrow, t1 = tIn, ax = 0, ay = -2, az = 5, bx = ex, by = ey, bz = oz, arc = d / 21 * (118 / tv), throw = true })
+      seg(plan, { kind = "hold", t0 = tIn, t1 = tIn + 0.8, ax = ex, ay = ey, az = oz })
+      fcatch(plan, rcv, tIn, "throw", 0.6, rface)
+      plan.receive = tPlate
+      plan.cthrow = tThrow
+    end
+    plan.relT = tRel
+    -- the call: once he's in ahead of the ball (safe), or once the tag's on him (out)
+    local callAt = ok and (max(tIn, tArr) + 0.05) or (tagT + 0.05)
+    umpCall(plan, callAt, ok and "ump_safe" or "ump_strike", 0.9)
+    plan.callT, plan.bannerT = callAt + 0.05, callAt + 0.25
+    plan.slo = { min(tIn, tArr) - 0.5, callAt + 0.25 }
+    pop(plan, callAt + 0.05, ok and "SAFE!" or "OUT!", bx, by, 10, 1.2)
+    sfx(plan, callAt + 0.05, ok and "roar" or "ooh", 0.6)
+    -- he goes down a few strides out and slides in (the slide's own clock: Play.drawWorld)
+    plan.slide = { id = id, t = tArr - 0.3, safe = ok }
+    b.big = ok and "STOLEN BASE" or "CAUGHT STEALING"
     b.dur = max(tArr, tIn) + 1.6
   elseif k == "wp" then
     cam(plan, 0, "pitch")
@@ -2624,6 +2707,64 @@ local function idleCatcher(it, n)
   return "catcher", nil
 end
 
+-- the cells that have the bat in his hands (the walker's bat-drag pair is 5-6)
+local BAT_SET <const> = { batter = true, batter_seq = true, bunter = true }
+local function holdsBat(mode, name, tt)
+  local tn, f
+  if mode == "track" or mode == "walkup" then tn, f = Anim.sample(name, tt or 0, 0)
+  elseif mode then tn, f = Pup.tableOf("home", mode == "stance" and "stance" or name) end
+  if not tn then return false end
+  return BAT_SET[tn] or (tn == "walker" and (f or 0) >= 5) or false
+end
+Play.holdsBat = holdsBat
+
+--- The batter's pose at the plate at tau (he's still there: not running, not walking off) →
+--- mode ("stance" | "track" | "idle" | "walkup"), name (track / idle frame), track time, vib
+--- override (1, or false: none; nil keeps the caller's). Once the bat's down (plan.batToss) he
+--- never has it in his hands again: the bat-holding poses become a ready stand, watching it.
+local function batterPose(b, tau)
+  local plan = b.plan
+  local kt = keyTimes()
+  local pitchPlan = plan.pitch
+  local mode, name, tt, v = "stance", "stance", 0, nil
+  if b.kind == "bip" and plan.bunt then
+    -- (the bunt beat starts at the give: the rest of the contact, then out of the box)
+    name = plan.bunt.kind == "drag" and "drag_bunt" or "bunt_contact"
+    mode, tt = "track", tau + Anim.keyTime(name, plan.bunt.kind == "drag" and 3 or 2)
+  elseif plan.bunt and pitchPlan and bunterAt(plan.bunt, tau, pitchPlan.tPlate) then
+    mode = "track"
+    name, tt = bunterAt(plan.bunt, tau, pitchPlan.tPlate)
+    if plan.bunt.miss and tau > pitchPlan.tPlate and tau < pitchPlan.tPlate + 0.4 then v = 1 end   -- whiffed it
+  elseif b.kind == "bip" then
+    if plan.homerBatter then mode, name, tt = "track", "homer_batter", tau
+    else mode, name, tt = "track", "swing", kt.swingLen + tau end
+  elseif plan.hbp and tau >= plan.hbp then
+    mode, name, tt, v = "track", "pratfall", tau - plan.hbp, 1
+  elseif plan.swing then
+    local t0 = plan.swing + 0.12 - kt.swingHit
+    if tau < t0 then mode = "stance"
+    elseif plan.hyperWhiff and tau > t0 + kt.swingLen then
+      -- swung so hard he corkscrewed himself into the dirt
+      mode, name, tt, v = "track", "pratfall", tau - t0 - kt.swingLen, 1
+    else mode, name, tt = "track", "swing", tau - t0 end
+  elseif plan.walkUp and tau < plan.walkUp.t1 + Anim.length("practice") + 0.05 then
+    local wu = plan.walkUp
+    if tau < wu.t1 then mode, name, tt = "walkup", "walk", tau
+    else mode, name, tt, v = "track", "practice", tau - wu.t1, false end
+  end
+  local toss = plan.batToss
+  if toss and tau >= toss.t and holdsBat(mode, name, tt) then mode, name, tt, v = "idle", "stand", 0, nil end
+  return mode, name, tt, v
+end
+--- (harness) the batter's pose as drawn at tau, nil when he isn't at the plate
+function Play.batterPose(b, tau)
+  local plan = b.plan
+  if b.kind == "half" or b.kind == "end" or not b.pre.bat then return nil end
+  for i = 1, #plan.runners do if plan.runners[i].from == 0 and tau >= plan.runners[i].t0 then return nil end end
+  if plan.batterExit and tau >= plan.batterExit.t0 then return nil end
+  return batterPose(b, tau)
+end
+
 function Play.drawWorld(R, view, b, tau)
   WT[1] = clk()
   -- device check: one summary per scene at the first pitch (are the puppets really drawn?)
@@ -2712,7 +2853,8 @@ function Play.drawWorld(R, view, b, tau)
         x, y = 0, -3.2
         if plan.reach and tau >= plan.receive - 0.25 and tau < plan.receive + 0.75 then
           drawReach(R, defV, plan, x, y, tau, seed, big)
-        elseif plan.receive and tau >= plan.receive - kt.recv and tau < plan.receive + 0.7 then
+        elseif plan.receive and tau >= plan.receive - kt.recv and tau < plan.receive + 0.7
+            and not (plan.cthrow and tau >= plan.cthrow - kt.cthrow) then
           putTrack(R, defV, "catcher_receive", tau - (plan.receive - kt.recv), x, y, 0, false, seed, big, nil, FACE_CF)
         elseif plan.cthrow and tau >= plan.cthrow - kt.cthrow and tau < plan.cthrow + 0.6 then
           putTrack(R, defV, "catcher_throw", tau - (plan.cthrow - kt.cthrow), x, y, 0, false, seed, big, nil, FACE_CF)
@@ -2802,39 +2944,20 @@ function Play.drawWorld(R, view, b, tau)
     if idle then
       local fr, dx, ivib = idleBatter(idle, n)
       putIdle(R, offV, fr, x - side * dx, y - (dx > 0 and 1.2 or 0), 0, fl, seed, n, ivib or vib, bf)
-    elseif b.kind == "bip" and plan.bunt then
-      -- (the bunt beat starts at the give: the rest of the contact, then out of the box)
-      local tr = plan.bunt.kind == "drag" and "drag_bunt" or "bunt_contact"
-      putTrack(R, offV, tr, tau + Anim.keyTime(tr, plan.bunt.kind == "drag" and 3 or 2), x, y, 0, fl, seed, vib, nil, bf)
-    elseif plan.bunt and pitchPlan and bunterAt(plan.bunt, tau, pitchPlan.tPlate) then
-      local tr, tt = bunterAt(plan.bunt, tau, pitchPlan.tPlate)
-      if plan.bunt.miss and tau > pitchPlan.tPlate and tau < pitchPlan.tPlate + 0.4 then vib = 1 end   -- whiffed it
-      putTrack(R, offV, tr, tt, x, y, 0, fl, seed, vib, nil, bf)
-    elseif b.kind == "bip" then
-      if plan.homerBatter then putTrack(R, offV, "homer_batter", tau, x, y, 0, fl, seed, vib, nil, bf)
-      else putTrack(R, offV, "swing", kt.swingLen + tau, x, y, 0, fl, seed, vib, nil, bf) end
-    elseif plan.hbp and tau >= plan.hbp then
-      putTrack(R, offV, "pratfall", tau - plan.hbp, x, y, 0, fl, seed, 1, nil, bf)
-    elseif plan.swing then
-      local t0 = plan.swing + 0.12 - kt.swingHit
-      if tau < t0 then putIdleXf(R, offV, "stance", x, y, fl, seed, n, vib, bf, st[1], st[2], st[3])
-      elseif plan.hyperWhiff and tau > t0 + kt.swingLen then
-        -- swung so hard he corkscrewed himself into the dirt
-        putTrack(R, offV, "pratfall", tau - t0 - kt.swingLen, x, y, 0, fl, seed, 1, nil, bf)
-      else putTrack(R, offV, "swing", tau - t0, x, y, 0, fl, seed, vib, nil, bf) end
-    elseif plan.walkUp and tau < plan.walkUp.t1 + Anim.length("practice") + 0.05 then
-      local wu = plan.walkUp
-      if tau < wu.t1 then
+    else
+      local mode, name, tt, v = batterPose(b, tau)
+      if v ~= nil then vib = v or nil end
+      if mode == "stance" then putIdleXf(R, offV, "stance", x, y, fl, seed, n, vib, bf, st[1], st[2], st[3])
+      elseif mode == "walkup" then
         -- up from the on-deck circle (TV-cheated close), bat on the shoulder
         local od = ONDECK[offV]
-        local u = tau / wu.t1
+        local u = tau / plan.walkUp.t1
         local wx, wy = od[1] + (x - od[1]) * u, od[2] + (y - od[2]) * u
-        putTrack(R, offV, "walk", tau, wx, wy, 0, false, seed, nil, nil, yawTo(wx, wy, x, y))
-      else
-        putTrack(R, offV, "practice", tau - wu.t1, x, y, 0, fl, seed, nil, nil, bf)
-      end
-    else
-      putIdleXf(R, offV, "stance", x, y, fl, seed, n, vib, bf, st[1], st[2], st[3])
+        putTrack(R, offV, name, tt, wx, wy, 0, false, seed, nil, nil, yawTo(wx, wy, x, y))
+      elseif mode == "idle" then
+        -- the bat's down and he hasn't gone yet: watching it, ready to break for first
+        putIdle(R, offV, name, x, y, 0, false, seed, n, vib, yawTo(x, y, 63.64, 63.64))
+      elseif mode == "track" then putTrack(R, offV, name, tt, x, y, 0, fl, seed, vib, nil, bf) end
     end
   end
 
@@ -2899,7 +3022,9 @@ function Play.drawWorld(R, view, b, tau)
         else
           -- thrown out: the slide (feet-first or head-first), then the slump; then he trudges off
           local tr = slideTrack(r.id, false)
-          if tau < r.t1 + Anim.length(tr) + 0.6 then putTrack(R, offV, tr, tau - r.t1, x, y, 0, false, seed, nil, nil, rf)
+          -- (caught stealing: the slide he started short of the bag, on its own clock)
+          local ts = (plan.slide and plan.slide.id == r.id) and plan.slide.t or r.t1
+          if tau < ts + Anim.length(tr) + 0.6 then putTrack(R, offV, tr, tau - ts, x, y, 0, false, seed, nil, nil, rf)
           else putIdle(R, offV, "walk1", x, y, 0, false, seed, n, nil, rf) end
         end
       elseif plan.slide and plan.slide.id == r.id and tau > plan.slide.t

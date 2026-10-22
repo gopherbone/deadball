@@ -587,13 +587,24 @@ function Page:cranked(change)
 end
 
 local DIRS <const> = { up = { 0, -1 }, down = { 0, 1 }, left = { -1, 0 }, right = { 1, 0 } }
+--- (app/scene.lua) Buttons that were down when the screen changed: their holds/repeats stop here.
+function Page:inputLatched(set)
+  for k in pairs(set) do self.held[k] = nil end
+  if set.B then self.bDown = false end
+end
+
 function Page:repeatKeys()
   for k, t in pairs(self.held) do
-    t += 1
-    self.held[k] = t
-    if t >= REPEAT_DELAY and (t - REPEAT_DELAY) % REPEAT_RATE == 0 then
-      local d = DIRS[k]
-      self:moveFocus(d[1], d[2])
+    -- (only while it's still down from a press on this page: a release we didn't see ends it)
+    if not App.isHeld(k) then
+      self.held[k] = nil
+    else
+      t += 1
+      self.held[k] = t
+      if t >= REPEAT_DELAY and (t - REPEAT_DELAY) % REPEAT_RATE == 0 then
+        local d = DIRS[k]
+        self:moveFocus(d[1], d[2])
+      end
     end
   end
 end

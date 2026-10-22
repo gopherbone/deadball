@@ -672,6 +672,8 @@ end
 
 function TV.holding() return seg ~= nil end
 function TV.active() return seg ~= nil or outro ~= nil end
+--- The swing-cam inset that's up (its pitch number), or false (the scene latches input on a change).
+function TV.pipUp() return G and G.pipShowing or false end
 
 --- The scene jumped ahead within the beat (A: the next camera shot) to plan time tau: what the
 --- jump passed over (the banner's impact hit) doesn't fire on the way.

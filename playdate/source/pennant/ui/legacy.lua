@@ -1,7 +1,7 @@
 --[[ The legacy layer's screens (pennant/legacy.lua):
-  Inspire      Opening Day's legacy, an inspiration (weeks 9 / 18 of 26), run 1's alumni card:
-               the sparks roll one by one (B skips), the season's legacy points against the cap
-  RunEnd       the season's end: grades, then sparks, then who stays (keep 1 / 2 / 3)
+  Inspire      Opening Day's legacy, an alumni visit (weeks 9 / 18 of 26), run 1's alumni card:
+               the pointers roll one by one (B skips), the season's legacy points against the cap
+  RunEnd       the season's end: grades, then pointers, then who stays (keep 1 / 2 / 3)
   RunChoice    continue the career (after a pennant) / end the run / the run is over
   LegacyPick   a new run: two legacies, their chemistry, what they should do
   DeckPick     a new run: the alumni deck and Pennant Heat
@@ -68,7 +68,7 @@ local function blackTop(left, right, chem)
   end
 end
 
--- INSPIRE: Opening Day / an inspiration / run 1's card ---------------------------------------------
+-- INSPIRE: Opening Day / an alumni visit / run 1's card ---------------------------------------------
 
 local Insp = scene("Inspire")
 
@@ -85,7 +85,7 @@ local function inspBg(self)
   black()
   local left
   if self.mode == "opening" then left = (self.res and self.res.half) and ("SEASON " .. L.season .. " \u{2022} THE LEGACY, HALF STRENGTH") or "OPENING DAY \u{2022} YOUR LEGACY"
-  else left = "WEEK " .. ((self.res and self.res.w) or "?") .. " \u{2022} INSPIRATION" end
+  else left = "WEEK " .. ((self.res and self.res.w) or "?") .. " \u{2022} ALUMNI VISIT" end
   blackTop(left, "CHEMISTRY " .. (R.chem or 0), G.chemMark(R.chem or 0))
   -- the cap panel's frame and the summary's
   white()
@@ -135,8 +135,8 @@ function Insp:paintIntro()
   Text.draw("THE ALUMNI HALL", 36, Text.boxY(F().bold, 24, 16), F().bold, "white")
   Text.draw("RUN 1", 364, Text.boxY(F().body, 24, 16), F().body, "white", "right")
   local y = 46
-  y = y + Text.block("Every run is one pennant race. When it ends, your best players are graded and get SPARKS. Keep 1 for any finish, 2 for the playoffs, 3 for the pennant.", 40, y, 320, F().body, nil, 4) + 6
-  y = y + Text.block("Make the playoffs once and every new run starts with two alumni as LEGACIES (their sparks boost whole units) and a DECK of alumni who turn up at your weekly programs.", 40, y, 320, F().body, nil, 4) + 6
+  y = y + Text.block("Every run is one pennant race. When it ends, your best players are graded and leave POINTERS. Keep 1 for any finish, 2 for the playoffs, 3 for the pennant.", 40, y, 320, F().body, nil, 4) + 6
+  y = y + Text.block("Make the playoffs once and every new run starts with two alumni as LEGACIES (their pointers boost whole units) and a DECK of alumni who turn up at your weekly programs.", 40, y, 320, F().body, nil, 4) + 6
   y = y + Text.block("Win the pennant and you can keep the club going.", 40, y, 320, F().bold, nil, 2)
   PUI.hintBar("A: play ball")
   gfx.popContext()
@@ -155,7 +155,8 @@ function Insp:row(i, done)
   if lit then white() gfx.fillRect(0, 0, w, h) black() else white() gfx.drawRect(0, 0, w, h) end
   local col = (not lit) and "white" or nil
   local cx, cw = 150, 98
-  local res = done and (r.res or (r.ok and "FIRED" or "NO SPARK")) or (r.pct and (r.pct .. "% TO FIRE") or "\u{2026}")
+  -- (a save from before pointers kept "NO SPARK")
+  local res = done and ((r.res ~= "NO SPARK" and r.res) or (r.ok and "TOOK" or "DIDN'T TAKE")) or (r.pct and (r.pct .. "% TO TAKE") or "\u{2026}")
   if self.compact then
     local who = (r.via and (r.who .. "*") or r.who)
     local s = Text.ellipsize(who .. ": " .. r.spark, F().body, cx - 8)
@@ -200,7 +201,7 @@ function Insp:paintCaps()
     if w1 > 0 then gfx.setPattern(UI.pat.gray) gfx.fillRect(3 + w0, by + 1, max(0, min(100 - w0, w1)), 5) black() end
     y = y + hh
   end
-  if n == 0 then Text.block("No rating sparks this time.", 2, 2, 120, F().body, nil, 3) end
+  if n == 0 then Text.block("No rating pointers this time.", 2, 2, 120, F().body, nil, 3) end
   gfx.popContext()
   self.capsImg = img
 end
@@ -215,12 +216,12 @@ function Insp:summary()
   local l1, l2
   if self.mode == "opening" then
     l1 = "OPENING DAY: +" .. pts .. " RATING POINTS ACROSS THE CLUB"
-    if self.res.half then l2 = "THE CAREER GOES ON: NO INSPIRATIONS, HEAT " .. (L.run.heat or 0)
-    else local wk = G.inspWeeks(L) l2 = "SPARKS MAY FIRE AGAIN IN WEEKS " .. wk[1] .. " AND " .. wk[2] end
+    if self.res.half then l2 = "THE CAREER GOES ON: NO ALUMNI VISITS, HEAT " .. (L.run.heat or 0)
+    else local wk = G.inspWeeks(L) l2 = "THE ALUMNI VISIT AGAIN IN WEEKS " .. wk[1] .. " AND " .. wk[2] end
   else
-    l1 = fired .. " OF " .. #self.rows .. " FIRED \u{2022} +" .. pts .. " RATING POINTS"
+    l1 = fired .. " OF " .. #self.rows .. " TOOK \u{2022} +" .. pts .. " RATING POINTS"
     local wk = G.inspWeeks(L)
-    l2 = self.i == 1 and ("NEXT INSPIRATION: WEEK " .. wk[2] .. " (AFTER THE ALL-STAR BREAK)") or "THAT'S THE LAST ONE THIS SEASON"
+    l2 = self.i == 1 and ("NEXT ALUMNI VISIT: WEEK " .. wk[2] .. " (AFTER THE ALL-STAR BREAK)") or "THAT'S THE LAST ONE THIS SEASON"
   end
   Text.draw(Text.ellipsize(l1, F().bold, 380), 6, 3, F().bold)
   Text.draw(Text.ellipsize(l2, F().body, 380), 6, 19, F().body)
@@ -301,7 +302,7 @@ end
 PWeek.addStop({ id = "inspire", due = function(L) return (G.unseenInsp(L)) end,
   open = function(L, i, onDone) PennantUI.Inspire.open({ mode = "insp", i = i, onDone = onDone }) end })
 
--- RUN END: grades, sparks, who stays ----------------------------------------------------------------
+-- RUN END: grades, pointers, who stays ----------------------------------------------------------------
 
 local RunEnd = scene("RunEnd")
 local CW <const>, CH <const> = 124, 80
@@ -321,7 +322,7 @@ function RunEnd:enter(args)
   self.imgs = {}
   local n = #self.cands
   self.tFront = function(i) return 8 + (i - 1) * 9 end
-  self.tSpark = function(i) return 8 + n * 9 + 10 + (i - 1) * 8 end
+  self.tPointer = function(i) return 8 + n * 9 + 10 + (i - 1) * 8 end
   self.tEnd = 8 + n * 9 + 10 + n * 8 + 6
   self:paintBase()
   Sfx.stinger(L.champ == L.user and "win" or "new_mail")
@@ -335,7 +336,7 @@ function RunEnd:paintBase()
     Draw.tile(0, 0, 400, 240, "light")
     local fin = self.E.fin
     local left = L.year .. " IS OVER \u{2022} " .. (fin == "PENNANT" and "PENNANT WON" or (fin == "PLAYOFFS" and "PLAYOFFS" or ("FINISHED " .. fin)))
-    blackTop(left, k == 1 and "GRADES & SPARKS" or "WHO STAYS ON AS ALUMNI?")
+    blackTop(left, k == 1 and "GRADES & POINTERS" or "WHO STAYS ON AS ALUMNI?")
     gfx.popContext()
     self["base" .. k] = img
   end
@@ -386,15 +387,15 @@ function RunEnd:card(i, stage, kept)
     Text.draw(Text.ellipsize(c.line, F().body, CW - 42), 38, 17, F().body)
     Text.draw(Text.ellipsize(c.note, F().body, CW - 42), 38, 30, F().body)
     Draw.dotted(5, CW - 5, 45)
-    Text.draw(stage == 2 and "SPARKS" or "SCORE", 5, 47, F().body)
+    Text.draw(stage == 2 and "POINTERS" or "SCORE", 5, 47, F().body)
     Text.draw(tostring(c.score), CW - 5, 47, F().bold, nil, "right")
     if stage == 2 then
       local st, other = nil, nil
       for _, s in ipairs(c.sparks) do
         if s.k == "stat" then st = s elseif s.k == "trait" then other = s elseif not other then other = s end
       end
-      local s1 = G.sparkName(st)
-      if F().bold:getTextWidth(s1) > 72 then s1 = G.sparkShort(st) end
+      local s1 = G.pointerName(st)
+      if F().bold:getTextWidth(s1) > 72 then s1 = G.pointerShort(st) end
       chip(4, 62, 74, 14, s1, true)
       if other then chip(81, 62, 39, 14, other.k == "trait" and other.t or "PNT\u{2605}", false, F().body) end
       local hasP = false
@@ -423,9 +424,9 @@ function RunEnd:update()
     local x, y = cardXY(i)
     local stage = 2
     if not bank then
-      stage = self.t >= self.tSpark(i) and 2 or (self.t >= self.tFront(i) and 1 or 0)
+      stage = self.t >= self.tPointer(i) and 2 or (self.t >= self.tFront(i) and 1 or 0)
       if self.t == self.tFront(i) then Sfx.tick() end
-      if self.t == self.tSpark(i) then local s = self.cands[i].sparks[1] if s and s.s == 3 then Sfx.coin() else Sfx.focus() end end
+      if self.t == self.tPointer(i) then local s = self.cands[i].sparks[1] if s and s.s == 3 then Sfx.coin() else Sfx.focus() end end
     end
     local on = bank and self.sel == i
     self:card(i, stage, self.kept[i]):draw(x, on and y - 2 or y)
@@ -548,7 +549,7 @@ function Choice:enter(args)
   if self.can then
     if R.old then lines[#lines + 1] = { "This career began before runs: carry on as always, or end it and start a run with your alumni." }
     elseif (R.endless or 0) > 0 and not champ then lines[#lines + 1] = { "The career goes on until two losing seasons in a row (or you call it)." }
-    else lines[#lines + 1] = { "CONTINUE: same club, aging and the farm as ever. Heat +1 a season. Your legacies give half on Opening Day, no inspirations. Bank 1 a season (2 with a pennant)." } end
+    else lines[#lines + 1] = { "CONTINUE: same club, aging and the farm as ever. Heat +1 a season. Your legacies give half on Opening Day, no alumni visits. Bank 1 a season (2 with a pennant)." } end
   else
     lines[#lines + 1] = { "Your alumni stay in the Hall. A new run starts with a new league; pick your club, your legacies and your deck." }
     if (R.losing or 0) >= 2 then lines[#lines + 1] = { "Two losing seasons running: the career is over." } end
@@ -626,7 +627,7 @@ function PennantUI.endRun(L, toTitle)
   end)
 end
 
---- Pennant.seasonEndHooks: grades and sparks, the keep, the Hall of Fame, then carry on or not.
+--- Pennant.seasonEndHooks: grades and pointers, the keep, the Hall of Fame, then carry on or not.
 function PennantUI.legacyEnd(L, nx)
   local R = G.ensure(L)
   local function choice()
@@ -674,13 +675,13 @@ local function parentCard(a, x, y, w, h)
   local l1 = (a.fin == "PENNANT" and ("PENNANT " .. a.year)) or (a.fin == "PLAYOFFS" and ("PLAYOFFS " .. a.year)) or (a.year .. " \u{2022} " .. (a.club or ""))
   Text.draw(Text.ellipsize(l1, F().body, w - 42), x + 37, y + 18, F().body)
   Text.draw(Text.ellipsize(a.note or a.line or "", F().body, w - 42), x + 37, y + 30, F().body)
-  Text.draw("HIS SPARKS", x + 6, y + 45, F().body)
+  Text.draw("HIS POINTERS", x + 6, y + 45, F().body)
   local sy = y + 58
   for _, s in ipairs(a.sparks or {}) do
     local dark = s.k == "stat"
     if dark then black() gfx.fillRect(x + 5, sy, w - 10, 13) else white() gfx.fillRect(x + 5, sy, w - 10, 13) black() gfx.drawRect(x + 5, sy, w - 10, 13) end
     local col = dark and "white" or nil
-    local nmS = G.sparkName(s)
+    local nmS = G.pointerName(s)
     Text.draw(nmS, x + 9, Text.boxY(F().bold, sy, 13, nmS), F().bold, col)
     Text.draw(s.k == "stat" and "STAT" or (s.k == "trait" and "TRAIT" or "PRIDE"), x + w - 9, Text.boxY(F().body, sy, 13), F().body, col, "right")
     sy = sy + 15
@@ -689,7 +690,7 @@ local function parentCard(a, x, y, w, h)
   Text.draw("FROM HIS LEGACY", x + 6, sy, F().body)
   sy = sy + 12
   local inh = {}
-  for _, gp in ipairs(a.par or {}) do for _, s in ipairs(gp.sp or {}) do inh[#inh + 1] = gp.n:upper() .. ": " .. G.sparkShort(s) .. (s.k == "trait" and (" " .. G.STARS[s.s]) or "") end end
+  for _, gp in ipairs(a.par or {}) do for _, s in ipairs(gp.sp or {}) do inh[#inh + 1] = gp.n:upper() .. ": " .. G.pointerShort(s) .. (s.k == "trait" and (" " .. G.STARS[s.s]) or "") end end
   if #inh == 0 then Text.draw("(none: he was run 1's)", x + 10, sy, F().body) end
   for i = 1, min(2, #inh) do
     local s = (i == 2 and #inh > 2) and (inh[i] .. " +" .. (#inh - 2)) or inh[i]
@@ -730,7 +731,7 @@ function Pick:paint()
   white() gfx.fillRect(bx, by, bw, bh) black() gfx.drawRect(bx, by, bw, bh)
   gfx.fillRect(bx, by, bw, 13)
   local wk = L and G.inspWeeks(L) or { 9, 18 }
-  local head = "SPARKS FIRE ON OPENING DAY, THEN MAY FIRE AGAIN IN WEEKS " .. wk[1] .. " AND " .. wk[2]
+  local head = "POINTERS PAY OFF ON OPENING DAY; THE ALUMNI VISIT IN WEEKS " .. wk[1] .. " AND " .. wk[2]
   Text.draw(Text.ellipsize(head, F().bold, bw - 10), bx + 5, Text.boxY(F().bold, by, 13, head), F().bold, "white")
   local ex, traits = G.expect({ self.leg[1], self.leg[2] }, chem)
   local y = by + 16
@@ -739,13 +740,13 @@ function Pick:paint()
     Text.draw(Text.ellipsize(e.unit .. " " .. PM.LABEL[e.a]:upper() .. "  +" .. e.now .. " NOW, UP TO +" .. e.upto, F().body, 220), bx + 5, y, F().body)
     y = y + 13
   end
-  if #ex == 0 then Text.draw("No rating sparks.", bx + 5, y, F().body) end
+  if #ex == 0 then Text.draw("No rating pointers.", bx + 5, y, F().body) end
   local rx = bx + bw - 5
   Text.draw("TRAITS MAY CARRY OVER:", rx, by + 16, F().body, nil, "right")
   local seen, tl = {}, {}
   for _, t in ipairs(traits) do if not seen[t] then seen[t] = true tl[#tl + 1] = t end end
   Text.draw(Text.ellipsize(#tl > 0 and table.concat(tl, " \u{2022} ") or "NONE", F().bold, 150), rx, by + 29, F().bold, nil, "right")
-  Text.draw("CHEMISTRY " .. chem .. ": +" .. chem .. "% TO FIRE AGAIN", rx, by + 42, F().body, nil, "right")
+  Text.draw("CHEMISTRY " .. chem .. ": +" .. chem .. "% TO TAKE AGAIN", rx, by + 42, F().body, nil, "right")
   gfx.popContext()
   self.img = img
 end
@@ -848,12 +849,12 @@ function Deck:layout(Lb)
   white() gfx.fillRect(6, y, 388, 24) black() gfx.drawRect(6, y, 388, 24)
   Text.draw("PENNANT HEAT", 12, Text.boxY(F().bold, y, 24), F().bold)
   Text.draw("\u{25c0} " .. h .. " \u{25b6}", 150, Text.boxY(F().bold, y, 24), F().bold, nil, "center")
-  local hs = h == 0 and "THE LEAGUE AS IT COMES" or ("AI CLUBS +" .. G.heatOf(h) .. " IN GAMES \u{2022} \u{2605}\u{2605}\u{2605} SPARKS +" .. (5 * h) .. "%")
+  local hs = h == 0 and "THE LEAGUE AS IT COMES" or ("AI CLUBS +" .. G.heatOf(h) .. " IN GAMES \u{2022} \u{2605}\u{2605}\u{2605} POINTERS +" .. (5 * h) .. "%")
   Text.draw(Text.ellipsize(hs, F().body, 210), 388, Text.boxY(F().body, y, 24, hs), F().body, nil, "right")
   Lb:link(6, y, 388, 24, function() self.heat = (self.heat + 1) % (G.HEAT_MAX + 1) self:render(true) end,
-    PUI.opts("heat", "\u{25c0}\u{25b6} Heat 0-10: tougher clubs, better sparks", function(d) self.heat = math.max(0, math.min(G.HEAT_MAX, self.heat + d)) end, "ring"))
+    PUI.opts("heat", "\u{25c0}\u{25b6} Heat 0-10: tougher clubs, better pointers", function(d) self.heat = math.max(0, math.min(G.HEAT_MAX, self.heat + d)) end, "ring"))
   y = y + 30
-  Lb:button("Play ball!", 140, y, 120, 20, function() self:go() end, { id = "go", hint = "Opening Day: the legacy fires" })
+  Lb:button("Play ball!", 140, y, 120, 20, function() self:go() end, { id = "go", hint = "Opening Day: the legacy pays off" })
   Lb:mark(y + 24)
 end
 
@@ -901,7 +902,7 @@ local function alumRow(a, x, y, w)
   Text.draw(Text.ellipsize(G.short(a):upper() .. " \u{2022} " .. G.posOf(a), F().bold, 150), x + 38, y + 1, F().bold)
   Text.draw(Text.ellipsize("RUN " .. (a.run or "?") .. " \u{2022} " .. (a.year or "") .. " " .. (a.club or "") .. " \u{2022} " .. (a.line or ""), F().body, 170), x + 38, y + 13, F().body)
   local sp = {}
-  for _, s in ipairs(a.sparks or {}) do sp[#sp + 1] = G.sparkShort(s) end
+  for _, s in ipairs(a.sparks or {}) do sp[#sp + 1] = G.pointerShort(s) end
   Text.draw(Text.ellipsize(table.concat(sp, " \u{2022} "), F().body, 160), x + w - 4, y + 1, F().body, nil, "right")
   Text.draw(tostring(a.score or 0), x + w - 4, y + 13, F().bold, nil, "right")
 end
@@ -1074,7 +1075,7 @@ function Info:layout(Lb)
     y = y + 14
     for _, a in ipairs(R.leg) do
       local sp = {}
-      for _, s in ipairs(a.sparks or {}) do sp[#sp + 1] = G.sparkName(s) end
+      for _, s in ipairs(a.sparks or {}) do sp[#sp + 1] = G.pointerName(s) end
       Text.draw(Text.ellipsize(G.short(a):upper() .. " (" .. a.grade .. "): " .. table.concat(sp, " \u{2022} "), F().body, 386), 10, y, F().body)
       y = y + 13
     end
@@ -1089,8 +1090,8 @@ function Info:layout(Lb)
     y = y + 13
     local wk = G.inspWeeks(L)
     local ins = {}
-    for i = 1, 2 do local r = R.insp["i" .. i] ins[#ins + 1] = "WEEK " .. wk[i] .. (r and (": " .. r.fired .. "/" .. #r.rows .. " FIRED") or "") end
-    if (R.endless or 0) == 0 then Text.draw("INSPIRATIONS: " .. table.concat(ins, " \u{2022} "), 10, y, F().body) y = y + 13 end
+    for i = 1, 2 do local r = R.insp["i" .. i] ins[#ins + 1] = "WEEK " .. wk[i] .. (r and (": " .. r.fired .. "/" .. #r.rows .. " TOOK") or "") end
+    if (R.endless or 0) == 0 then Text.draw("ALUMNI VISITS: " .. table.concat(ins, " \u{2022} "), 10, y, F().body) y = y + 13 end
   else
     Text.block(G.unlocked() and "This run started without legacies." or "No legacy yet: make the playoffs once and new runs start with two alumni.", 10, y, 380, F().body, nil, 2)
     y = y + 28

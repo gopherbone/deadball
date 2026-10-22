@@ -48,6 +48,7 @@ function Amount:BButtonDown() Sfx.back() App.pop() if self.opts.onDone then self
 
 function Amount:update(covered)
   self.t += 1
+  if self.hold and not App.isHeld(self.hold > 0 and "up" or "down") then self.hold = nil end
   if self.hold and not covered then
     self.holdT += 1
     if self.holdT > 8 and self.holdT % 2 == 0 then self:set(self.value + self.hold * step(self.value - (self.hold < 0 and 1 or 0))) end

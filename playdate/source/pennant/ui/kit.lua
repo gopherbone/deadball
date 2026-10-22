@@ -244,7 +244,7 @@ function Base:update(covered)
 end
 
 function Base:updateInner(covered)
-  if not covered and playdate.buttonIsPressed(playdate.kButtonB) and self.bDown then
+  if not covered and App.isHeld("B") and self.bDown then
     self.bHeld = (self.bHeld or 0) + 1
     if self.bHeld == 15 and Pennant.hub and App.top() == self and self ~= Pennant.hub then
       self.heldHome = true

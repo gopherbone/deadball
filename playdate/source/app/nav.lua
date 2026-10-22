@@ -141,7 +141,8 @@ function Nav.consumeHoldB()
 end
 
 local function trackHoldB()
-  if playdate.buttonIsPressed(playdate.kButtonB) then
+  -- (only a B pressed on this screen: one still down from the screen before doesn't count)
+  if App.isHeld("B") then
     Nav.holdB += 1
     if Nav.holdB == Nav.HOLD_B and Nav.ready and Sites.Desktop.instance and App.top() ~= Sites.Desktop.instance
       and not (App.top() and App.top().ownHoldB) and not Nav.offline then

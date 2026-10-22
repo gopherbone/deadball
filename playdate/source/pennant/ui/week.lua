@@ -8,7 +8,11 @@
     cards       the five programs: what they move this week, the facility level, the injury risk
                 (a "with" slot for future mentors sits in the icon box: PWeek.withSlot)
     intensity   LIGHT / NORMAL / HARD, and REST WEEK
-    THIS WEEK   the week's games; the featured one (you play it live) is starred
+    THIS WEEK   the week's games; the featured one is starred. Each game's glyph says how it's
+                played (blank: sim, eye: watch, bat, ball: pitch, both); the strip is a focus row
+  Focus rows (up/down): the program cards (left/right: the program), the intensity (left/right),
+  the games strip (left/right: a game, A cycles SIM / WATCH / BAT / PITCH / BAT+PITCH). A on the
+  cards or the intensity runs the week.
   B: the OFFICE (everything else, none of it required).
 
   Drawing: a static base (bars, the left column, the strip) and one image per card / intensity
@@ -32,6 +36,50 @@ function Week.open(args) local s = setmetatable({}, Week) App.push(s, args) retu
 -- geometry
 local CX0 <const>, CW <const>, CG <const>, CY <const>, CH <const> = 103, 55, 4, 40, 107
 local SEL_REST <const> = 6
+local ROW_CARDS <const>, ROW_INT <const>, ROW_GAMES <const> = 1, 2, 3
+local STRIP_Y <const>, STRIP_H <const> = 201, 21
+
+-- The mode glyphs (blank: sim, an eye: watch, a bat, a ball: pitch, bat and ball: both), 15 x 11,
+-- cached per mode and colour.
+local glyphs = {}
+function PennantUI.modeGlyph(mode, white)
+  if mode == "sim" or not mode then return nil end
+  local key = mode .. (white and "w" or "b")
+  local img = glyphs[key]
+  if img then return img end
+  img = gfx.image.new(15, 11, gfx.kColorClear)
+  gfx.pushContext(img)
+  gfx.setColor(white and gfx.kColorWhite or gfx.kColorBlack)
+  local function bat(x0, y0, x1, y1)
+    local mx, my = (x0 + x1) // 2, (y0 + y1) // 2
+    gfx.setLineWidth(1) gfx.drawLine(x0, y0, mx, my)
+    gfx.setLineWidth(3) gfx.drawLine(mx, my, x1, y1)
+    gfx.setLineWidth(1)
+  end
+  local function ball(cx, cy, r)
+    gfx.drawCircleAtPoint(cx, cy, r)
+    if r >= 4 then
+      gfx.drawArc(cx - r - 3, cy, r + 1, 60, 120)
+      gfx.drawArc(cx + r + 3, cy, r + 1, 240, 300)
+    else
+      gfx.fillCircleAtPoint(cx, cy, 1)
+    end
+  end
+  if mode == "watch" then
+    gfx.drawEllipseInRect(1, 1, 13, 9)
+    gfx.fillCircleAtPoint(7, 5, 2)
+  elseif mode == "bat" then
+    bat(2, 10, 12, 1)
+  elseif mode == "pitch" then
+    ball(7, 5, 5)
+  elseif mode == "both" then
+    bat(0, 10, 7, 2)
+    ball(11, 6, 3)
+  end
+  gfx.popContext()
+  glyphs[key] = img
+  return img
+end
 
 --- The legacy hook: faces / marks in a program card's "with" slot (the icon box). nil = none.
 --- (pennant/ui/legacy.lua draws the alumni deck there; PWeek.withKey is its part of the card key)
@@ -43,6 +91,7 @@ function Week:enter()
   self.sel = SEL_REST
   for i, k in ipairs(PWeek.PROGS) do if k == c.prog then self.sel = i end end
   self.cards = {}
+  self.row, self.gameSel = ROW_CARDS, nil
   self.t = 0
   self.check = true
   self.frame = gfx.image.new(400, 240, gfx.kColorWhite)
@@ -51,6 +100,9 @@ end
 function Week:resume()
   self.stale = true
   self.check = true
+  -- (a game's mode may have changed in the Office, or a day gone by)
+  self.strip = nil
+  self.frameDirty = true
   if not Sfx.currentMusic() then Sfx.music("ragtime", { loop = true, fade = 1 }) end
 end
 
@@ -74,10 +126,8 @@ function Week:stamp()
   for _, k in ipairs(PWeek.PROGS) do f[#f + 1] = c.fac[k] .. ":" .. (c.fxp[k] or 0) end
   local own = 0
   for _ in pairs(c.own) do own = own + 1 end
-  local play = 0
-  for _ in pairs(c.play) do play = play + 1 end
   return table.concat({ L.season, L.day, L.phase, L.dayCount or 0, #L.news, table.concat(T.order or {}, ","), #T.ml, #T.farm,
-    table.concat(f, ","), own, play, tostring(c.featSkip), tostring(c.goal and c.goal.state), tostring(c.noRest), tostring(c.wk and c.wk.w), PWeek.energy(L), tostring(c.goal and c.goal.text) }, "|")
+    table.concat(f, ","), own, tostring(c.goal and c.goal.state), tostring(c.noRest), tostring(c.wk and c.wk.w), PWeek.energy(L), tostring(c.goal and c.goal.text) }, "|")
 end
 
 -- Pending business on arrival: a finished week's report, a goal's reward, the month's goals.
@@ -123,6 +173,7 @@ function Week:rebuildInner()
   self.detail = {}
   self.intImg = {}
   self.base = self:paintBase()
+  self.strip = nil
   self.frameDirty = true
   -- a Rally Week ready: its card's alumni flash
   self.rally = PLegacy and PLegacy.rallyAny(L) or false
@@ -275,6 +326,7 @@ function Week:days()
   local sp = self.sp
   local out = {}
   local feat = PWeek.featuredDay(L)
+  local po = sp.po
   local function chip(d)
     local day = L.sched[d]
     if not day then return end
@@ -283,7 +335,8 @@ function Week:days()
     if not g then return end
     local home = g.h == L.user
     local opp = home and g.a or g.h
-    local e = { d = d, t = (home and "" or "@") .. opp, feat = d == feat and not c.featSkip, pick = c.play["d" .. d] }
+    local e = { d = d, t = (home and "" or "@") .. opp, feat = not po and d == feat }
+    e.mode, e.why = PWeek.modeFor(L, d, feat or false)
     if g.done then
       local me, them = home and g.hs or g.as, home and g.as or g.hs
       e.t = (me > them and "W " or "L ") .. me .. "-" .. them
@@ -305,33 +358,67 @@ function Week:days()
   return out
 end
 
-function Week:paintStrip()
+--- The games strip, cached (rebuilt when a mode or the focus changes): the week's days as chips,
+--- each with its mode glyph; the focused chip (the strip row) is inverted.
+function Week:stripImg()
+  if self.strip then return self.strip end
   local list = self:days()
-  local y, h = 201, 21
+  self.chips = list
+  local img = self.stripCanvas or gfx.image.new(400, STRIP_H + 6, gfx.kColorClear)
+  self.stripCanvas = img
+  img:clear(gfx.kColorClear)
+  gfx.pushContext(img)
+  local y, h = 5, STRIP_H
   local n = math.max(7, #list)
   local w = (392 - (n - 1) * 3) // n
+  local focus = self.row == ROW_GAMES and self.gameSel
   for i, e in ipairs(list) do
     local x = 4 + (i - 1) * (w + 3)
     local today = e.d == L_().day
+    local on = focus == e.d
     if e.off then
       gfx.setPattern(UI.pat.light) gfx.fillRect(x, y, w, h) gfx.setColor(gfx.kColorBlack)
       gfx.drawRect(x, y, w, h)
-    elseif e.won then
+    elseif e.won or on then
       gfx.fillRect(x, y, w, h)
     else
       gfx.setColor(gfx.kColorWhite) gfx.fillRect(x, y, w, h) gfx.setColor(gfx.kColorBlack)
       gfx.drawRect(x, y, w, h)
     end
     if e.feat and not e.done then
+      if on then gfx.setColor(gfx.kColorWhite) end
       gfx.setLineWidth(2) gfx.drawRect(x + 1, y + 1, w - 2, h - 2) gfx.setLineWidth(1)
+      gfx.setColor(gfx.kColorBlack)
     end
-    local s = e.t .. ((e.feat and " \u{2605}") or (e.pick and " \u{25b6}") or "")
-    local f = e.done and F().bold or F().bold
-    s = Text.ellipsize(s, f, w - 4)
-    Text.draw(s, x + w // 2, Text.boxY(f, y, h, s), f, e.won and "white" or nil, "center")
+    local white = e.won or on
+    local f = F().bold
+    local gl = not e.done and not e.off and PennantUI.modeGlyph(e.mode, white)
+    local room = w - 4 - (gl and 16 or 0)
+    local s = e.t
+    if e.feat and not e.done and f:getTextWidth(s .. "\u{2605}") <= room then s = s .. "\u{2605}" end
+    s = Text.ellipsize(s, f, room)
+    if gl then
+      local tw = f:getTextWidth(s)
+      local x0 = x + (w - tw - 16) // 2
+      Text.draw(s, x0, Text.boxY(f, y, h, s), f, white and "white" or nil)
+      gl:draw(x0 + tw + 2, y + (h - 11) // 2)
+    else
+      Text.draw(s, x + w // 2, Text.boxY(f, y, h, s), f, white and "white" or nil, "center")
+    end
     if today and not e.done then gfx.fillTriangle(x + w // 2 - 4, y - 4, x + w // 2 + 4, y - 4, x + w // 2, y) end
   end
   if #list == 0 then Text.draw("No games this week.", 8, y + 3, F().body) end
+  gfx.popContext()
+  self.strip = img
+  return img
+end
+
+--- The days on the strip that can take a mode (games not played yet).
+function Week:openDays()
+  self:stripImg()
+  local out = {}
+  for _, e in ipairs(self.chips or {}) do if not e.off and not e.done then out[#out + 1] = e end end
+  return out
 end
 
 function Week:paintBase()
@@ -344,7 +431,6 @@ function Week:paintBase()
   if L.phase == "awards" or self.sp.over then self:paintOver()
   else
     if L.phase == "playoffs" and not self.sp.series then self:paintOut() end
-    self:paintStrip()
   end
   gfx.popContext()
   return img
@@ -567,7 +653,15 @@ function Week:hint()
   if L.phase == "awards" or self.sp.over then return "A: awards night   B: office" end
   if L.phase == "playoffs" and not self.sp.series then return "A: sim the playoffs   B: office" end
   local verb = (L.club.wk and L.club.wk.w == self.sp.w) and "continue the week" or (self.sp.po and "play the series" or "run the week")
-  return "\u{25c0}\u{25b6} program  \u{25b2}\u{25bc} intensity  A: " .. verb .. "  B: office"
+  if self.row == ROW_GAMES then
+    local e = self:focusChip()
+    if not e then return "\u{25b2} back  B: office" end
+    local nx = PWeek.cycleMode(e.mode, 1)
+    return PL.date(L, e.d):upper() .. " " .. e.t .. ": " .. PWeek.MODE_NAME[e.mode] .. "   A: " .. PWeek.MODE_NAME[nx] .. "  \u{25c0}\u{25b6} game  \u{25b2} back"
+  elseif self.row == ROW_INT then
+    return "\u{25c0}\u{25b6} intensity  \u{25b2}\u{25bc} program / games  A: " .. verb .. "  B: office"
+  end
+  return "\u{25c0}\u{25b6} program  \u{25bc} intensity, games  A: " .. verb .. "  B: office"
 end
 
 function Week:compose()
@@ -586,7 +680,13 @@ function Week:compose()
     end
     self:detailImg(c.prog, c.int):draw(CX0, CY + CH + 3)
     self:intensityImg(c.int, rest):draw(CX0, 166)
+    if self.row == ROW_INT then
+      -- (the intensity row has the focus: a bracket round the three buttons)
+      gfx.drawRect(CX0 - 2, 164, 176, 21)
+      gfx.fillTriangle(CX0 - 6, 169, CX0 - 6, 179, CX0 - 3, 174)
+    end
   end
+  if not (L.phase == "awards" or self.sp.over) then self:stripImg():draw(0, STRIP_Y - 5) end
   PUI.hintBar(self:hint())
   gfx.popContext()
 end
@@ -646,9 +746,6 @@ function Week:select(i)
   self.frameDirty = true
 end
 
-function Week:leftButtonDown() self:select(self.sel - 1) end
-function Week:rightButtonDown() self:select(self.sel + 1) end
-
 function Week:setInt(d)
   local L = L_()
   local c = L.club
@@ -659,10 +756,78 @@ function Week:setInt(d)
   Sfx.tick()
   self.frameDirty = true
 end
-function Week:upButtonDown() self:setInt(1) end
-function Week:downButtonDown() self:setInt(-1) end
+
+--- The chip the games row is on (nil: none open).
+function Week:focusChip()
+  for _, e in ipairs(self:openDays()) do if e.d == self.gameSel then return e end end
+  return nil
+end
+
+--- Move between the focus rows: the cards, the intensity (not on a REST WEEK), the games strip.
+function Week:setRow(r)
+  local L = L_()
+  if L.phase == "awards" or self.sp.over then return end
+  local cards = not (L.phase == "playoffs" and not self.sp.series)
+  if not cards then return end
+  local dir = r > self.row and 1 or -1
+  if r == ROW_INT and L.club.prog == "rest" then r = r + dir end
+  if r < ROW_CARDS or r > ROW_GAMES then return end
+  if r == ROW_GAMES then
+    local open = self:openDays()
+    if #open == 0 then
+      if self.row == ROW_INT or L.club.prog == "rest" then return end
+      r = ROW_INT
+    elseif not self:focusChip() then
+      -- (the featured game first, else the first one left)
+      self.gameSel = open[1].d
+      for _, e in ipairs(open) do if e.feat then self.gameSel = e.d end end
+    end
+  end
+  if r == self.row then return end
+  self.row = r
+  self.strip = nil
+  Sfx.focus()
+  self.frameDirty = true
+end
+
+function Week:moveGame(dir)
+  local open = self:openDays()
+  local k
+  for i, e in ipairs(open) do if e.d == self.gameSel then k = i end end
+  if not k then return end
+  local n = k + dir
+  if n < 1 or n > #open then return end
+  self.gameSel = open[n].d
+  self.strip = nil
+  Sfx.focus()
+  self.frameDirty = true
+end
+
+function Week:cycleGame(dir)
+  local e = self:focusChip()
+  if not e then return end
+  local m = PWeek.cycleMode(e.mode, dir or 1)
+  PWeek.setMode(L_(), e.d, m)
+  self.strip = nil
+  Sfx.tick()
+  self.frameDirty = true
+end
+
+function Week:leftButtonDown()
+  if self.row == ROW_GAMES then self:moveGame(-1)
+  elseif self.row == ROW_INT then self:setInt(-1)
+  else self:select(self.sel - 1) end
+end
+function Week:rightButtonDown()
+  if self.row == ROW_GAMES then self:moveGame(1)
+  elseif self.row == ROW_INT then self:setInt(1)
+  else self:select(self.sel + 1) end
+end
+function Week:upButtonDown() self:setRow(self.row - 1) end
+function Week:downButtonDown() self:setRow(self.row + 1) end
 
 function Week:AButtonDown()
+  if self.row == ROW_GAMES and self:focusChip() then self:cycleGame(1) return end
   Sfx.select()
   PennantUI.runWeek()
 end
@@ -738,8 +903,17 @@ function Office:resume(r) Page.resume(self, r) self:render(true) end
 function Office:layout(Lb)
   local L = Pennant.L
   local c = L.club
+  local all = PWeek.allMode(L)
+  local function cycleAll(d)
+    L.settings.allGames = PWeek.cycleMode(all, d)
+    if L.settings.allGames == "sim" then L.settings.allGames = nil end
+  end
   local items = {
-    { "This week's games", "Pick any game to play live (the featured one is starred)", function() PennantUI.ThisWeek.open({}) end },
+    { "This week's games", "How each game this week is played: sim, watch, bat, pitch or both", function() PennantUI.ThisWeek.open({}) end },
+    { "Every game: " .. PWeek.MODE_NAME[all] .. " \u{25c0}\u{25b6}",
+      all == "sim" and "Default for every game: SIM (only the \u{2605} game and the playoffs live). \u{25c0}\u{25b6}/A: change"
+        or ("Default for every game: " .. PWeek.MODE_NAME[all] .. " (" .. PWeek.MODE_DESC[all] .. "). \u{25c0}\u{25b6}/A: change"),
+      function() cycleAll(1) Sfx.tick() self:render(true) end, adj = cycleAll },
     { "Season goals", "The month-by-month goals and what's next", function() PennantUI.Goals.open({}) end },
     { "Team", "Roster, player cards, condition", function() PennantUI.Team.open({}) end },
     { "Lineup", "Batting order, positions, rotation, bullpen (the coaches set it otherwise)", function() PennantUI.Lineup.open({}) end },
@@ -760,7 +934,7 @@ function Office:layout(Lb)
     local row = (i - 1) // 2
     local x = 6 + col * 194
     local yy = y + row * 30
-    Lb:button(it[1], x, yy, 186, 24, it[3], { id = "o" .. i, hint = it[2] })
+    Lb:button(it[1], x, yy, 186, 24, it[3], { id = "o" .. i, hint = it[2], data = it.adj and { adj = it.adj } or nil })
   end
   local own = 0
   for _ in pairs(c.own) do own = own + 1 end
@@ -772,19 +946,18 @@ function Office:layout(Lb)
   Lb:mark(yy + 20)
 end
 
--- This week's games: mark any to play live ---------------------------------------------------------------
+-- This week's games: how each one is played ---------------------------------------------------------------
 
-local ThisWeek = PUI.define({ title = "This week's games", hint = "A: play it live / let it sim" })
+local ThisWeek = PUI.define({ title = "This week's games", hint = "A / \u{25c0}\u{25b6}: SIM, WATCH, BAT, PITCH, BAT+PITCH" })
 PennantUI.ThisWeek = ThisWeek
 
 function ThisWeek:layout(Lb)
   local L = Pennant.L
-  local c = L.club
   local sp = PWeek.span(L)
   local y = 4
-  Text.block("The starred game is the week's big one: the run stops for it. Mark any other game to play it live too; the rest sim.", 6, y, 386, UI.fonts.body, nil, 2)
-  y = y + 32
-  local feat = PWeek.featuredDay(L)
+  Text.block("Every game can be played live: the run stops for each one that isn't SIM. The default is set in the Office (Every game); the starred game is the week's big one.", 6, y, 386, UI.fonts.body, nil, 3)
+  y = y + 44
+  local feat = not sp.po and PWeek.featuredDay(L) or false
   local d0, d1 = L.day, sp.d1 or L.day
   if sp.po then d1 = L.day end
   local any = false
@@ -795,24 +968,23 @@ function ThisWeek:layout(Lb)
       local home = g.h == L.user
       local opp = home and g.a or g.h
       local isFeat = d == feat
-      local live = (isFeat and not c.featSkip) or c.play["d" .. d]
+      local mode = PWeek.modeFor(L, d, feat)
+      local live = mode ~= "sim"
       local label = PL.date(L, d) .. "   " .. (home and "vs " or "at ") .. PUI.teamName(opp) .. (isFeat and "  \u{2605}" or "")
       local yy = y
-      local function paint()
-        gfx.setColor(gfx.kColorWhite) gfx.fillRect(6, yy, 386, 20) gfx.setColor(gfx.kColorBlack)
-        gfx.drawRect(6, yy, 386, 20)
-        Text.draw(Text.ellipsize(label, UI.fonts.bold, 270), 12, Text.boxY(UI.fonts.bold, yy, 20), UI.fonts.bold)
-        local s = live and "PLAY LIVE" or "SIM"
-        if live then gfx.fillRect(300, yy + 3, 88, 14) end
-        Text.draw(s, 344, Text.boxY(UI.fonts.bold, yy + 3, 14), UI.fonts.bold, live and "white" or nil, "center")
+      gfx.setColor(gfx.kColorWhite) gfx.fillRect(6, yy, 386, 20) gfx.setColor(gfx.kColorBlack)
+      gfx.drawRect(6, yy, 386, 20)
+      Text.draw(Text.ellipsize(label, UI.fonts.bold, 260), 12, Text.boxY(UI.fonts.bold, yy, 20), UI.fonts.bold)
+      local s = PWeek.MODE_NAME[mode]
+      if live then gfx.fillRect(280, yy + 3, 108, 14) end
+      local gl = PennantUI.modeGlyph(mode, live)
+      if gl then gl:draw(284, yy + 4) end
+      Text.draw(s, 340, Text.boxY(UI.fonts.bold, yy + 3, 14), UI.fonts.bold, live and "white" or nil, "center")
+      local function set(dir)
+        PWeek.setMode(L, d, PWeek.cycleMode(PWeek.modeFor(L, d, feat), dir))
       end
-      paint()
-      Lb:link(6, yy, 386, 20, function()
-        if isFeat then c.featSkip = not c.featSkip or nil
-        else c.play["d" .. d] = (not c.play["d" .. d]) or nil end
-        Sfx.tick()
-        self:render(true)
-      end, { id = "g" .. d, style = "ring", hint = "A: " .. (live and "let this one sim" or "play this one live") })
+      Lb:link(6, yy, 386, 20, function() set(1) Sfx.tick() self:render(true) end,
+        { id = "g" .. d, style = "ring", hint = PWeek.MODE_NAME[mode] .. ": " .. PWeek.MODE_DESC[mode] .. ".  A / \u{25c0}\u{25b6}: change", data = { adj = set } })
       y = y + 24
     end
   end

@@ -782,6 +782,241 @@ elseif only == "catchaudit" then
     end
     for i = 1, min(#rows, HARNESS_ROWS or 40) do print(rows[i]) end
   end, 2)
+elseif only == "stealaudit" then
+  -- Tag / force plays and bat drops, over every fixture game (dev, ultra, bunts, the shell's g1),
+  -- planned by Play (no drawing):
+  --   [tag] every runner who reaches a base a throw is going to (safe), and every runner put out
+  --     there (tag / force): the ball in the glove at the bag vs. the runner touching it vs. the
+  --     sim's call. Safe: the ball must not beat him (ball >= touch - 0.02 s). Out: the ball must
+  --     beat him (ball <= the time he'd touch it) and the out (r.outAt) can't land before the ball.
+  --     A caught stealing's tag has to be on him (<= 6 ft from the bag). The call (plan.callT, the
+  --     ump's call, the SAFE/OUT pop, Play.revealT) can't come before the play it calls.
+  --   [bat] every batter after the bat leaves his hands (plan.batToss.t): any frame (1/30 s) where
+  --     the pose drawn for him still has the bat (batter / batter_seq / bunter cells, the walker's
+  --     bat-drag cells, the stance/swing/follow idles).
+  local Play, TL, Anim, Pup = BallCast.Play, BallCast.Timeline, BallCast.Anim, BallCast.Puppets
+  local sqrt, max, min, abs, floor = math.sqrt, math.max, math.min, math.abs, math.floor
+  local BATSET = { batter = true, batter_seq = true, bunter = true }
+  local function withBat(mode, name, tt)
+    if not mode then return false end
+    local tn, f
+    if mode == "track" then tn, f = Anim.sample(name, tt or 0, 0) else tn, f = Pup.tableOf("home", name) end
+    if not tn then return false end
+    return BATSET[tn] or (tn == "walker" and f >= 5), tn, f
+  end
+  -- the batter's pose at tau (the game's own Play.batterPose when it has one; else a mirror of the
+  -- old drawWorld batter branch) → mode ("track"/"idle"), name, track time
+  local kt
+  local function batterPose(b, tau)
+    if Play.batterPose then return Play.batterPose(b, tau) end
+    kt = kt or { swingLen = Anim.length("swing"), swingHit = Anim.keyTime("swing", 4) }
+    local plan, pre = b.plan, b.pre
+    if b.kind == "half" or b.kind == "end" or not pre.bat then return nil end
+    for i = 1, #plan.runners do if plan.runners[i].from == 0 and tau >= plan.runners[i].t0 then return nil end end
+    local bx0 = plan.batterExit
+    if bx0 and tau >= bx0.t0 then return nil end
+    if b.kind == "bip" and plan.bunt then
+      local tr = plan.bunt.kind == "drag" and "drag_bunt" or "bunt_contact"
+      return "track", tr, tau + Anim.keyTime(tr, plan.bunt.kind == "drag" and 3 or 2)
+    elseif plan.bunt and plan.pitch and tau >= plan.bunt.show then return "track", "square", 0
+    elseif b.kind == "bip" then
+      if plan.homerBatter then return "track", "homer_batter", tau end
+      return "track", "swing", kt.swingLen + tau
+    elseif plan.hbp and tau >= plan.hbp then return "track", "pratfall", tau - plan.hbp
+    elseif plan.swing then
+      local t0 = plan.swing + 0.12 - kt.swingHit
+      if tau < t0 then return "idle", "stance" end
+      if plan.hyperWhiff and tau > t0 + kt.swingLen then return "track", "pratfall", tau - t0 - kt.swingLen end
+      return "track", "swing", tau - t0
+    end
+    return "idle", "stance"
+  end
+  local sources = {}
+  step(function()
+    for _, fx in ipairs({ { "dev", "fixtures_dev/ballcast/game-log.json" }, { "ultra", "fixtures_dev/ballcast/game-log-ultra.json" },
+        { "bunts", "fixtures_dev/ballcast/game-log-bunts.json" }, { "g1", "fixtures/game-log.json" } }) do
+      local d = BCKit.readJson(fx[2])
+      if d and d.log then sources[#sources + 1] = { name = fx[1], people = d.people or {}, park = d.park or {}, log = d.log } end
+    end
+    print("[stealaudit] sources " .. #sources)
+  end, 2)
+  step(function()
+    -- the earliest throw that ends in a glove at base B, arriving in [ta, tb]
+    local function ballIn(plan, B, ta, tb)
+      local bx, by = Play.basePos(B)
+      local best = nil
+      for _, s in ipairs(plan.ball) do
+        if s.kind == "line" and (s.throw or s.tagBall) and s.t1 >= ta and s.t1 <= tb then
+          if (s.bx - bx) ^ 2 + (s.by - by) ^ 2 < 14 * 14 and (not best or s.t1 < best) then best = s.t1 end
+        end
+      end
+      return best
+    end
+    local function distTo(r, tau, B)
+      local x, y = Play.runnerPos(r, tau)
+      local bx, by = Play.basePos(B)
+      return sqrt((x - bx) ^ 2 + (y - by) ^ 2)
+    end
+    local cats, order, rows = {}, {}, {}
+    local function cat(k) local c = cats[k]; if not c then c = { n = 0, bad = 0, early = 0, far = 0, margin = 0 }; cats[k] = c; order[#order + 1] = k end; return c end
+    local bat = { beats = 0, bad = 0, frames = 0, waits = 0, waitMax = 0 }
+    local batRows = {}
+    for _, src in ipairs(sources) do
+      local tl = TL.new({ people = src.people, park = src.park })
+      TL.append(tl, src.log)
+      for _, b in ipairs(tl.beats) do
+        local plan = b.plan
+        if plan and plan.runners then
+          for _, r in ipairs(plan.runners) do
+            local T = r.target
+            local kindK = b.kind .. " " .. (T == 4 and "home" or (T .. "B"))
+            if r.to ~= -1 then
+              local tb = ballIn(plan, T, r.t0, r.t1 + 0.6)
+              if tb then
+                local c = cat(kindK .. " safe")
+                c.n = c.n + 1
+                local margin = tb - r.t1                       -- > 0: he's in first
+                c.margin = c.margin + margin
+                local bad = margin < -0.02
+                local ev = max(tb, r.t1)
+                local early = false
+                if b.kind == "sb" then
+                  if (plan.callT or 0) < ev - 0.01 or Play.revealT(b) < ev then early = true end
+                  for _, u in ipairs(plan.umpCalls) do if u.t < ev - 0.05 then early = true end end
+                  for _, p in ipairs(plan.pops) do if (p.text == "SAFE!" or p.text == "OUT!") and p.t < ev - 0.01 then early = true end end
+                elseif r.from == 0 and b.kind == "bip" then
+                  if (plan.callT or 0) < r.t1 - 0.01 then early = true end
+                end
+                if bad then c.bad = c.bad + 1 end
+                if early then c.early = c.early + 1 end
+                if (bad or early) and #rows < 400 then
+                  rows[#rows + 1] = string.format("[tag] %s b%d i%s %s SAFE %d->%d ball %.2f runner %.2f (%+.2f) call %.2f reveal %.2f%s",
+                    src.name, b.n, tostring(b.i), b.kind == "bip" and tostring(b.e.res) or b.kind, r.from, T, tb, r.t1, margin, plan.callT or -1, Play.revealT(b), early and " EARLY" or "")
+                end
+              end
+            elseif r.outAt and r.role ~= "batter" then
+              local Bt = min(r.from + 1, 4)
+              local tb = ballIn(plan, Bt, -1, r.outAt + 0.3)
+              if tb then
+                local c = cat(kindK .. " out")
+                c.n = c.n + 1
+                local touch = r.t0 + (Bt - r.from) * 90 / r.speed      -- when he'd have had the bag
+                c.margin = c.margin + (touch - tb)
+                local bad = tb > touch + 0.02 or r.outAt < tb - 0.02
+                local far = b.kind == "sb" and distTo(r, r.outAt, Bt) > 6
+                local early = false
+                if b.kind == "sb" then
+                  if (plan.callT or 0) < r.outAt - 0.01 or Play.revealT(b) < r.outAt then early = true end
+                  for _, p in ipairs(plan.pops) do if p.text == "OUT!" and p.t < r.outAt - 0.01 then early = true end end
+                end
+                if bad then c.bad = c.bad + 1 end
+                if far then c.far = c.far + 1 end
+                if early then c.early = c.early + 1 end
+                if (bad or far or early) and #rows < 400 then
+                  rows[#rows + 1] = string.format("[tag] %s b%d i%s %s OUT %d->%d ball %.2f touch %.2f out %.2f dist@out %.1f ft call %.2f%s",
+                    src.name, b.n, tostring(b.i), b.kind == "bip" and tostring(b.e.res) or b.kind, r.from, Bt, tb, touch, r.outAt, distTo(r, r.outAt, Bt), plan.callT or -1, early and " EARLY" or "")
+                end
+              end
+            end
+          end
+          -- the bat on the ground: every later frame of the beat
+          local toss = plan.batToss
+          if toss then
+            bat.beats = bat.beats + 1
+            local nbad, first, firstName = 0, nil, nil
+            local runT = nil
+            for _, r in ipairs(plan.runners) do if r.from == 0 then runT = r.t0 end end
+            if runT and runT > toss.t then
+              bat.waits = bat.waits + 1
+              bat.waitMax = max(bat.waitMax, runT - toss.t)
+            end
+            local t = toss.t + 0.001
+            while t < (b.dur or 0) do
+              local mode, name, tt = batterPose(b, t)
+              local wb, tn, f = withBat(mode, name, tt)
+              if wb then
+                nbad = nbad + 1
+                if not first then first, firstName = t, string.format("%s %s (%s #%d)", mode, name, tn, f) end
+              end
+              t = t + 1 / 30
+            end
+            if nbad > 0 then
+              bat.bad = bat.bad + 1
+              bat.frames = bat.frames + nbad
+              if #batRows < 400 then
+                batRows[#batRows + 1] = string.format("[bat] %s b%d i%s %s%s toss %.2f run %s: %d frames with the bat, first %.2f %s",
+                  src.name, b.n, tostring(b.i), b.kind, b.kind == "bip" and (" " .. tostring(b.e.res) .. (plan.bunt and " bunt" or "")) or (b.walk and " walk" or ""),
+                  toss.t, runT and string.format("%.2f", runT) or "-", nbad, first, firstName)
+              end
+            end
+          end
+        end
+      end
+    end
+    table.sort(order)
+    local tn, tbad, tearly, tfar = 0, 0, 0, 0
+    print("[tag] kind | n | ball-beats-call mismatches | early calls | CS tag far from bag | mean margin s (safe: ball - touch; out: touch - ball)")
+    for _, k in ipairs(order) do
+      local c = cats[k]
+      tn, tbad, tearly, tfar = tn + c.n, tbad + c.bad, tearly + c.early, tfar + c.far
+      print(string.format("[tag] %-16s | %4d | %4d | %4d | %4d | %+5.2f", k, c.n, c.bad, c.early, c.far, c.margin / max(1, c.n)))
+    end
+    print(string.format("[tag] TOTAL plays %d mismatches %d early calls %d far tags %d", tn, tbad, tearly, tfar))
+    print(string.format("[bat] TOTAL beats with a bat drop %d, beats with the bat in hand after the drop %d (%d frames); runs after the drop %d (longest wait %.2f s)",
+      bat.beats, bat.bad, bat.frames, bat.waits, bat.waitMax))
+    for i = 1, min(#rows, HARNESS_ROWS or 60) do print(rows[i]) end
+    for i = 1, min(#batRows, HARNESS_ROWS or 60) do print(batRows[i]) end
+  end, 2)
+elseif only == "stealstrip" then
+  -- Frame strips (game camera as planned) of steals and bat drops: HARNESS_GAME's beats picked
+  -- from the log (not the plan, so before/after show the same plays): the first stolen bases and
+  -- caught stealings, plus HARNESS_BATPICKS (log indexes b.i). steal_<kind>_<i>_NN.png / bat_<i>_NN.png
+  step(function() App.push(BC, { gameId = HARNESS_GAME or "bunts", skipIntro = true }) end)
+  waitFor(function() return BC.mode == "watch" and not BC:timelinePending() end, 1800)
+  step(function() BC.playing = false end, 10)
+  local N = tonumber(HARNESS_FRAMES or 14)
+  local picks = {}
+  step(function()
+    local nsafe, nout = 0, 0
+    for _, b in ipairs(BC.tl.beats) do
+      if b.kind == "sb" then
+        if b.e.ok and nsafe < (HARNESS_NSTEAL or 2) then nsafe = nsafe + 1; picks[#picks + 1] = { b = b, name = "steal_safe_" .. b.i, t0 = 1.6, t1 = 4.2 }
+        elseif not b.e.ok and nout < (HARNESS_NSTEAL or 2) then nout = nout + 1; picks[#picks + 1] = { b = b, name = "steal_out_" .. b.i, t0 = 1.6, t1 = 4.2 } end
+      end
+    end
+    for w in string.gmatch(HARNESS_BATPICKS or "", "[^,]+") do
+      local i = tonumber(w)
+      for _, b in ipairs(BC.tl.beats) do if b.i == i then picks[#picks + 1] = { b = b, name = "bat_" .. i, t0 = 0, t1 = 1.6 } end end
+    end
+    print("[stealstrip] picks " .. #picks)
+  end, 1)
+  for k = 1, 12 do
+    for i = 0, N - 1 do
+      step(function()
+        local p = picks[k]
+        if not p then return end
+        local b = p.b
+        local tt = p.t0 + i * (p.t1 - p.t0) / (N - 1)
+        -- (the high shot's re-framing glide runs on plan time: a held scrub frame never finishes
+        -- it, so start each frame framed as the shot wants it)
+        for _, c in ipairs(b.plan.cams) do c.glide = nil end
+        BC.mode = "watch"
+        BC.t = b.start + tt
+        BC.lastBeat = nil
+        BC.playing = false
+        BC.scrubT = playdate.getCurrentTimeMilliseconds() + 100000
+      end, 4)
+      step(function()
+        local p = picks[k]
+        if p then
+          shot(string.format("%s_%02d", p.name, i))
+          print(string.format("[stealstrip] %s_%02d tau %.2f cam %s shot %s", p.name, i, BC.t - p.b.start,
+            tostring(BallCast.Play.camAt(p.b.plan, BC.t - p.b.start).name), tostring(BC.camShot and BC.camShot.name)))
+        end
+      end, 1)
+    end
+  end
+  step(function() App.pop() end, 5)
 elseif only == "catchsheet" then
   -- Every catch style frame by frame around the catch (HARNESS_FRAMES frames from 0.6 s before
   -- to 0.9 s after), at the gameplay camera (the play's low "dive" / "track" cuts taken out) and

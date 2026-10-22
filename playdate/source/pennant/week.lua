@@ -9,7 +9,11 @@
     goal, goals     this month's goal, the season's goal history; reward = a cleared goal's pick
     ev, evN, evSeen this week's clubhouse event, events this season, keys used this season
     plan            the series game plan { opp, d0, d1, round, po, opts, key }
-    feat            the featured game { w, d } ; play["d<day>"] = true: extra games to play live
+    feat            the featured game { w, d }
+    mode["d<day>"]  how a game this week is played, picked on the Week screen's strip, This week's
+                    games or the pregame: "sim" | "watch" | "bat" | "pitch" | "both" (PWeek.modeFor;
+                    unset = the default: L.settings.allGames, else the featured game and every
+                    playoff game at the last live mode (PWeek.lastLive), the rest sim)
     tonight         one game's mods from an event { d, bat, pit }
     gainWk          this week's gain factor from an event { w, x }
     noRest          REST WEEK is locked until this week index
@@ -71,7 +75,16 @@ function W.ensure(L)
     c.fxp[k] = tonumber(c.fxp[k]) or W.FAC_LV[c.fac[k]]
   end
   c.goals = type(c.goals) == "table" and c.goals or {}
-  c.play = type(c.play) == "table" and c.play or {}
+  c.mode = type(c.mode) == "table" and c.mode or {}
+  -- (old saves: games marked "play live" in the Office, a featured game let sim)
+  if type(c.play) == "table" then
+    for k, v in pairs(c.play) do if v and not c.mode[k] then c.mode[k] = W.lastLive(L) end end
+  end
+  c.play = nil
+  if c.featSkip then
+    if c.feat and c.feat.d and not c.mode["d" .. c.feat.d] then c.mode["d" .. c.feat.d] = "sim" end
+    c.featSkip = nil
+  end
   c.own = type(c.own) == "table" and c.own or {}
   c.evSeen = type(c.evSeen) == "table" and c.evSeen or {}
   c.evN = tonumber(c.evN) or 0
@@ -87,7 +100,7 @@ function W.newSeason(L)
   c.season = L.season
   c.goals, c.goal, c.reward, c.rewards = {}, nil, nil, nil
   c.ev, c.evN, c.evSeen = nil, 0, {}
-  c.plan, c.feat, c.play, c.tonight, c.gainWk, c.noRest = nil, nil, {}, nil, nil, nil
+  c.plan, c.feat, c.mode, c.tonight, c.gainWk, c.noRest = nil, nil, {}, nil, nil, nil
   c.wk, c.lastRep, c.monthNote, c.goalOffer = nil, nil, nil, nil
   c.energy = W.ENERGY0
   -- (facility levels reset each run, like a career's; the endless career may keep them)
@@ -259,7 +272,7 @@ function W.addCond(L, n, rng, k)
   end
 end
 
---- Bulk rating boosts for a whole unit (events, rewards, future legacy sparks): +n to `key` for
+--- Bulk rating boosts for a whole unit (events, rewards, legacy pointers): +n to `key` for
 --- every player of `unit` ("lineup","bench","rot","pen","def","farm","hitters","pitchers","all"),
 --- at most to `ceil` (default 80); a cap below the new rating rises with it. Returns the count.
 function W.boostUnit(L, unit, key, n, ceil)
@@ -730,14 +743,59 @@ function W.featuredDay(L)
   return W.pickFeatured(L)
 end
 
---- Does the run stop for a live game today? (the featured one, or one marked in the Office)
-function W.liveToday(L)
+-- How each game is played -------------------------------------------------------------------------------
+
+W.MODES = { "sim", "watch", "bat", "pitch", "both" }
+W.MODE_NAME = { sim = "SIM", watch = "WATCH", bat = "BAT", pitch = "PITCH", both = "BAT+PITCH" }
+W.MODE_DESC = { sim = "the coaches play it; the run goes on", watch = "watch in BallCast, make the dugout's calls",
+  bat = "you bat, the coaches pitch", pitch = "you pitch, the coaches bat", both = "you bat and pitch" }
+
+--- The next mode in the cycle SIM > WATCH > BAT > PITCH > BAT+PITCH (dir = 1 | -1).
+function W.cycleMode(m, dir)
+  local n = #W.MODES
+  for i, k in ipairs(W.MODES) do
+    if k == m then return W.MODES[(i - 1 + (dir or 1)) % n + 1] end
+  end
+  return "watch"
+end
+
+--- The last live mode (the hub's / a live game's direct controls: L.settings.directBat / directPitch).
+function W.lastLive(L)
+  local s = L.settings or {}
+  local db, dp = s.directBat, s.directPitch
+  if db == nil then db = s.playMode == "play" dp = db end
+  return (db and dp and "both") or (db and "bat") or (dp and "pitch") or "watch"
+end
+
+--- The Office's "Play every game" default ("sim": only the featured game (and the playoffs) live).
+function W.allMode(L)
+  local m = L.settings and L.settings.allGames
+  return (m and W.MODE_NAME[m]) and m or "sim"
+end
+
+--- How the user's game on day d is played: mode, why ("picked" | "featured" | "playoff" | "all" | nil).
+--- feat: the featured day if the caller has it (saves the lookup).
+function W.modeFor(L, d, feat)
   local c = L.club
+  local m = c.mode and c.mode["d" .. d]
+  if m and W.MODE_NAME[m] then return m, "picked" end
+  local all = W.allMode(L)
+  if L.phase == "playoffs" then return all ~= "sim" and all or W.lastLive(L), "playoff" end
+  if feat == nil then feat = W.featuredDay(L) end
+  if d == feat then return all ~= "sim" and all or W.lastLive(L), "featured" end
+  if all ~= "sim" then return all, "all" end
+  return "sim", nil
+end
+
+function W.setMode(L, d, m) L.club.mode["d" .. d] = m end
+
+--- Does the run stop for a live game today? Returns live, why, mode.
+function W.liveToday(L)
   local g = PL.gameFor(L, L.user)
   if not g or g.done then return false end
-  if c.play["d" .. L.day] then return true, "picked" end
-  if W.featuredDay(L) == L.day and not c.featSkip then return true, "featured" end
-  return false
+  local m, why = W.modeFor(L, L.day)
+  if m == "sim" then return false end
+  return true, why or "picked", m
 end
 
 -- Week start / end ---------------------------------------------------------------------------------------------
@@ -795,7 +853,6 @@ function W.beginWeek(L)
     end
   end
   c.feat = { w = sp.w, d = W.pickFeatured(L) }
-  c.featSkip = nil
   W.pickEvent(L)
   return c.wk, true
 end
@@ -878,7 +935,7 @@ function W.endWeek(L)
   c.lastRep = rep
   c.wk = nil
   c.plan = nil
-  c.play = {}
+  c.mode = {}
   return rep
 end
 
