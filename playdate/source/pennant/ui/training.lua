@@ -69,20 +69,26 @@ function Training:layout(Lb)
   local FX, FW, IX, IW, AX, AW = 176, 88, 267, 66, 336, 56
   local function paintF()
     gfx.drawRect(FX, gy, FW, 16)
-    local s = Text.ellipsize("\u{25c0} " .. PL.FOCUS_NAME[gl[self.gf[self.tab]] or gl[1]] .. " \u{25b6}", UI.fonts.body, FW - 4)
+    local s = Text.ellipsize(PL.FOCUS_NAME[gl[self.gf[self.tab]] or gl[1]], UI.fonts.body, FW - 4)
     Text.draw(s, FX + FW // 2, Text.boxY(UI.fonts.body, gy + 1, 14, s), UI.fonts.body, nil, "center")
   end
   local function paintI()
     gfx.drawRect(IX, gy, IW, 16)
-    local s = "\u{25c0} " .. PL.INTENSITY[self.gi + 1] .. " \u{25b6}"
+    local s = PL.INTENSITY[self.gi + 1]
     Text.draw(s, IX + IW // 2, Text.boxY(UI.fonts.body, gy + 1, 14, s), UI.fonts.body, nil, "center")
   end
   paintF() paintI()
-  local gfl = Lb:link(FX, gy, FW, 16, function() end, PUI.opts("gf", "Everyone on this tab: left/right picks the focus, then Apply", function(d)
-    self.gf[self.tab] = (self.gf[self.tab] - 1 + d) % #gl + 1 end))
-  gfl.data.repaint = function() PUI.repaint(self, FX, gy, FW + 1, 17, paintF) end
-  local gil = Lb:link(IX, gy, IW, 16, function() end, PUI.opts("gi", "Everyone on this tab: left/right picks the intensity, then Apply", function(d) self.gi = (self.gi + d) % 4 end))
-  gil.data.repaint = function() PUI.repaint(self, IX, gy, IW + 1, 17, paintI) end
+  -- (they share the tab row, so left/right moves between them and A steps the value)
+  Lb:link(FX, gy, FW, 16, function()
+    self.gf[self.tab] = self.gf[self.tab] % #gl + 1
+    Sfx.tick()
+    PUI.repaint(self, FX, gy, FW + 1, 17, paintF)
+  end, PUI.opts("gf", "Everyone on this tab: A picks the focus, then Apply", nil))
+  Lb:link(IX, gy, IW, 16, function()
+    self.gi = (self.gi + 1) % 4
+    Sfx.tick()
+    PUI.repaint(self, IX, gy, IW + 1, 17, paintI)
+  end, PUI.opts("gi", "Everyone on this tab: A picks the intensity, then Apply", nil))
   Lb:button("Apply", AX, gy, AW, 16, function()
     for _, p in ipairs(self:players()) do
       own(p)

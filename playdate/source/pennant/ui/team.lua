@@ -4,7 +4,7 @@
 local gfx <const> = playdate.graphics
 PennantUI = PennantUI or {}
 
-local Team = PUI.define({ title = "Team", hint = "A: player card  left/right on the tabs: switch" })
+local Team = PUI.define({ title = "Team", hint = "A: player card / a tab" })
 PennantUI.Team = Team
 
 function Team:init(args)
@@ -71,7 +71,7 @@ end
 
 -- Player card --------------------------------------------------------------------------------------
 
-local Card = PUI.define({ title = "Player", hint = "Crank: another player  left/right on the tabs: Ratings / Stats" })
+local Card = PUI.define({ title = "Player", hint = "Crank: another player  A: Ratings / Stats, Prev / Next" })
 PennantUI.Card = Card
 
 function Card:init(args)
@@ -98,6 +98,7 @@ function Card:footer(Lb)
   local y = 190
   local function flip(d) self.pg = (self.pg == "rat") and "stats" or "rat" self:render(true) end
   local tx = 6
+  -- (one row of four: left/right moves between them, A acts)
   for _, t in ipairs({ { "rat", "Ratings" }, { "stats", "Stats" } }) do
     local on = self.pg == t[1]
     local w = UI.fonts.bold:getTextWidth(t[2]) + 14
@@ -105,12 +106,12 @@ function Card:footer(Lb)
     if on then gfx.fillRect(tx, y, w, 17) Text.draw(t[2], tx + 7, ty, UI.fonts.bold, "white")
     else gfx.drawRect(tx, y, w, 17) Text.draw(t[2], tx + 7, ty, UI.fonts.bold) end
     local key = t[1]
-    Lb:link(tx, y, w, 17, function() if self.pg ~= key then flip() end end, PUI.opts("pg:" .. key, "Left/right: Ratings / Stats", function(d) flip(d) end, "ring"))
+    Lb:link(tx, y, w, 17, function() if self.pg ~= key then flip() end end, PUI.opts("pg:" .. key, "A: the " .. t[2] .. " page", nil, "ring"))
     tx = tx + w + 3
   end
   Text.draw((self.i) .. "/" .. #self.list, 240, y + 2, UI.fonts.body, nil, "right")
-  Lb:button("\u{25c0} Prev", 248, y, 70, 17, function() self:step(-1) end, PUI.opts("prev", "Previous player (or crank)", function(d) self:step(d, true) end, "ring"))
-  Lb:button("Next \u{25b6}", 322, y, 70, 17, function() self:step(1) end, PUI.opts("next", "Next player (or crank)", function(d) self:step(d, true) end, "ring"))
+  Lb:button("Prev", 248, y, 70, 17, function() self:step(-1) end, PUI.opts("prev", "A: previous player (or crank)", nil, "ring"))
+  Lb:button("Next", 322, y, 70, 17, function() self:step(1) end, PUI.opts("next", "A: next player (or crank)", nil, "ring"))
   Lb:mark(y + 18)
 end
 

@@ -5,6 +5,10 @@
 -- 4x). Finals open on a menu (watch / highlights / skip to the end); live games join near the
 -- head of the log and keep polling (A never skips to within LIVE_EDGE s of what has come in).
 --
+-- The end of a league replay (once its last beat has played out): the result screen
+-- (ballcast/tv/result.lua: who won, then the table moving; S:resultFrame). A local source draws
+-- its own (src.finalCard; Pennant: pennant/live.lua).
+--
 -- No spoilers: nothing off the field (scorebug, calls, ticker, win chance, banners, game log)
 -- shows a play's result before the picture has (Play.revealT / settleT / outsRunsAt / bannerT).
 --
@@ -36,6 +40,7 @@ import "ballcast/render3d"
 import "ballcast/tags"
 import "ballcast/gamelog"
 import "ballcast/tv/tv"
+import "ballcast/tv/result"
 
 local gfx <const> = playdate.graphics
 local floor <const>, abs <const>, min <const>, max <const> = math.floor, math.abs, math.min, math.max
@@ -51,6 +56,7 @@ local Crowd = BallCast.Crowd
 local R3 = BallCast.Render
 local Log = BallCast.GameLog
 local TV = BallCast.TV
+local Result = BallCast.Result
 
 local S = { opaque = true }
 BallCast.scene = S
@@ -184,6 +190,25 @@ function S:onLog(events, logc, nC)
   K.get("/games/" .. self.gameId .. "/wire", function(err, w)
     if self.closed or err or not w or not self.tl then return end
     TL.setWire(self.tl, w.lines)
+  end)
+  if not self.src then self:fetchStandings() end
+end
+
+--- The league table for the result screen (ballcast/tv/result.lua): only for a game on today's
+--- slate (each club's latest game, so the table is just before or just after it); a final's
+--- table already counts it, a live game's doesn't yet.
+function S:fetchStandings()
+  local d = self.detail or {}
+  local id = self.gameId
+  self.standAfter = self.status == "final"
+  self.standRows, self.standToday = nil, nil
+  K.get("/today", function(err, td)
+    if self.closed or err or not td then return end
+    for _, g in ipairs(td.games or {}) do if g.id == id then self.standToday = true end end
+  end)
+  K.get("/standings?level=" .. ((d.home and d.home.level) or "ML"), function(err, st)
+    if self.closed or err or not st then return end
+    self.standRows = st.rows
   end)
 end
 
@@ -468,6 +493,7 @@ function S:enter(args)
   self.lastMs = playdate.getCurrentTimeMilliseconds()
   self.tickerBeat = -1
   self.aDownAt, self.uiKey = nil, nil
+  self.result, self.resultDone = nil, nil
   K.DEBUG = self.args.debug and true or K.DEBUG
   -- a replay is watched hands-off: don't let the device lock mid-inning
   playdate.setAutoLockDisabled(true)
@@ -483,6 +509,7 @@ function S:exit()
   if self.pollTimer then self.pollTimer:remove(); self.pollTimer = nil end
   self:removeMenu()
   Audio.stop()
+  if self.result then self.result:release() self.result = nil end
   -- release big images
   if self.R then self.R:release() end
   self.R = nil
@@ -624,15 +651,32 @@ function S:latchOnChange()
   if not k then k = {} self.uiKey = k end
   local tvOn, pip = TV.active(), TV.pipUp and TV.pipUp() or false
   local ui = src and src.ui or false
-  if k.mode ~= self.mode or k.log ~= self.logOpen or k.tv ~= tvOn or k.pip ~= pip or k.st ~= st or k.ui ~= ui then
+  local res = self.result or (src and src.result) or false
+  if k.mode ~= self.mode or k.log ~= self.logOpen or k.tv ~= tvOn or k.pip ~= pip or k.st ~= st or k.ui ~= ui or k.res ~= res then
     local first = k.mode == nil
-    k.mode, k.log, k.tv, k.pip, k.st, k.ui = self.mode, self.logOpen, tvOn, pip, st, ui
+    k.mode, k.log, k.tv, k.pip, k.st, k.ui, k.res = self.mode, self.logOpen, tvOn, pip, st, ui, res
     if not first then App.latch() end
   end
 end
 
+--- The result screen (a league replay's end, see S:resultFrame) takes every input while it's up:
+--- A skips its beats, then A or B puts it away (back to the final frame; B again leaves).
+function S:resultInput(btn)
+  local r = self.result
+  if not r or self.resultDone then return false end
+  if btn == "A" and not r:done() then r:skip() K.sfx("tick") return true end
+  if btn == "A" or btn == "B" then
+    self.resultDone = true
+    r:release()
+    self.result = nil
+    K.sfx("click")
+  end
+  return true
+end
+
 function S:AButtonDown()
   if hook(self, "A") then return end
+  if self:resultInput("A") then return end
   if self.mode == "intro" then
     local sel = self.menuSel
     self.mode = "watch"
@@ -739,6 +783,7 @@ end
 function S:BButtonDown()
   if Play.skipChangeover and Play.skipChangeover(self) then return end   -- (local games: B skips it)
   if hook(self, "B") then return end
+  if self:resultInput("B") then return end
   TV.interrupt()
   if self.logOpen then self:closeLog() return end
   App.pop()
@@ -746,6 +791,7 @@ end
 
 function S:upButtonDown()
   if hook(self, "up") then return end
+  if self:resultInput("up") then return end
   TV.interrupt()
   if self.mode == "intro" then self.menuSel = (self.menuSel - 2) % 3 + 1; K.sfx("tick") return end
   if self.mode ~= "watch" then return end
@@ -777,6 +823,7 @@ end
 
 function S:downButtonDown()
   if hook(self, "down") then return end
+  if self:resultInput("down") then return end
   TV.interrupt()
   if self.mode == "intro" then self.menuSel = self.menuSel % 3 + 1; K.sfx("tick") return end
   if self.mode ~= "watch" then return end
@@ -796,6 +843,7 @@ local function speedIndex(s) for i, v in ipairs(SPEEDS) do if v == s then return
 -- left/right: the speed ladder II (paused) / 1x / 2x / 4x
 function S:leftButtonDown()
   if hook(self, "left") then return end
+  if self:resultInput("left") then return end
   TV.interrupt()
   if self.mode ~= "watch" then return end
   if self.logOpen then Log.move(-8) return end
@@ -812,6 +860,7 @@ end
 
 function S:rightButtonDown()
   if hook(self, "right") then return end
+  if self:resultInput("right") then return end
   TV.interrupt()
   if self.mode ~= "watch" then return end
   if self.logOpen then Log.move(8) return end
@@ -826,6 +875,7 @@ end
 
 function S:cranked(change)
   if hook(self, "crank", change) then return end
+  if self:resultInput("crank") then return end
   if self.mode == "intro" then
     self.crankAcc = (self.crankAcc or 0) + change
     if abs(self.crankAcc) > 40 then
@@ -1196,6 +1246,11 @@ function S:update()
     self:backgroundLoad(now, 27)
     return
   end
+  -- a league replay's end: the result screen owns the frame
+  if self:resultFrame(bi, b, tau, dt) then
+    self:backgroundLoad(now, 27)
+    return
+  end
 
   -- camera
   local cc = Play.camAt(b.plan, tau)
@@ -1486,6 +1541,46 @@ function S:drawHud(bi, b, tau, slo, camName, incident, dt)
   if self.live and tl.total - self.t < 0.05 and not self.src then
     K.textW(K.fonts.tiny, "WAITING ON THE WIRE...", 6, 213)
   end
+end
+
+--- A league replay (no local source) at its last beat, played out (after the DBN postgame, if it
+--- ran): the result screen (ballcast/tv/result.lua), once; scrubbing back off the end puts it
+--- away for next time. → true while it has the frame.
+function S:resultFrame(bi, b, tau, dt)
+  local tl = self.tl
+  if self.src or not tl then return false end
+  if bi ~= #tl.beats or b.kind ~= "end" then
+    if self.result then self.result:release() end
+    self.result, self.resultDone = nil, nil
+    return false
+  end
+  if self.resultDone or self.logOpen then return false end
+  if not self.result then
+    if not tl.final or tau < b.dur - 0.05 or TV.active() then return false end
+    self.result = Result.new(self:resultSpec())
+  end
+  self.result:draw(dt)
+  return true
+end
+
+--- The result screen's spec: the line score and the game's star from the timeline, your bet,
+--- and the table when the standings came (see S:fetchStandings).
+function S:resultSpec()
+  local meta = self.meta
+  local spec = Result.base(self.tl, meta)
+  local bet = meta.bet
+  if bet then
+    local winH = spec.home.runs > spec.away.runs
+    local won = (bet.side == "home") == winH
+    local pays = meta.pays and meta.pays[bet.side]
+    spec.lines[#spec.lines + 1] = { "BET", won and ("CASHED" .. (pays and (" +" .. K.money(floor(bet.amount * pays - bet.amount + 0.5))) or ""))
+      or ("LOST " .. K.money(bet.amount)) }
+  end
+  if self.standRows and self.standToday then
+    local ok, stand = pcall(Result.leagueStand, self.standRows, spec, self.standAfter)
+    if ok then spec.stand = stand else print("[ballcast] result standings: " .. tostring(stand)) end
+  end
+  return spec
 end
 
 function S:drawFinalCard(b, tau)

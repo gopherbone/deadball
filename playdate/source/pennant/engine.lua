@@ -97,13 +97,15 @@ function PEng.team(L, abbr, ctrl, noPlayers)
     end
   end
   for _, id in ipairs(T.order) do t.lineup[#t.lineup + 1] = { id = pid(id), pos = T.field[id] or "DH" } end
-  for _, id in ipairs(PRoster.bench(L, T)) do t.bench[#t.bench + 1] = pid(id) end
+  -- (resting players sit it out: pennant/rest.lua)
+  local sit = PRest and abbr == L.user and PRest.sitSet(L, T) or {}
+  for _, id in ipairs(PRoster.bench(L, T)) do if not sit[id] then t.bench[#t.bench + 1] = pid(id) end end
   t.starter = sp and pid(sp) or nil
   local RO = { CL = 1, SU = 2, MR = 3, LR = 4 }
   local pen = {}
   for id, role in pairs(T.pen or {}) do
     local p = L.players[id]
-    if p and not p.inj and id ~= sp then pen[#pen + 1] = { id = pid(id), role = role, o = RO[role] or 3, q = PM.ovr(p) } end
+    if p and not p.inj and id ~= sp and not sit[id] then pen[#pen + 1] = { id = pid(id), role = role, o = RO[role] or 3, q = PM.ovr(p) } end
   end
   table.sort(pen, function(a, b) if a.o ~= b.o then return a.o < b.o end return a.q > b.q end)
   for _, e in ipairs(pen) do t.bullpen[#t.bullpen + 1] = { id = e.id, role = e.role } end

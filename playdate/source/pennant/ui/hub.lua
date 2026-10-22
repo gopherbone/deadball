@@ -9,7 +9,7 @@
 local gfx <const> = playdate.graphics
 PennantUI = PennantUI or {}
 
-local Hub = PUI.define({ title = "Season", hint = "A: go  left/right: choose  hold B anywhere: back here" })
+local Hub = PUI.define({ title = "Season", hint = "A: go  hold B anywhere: back here" })
 PennantUI.Hub = Hub
 
 function Hub:init()
@@ -383,8 +383,14 @@ function Hub:layoutVerbs(Lb, x, y, w)
     local list = self:targets()
     local t = list[1]
     for _, x2 in ipairs(list) do if x2[1] == s.simTarget then t = x2 end end
-    local sl = Lb:button("Sim to: " .. t[2] .. " \u{25b6}", x + 266, y + 3, w - 266, 17, function() s.verb = "simto" self:simTo() end,
-      { id = "simto", hint = "Left/right: where to stop. " .. t[3], data = { adj = function(d) self:cycleTarget(d) end } })
+    -- (on the row of verbs left/right moves between them: A picks where to stop from a menu)
+    local sl = Lb:button("Sim to: " .. t[2] .. "...", x + 266, y + 3, w - 266, 17, function()
+      local items = {}
+      for _, x2 in ipairs(list) do
+        items[#items + 1] = { label = x2[2], note = x2[1] == t[1] and "\u{2713}" or nil, action = function() s.simTarget = x2[1] s.verb = "simto" self:simTo() end }
+      end
+      Menu.open({ x = x + 266, y = y + 21, items = items })
+    end, { id = "simto", hint = "A: sim to... (" .. t[3] .. ")" })
   end
   return y + 25
 end
@@ -408,6 +414,7 @@ function Hub.optionsMenu()
     { label = "Landmarks: " .. onoff(s.landmarks ~= false), action = function() s.landmarks = not (s.landmarks ~= false) Toast.show("Road trip landmarks " .. onoff(s.landmarks), nil) end },
     { label = "Travel animation: " .. onoff(s.travel ~= false), action = function() s.travel = not (s.travel ~= false) Toast.show("Travel animation " .. onoff(s.travel), nil) end },
     { label = "Auto call-ups: " .. onoff(s.autoRoster ~= false), action = function() s.autoRoster = not (s.autoRoster ~= false) Toast.show("Assistant GM call-ups " .. onoff(s.autoRoster), nil) end },
+    { label = "Auto-rest tired: " .. onoff(s.autoRest), action = function() s.autoRest = not s.autoRest Toast.show("Auto-rest " .. onoff(s.autoRest) .. (s.autoRest and ": the coaches rest the tired before every game" or ""), nil) end },
     { label = "Batting controls: " .. PScheme.NAME[s.batScheme or "arcade"], action = function()
       s.batScheme = (s.batScheme or "arcade") == "arcade" and "scout" or "arcade"
       Toast.show("Batting yourself: " .. PScheme.NAME[s.batScheme] .. ". " .. PScheme.BLURB[s.batScheme], nil) end },

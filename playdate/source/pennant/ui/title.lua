@@ -228,17 +228,18 @@ function NewGame:layout(L)
   Text.draw("Season", 6, y + 3, UI.fonts.bold)
   local lab = LENGTHS[self.lenIdx][2]
   gfx.drawRect(56, y, 140, 18)
-  Text.draw("\u{25c0} " .. lab .. " \u{25b6}", 126, y + 2, UI.fonts.body, nil, "center")
-  L:link(56, y, 140, 18, function() self.lenIdx = self.lenIdx % #LENGTHS + 1 self:render(true) end,
-    PUI.opts("len", "Left/right: season length (3-game series, an off day each week)", function(d) self.lenIdx = (self.lenIdx - 1 + d) % #LENGTHS + 1 end))
+  Text.draw(lab, 126, y + 2, UI.fonts.body, nil, "center")
+  -- (Season and Controls share a row: left/right moves between them, A changes the value)
+  L:link(56, y, 140, 18, function() self.lenIdx = self.lenIdx % #LENGTHS + 1 Sfx.tick() self:render(true) end,
+    PUI.opts("len", "A: season length (3-game series, an off day each week)", nil))
   -- controls: you manage by default; batting / pitching yourself is one press away, any time
   self.scheme = self.scheme or "arcade"
   local cy = Text.boxY(UI.fonts.body, y + 1, 16)
   Text.draw("Controls", 204, cy, UI.fonts.bold)
   gfx.drawRect(268, y, 124, 18)
-  Text.draw("\u{25c0} " .. PScheme.NAME[self.scheme] .. " \u{25b6}", 330, cy, UI.fonts.body, nil, "center")
-  L:link(268, y, 124, 18, function() self.scheme = self.scheme == "arcade" and "scout" or "arcade" self:render(true) end,
-    PUI.opts("scheme", "For batting/pitching yourself: " .. PScheme.BLURB[self.scheme] .. " Change any time (Options, time out)", function(d) self.scheme = self.scheme == "arcade" and "scout" or "arcade" end))
+  Text.draw(PScheme.NAME[self.scheme], 330, cy, UI.fonts.body, nil, "center")
+  L:link(268, y, 124, 18, function() self.scheme = self.scheme == "arcade" and "scout" or "arcade" Sfx.tick() self:render(true) end,
+    PUI.opts("scheme", "A: change. For batting/pitching yourself: " .. PScheme.BLURB[self.scheme] .. " Change any time (Options, time out)", nil))
   y = y + 20
   L:button(self.pick and ("Play ball with " .. self.pick .. "!") or "Pick a club first", 100, y, 200, 18, function() self:go() end, { id = "go", hint = "You manage; take the bat or the ball yourself whenever you like" })
   L:mark(PUI.VIEW_H - 2)

@@ -925,6 +925,8 @@ function W.endWeek(L)
     N[#N + 1] = { hurt .. (hurt == 1 and " HURT: OUT " or " HURT, UP TO ") .. worst .. " DAYS", true }
     if L.settings.autoRoster ~= false then N[#N + 1] = { "  (THE BENCH COVERED IT)" } end
   end
+  -- tired regulars given a day off (pennant/rest.lua: the swap list or the auto-rest)
+  if (wk.rested or 0) > 0 then N[#N + 1] = { "RESTED " .. wk.rested .. " TIRED" .. (L.settings.autoRest and " (AUTO)" or "") } end
   local ready = 0
   for _, id in ipairs(T.farm) do if PRoster.ready(L, T, P(L, id)) then ready = ready + 1 end end
   if ready > 0 then N[#N + 1] = { "FARM: " .. ready .. " READY", true } end

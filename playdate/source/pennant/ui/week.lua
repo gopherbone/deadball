@@ -37,6 +37,7 @@ function Week.open(args) local s = setmetatable({}, Week) App.push(s, args) retu
 local CX0 <const>, CW <const>, CG <const>, CY <const>, CH <const> = 103, 55, 4, 40, 107
 local SEL_REST <const> = 6
 local ROW_CARDS <const>, ROW_INT <const>, ROW_GAMES <const> = 1, 2, 3
+local ROW_TIRED <const> = 0   -- the TIRED chip on THE CLUB (up from the cards, when anyone's tired)
 local STRIP_Y <const>, STRIP_H <const> = 201, 21
 
 -- The mode glyphs (blank: sim, an eye: watch, a bat, a ball: pitch, bat and ball: both), 15 x 11,
@@ -168,6 +169,9 @@ function Week:rebuildInner()
   self.units = PWeek.units(L, L.user, true)
   self.energy = PWeek.energy(L)
   self.pips, self.moodWord = PWeek.mood(L)
+  -- tired regulars (pennant/rest.lua): the chip on THE CLUB
+  self.tired = (not self.sp.over and L.phase ~= "awards") and PRest.count(L) or 0
+  if self.tired == 0 and self.row == ROW_TIRED then self.row = ROW_CARDS end
   self.prev = {}
   self.cards = {}
   self.detail = {}
@@ -302,7 +306,18 @@ function Week:paintLeft()
   gfx.setColor(gfx.kColorBlack)
   gfx.drawRect(x, by, w, 101)
   gfx.fillRect(x, by, w, 14)
-  Text.draw("THE CLUB", x + 4, Text.boxY(F().bold, by, 14), F().bold, "white")
+  if (self.tired or 0) > 0 then
+    -- the TIRED chip (white on the black header): up from the cards, A opens the swap list
+    Text.draw("CLUB", x + 4, Text.boxY(F().bold, by, 14), F().bold, "white")
+    local s = self.tired .. " TIRED"
+    local cw = F().bold:getTextWidth(s) + 6
+    gfx.setColor(gfx.kColorWhite)
+    gfx.fillRect(x + w - 2 - cw, by + 1, cw, 12)
+    gfx.setColor(gfx.kColorBlack)
+    Text.draw(s, x + w - 2 - cw // 2, Text.boxY(F().bold, by + 1, 12, s), F().bold, nil, "center")
+  else
+    Text.draw("THE CLUB", x + 4, Text.boxY(F().bold, by, 14), F().bold, "white")
+  end
   local y = by + 17
   for _, k in ipairs(PWeek.UNITS) do
     local v = self.units[k]
@@ -653,7 +668,10 @@ function Week:hint()
   if L.phase == "awards" or self.sp.over then return "A: awards night   B: office" end
   if L.phase == "playoffs" and not self.sp.series then return "A: sim the playoffs   B: office" end
   local verb = (L.club.wk and L.club.wk.w == self.sp.w) and "continue the week" or (self.sp.po and "play the series" or "run the week")
-  if self.row == ROW_GAMES then
+  local tired = (self.tired or 0) > 0 and ("\u{25b2} " .. self.tired .. " tired  ") or ""
+  if self.row == ROW_TIRED then
+    return "A: rest the tired (" .. self.tired .. ": who sits, who covers)   \u{25bc} back"
+  elseif self.row == ROW_GAMES then
     local e = self:focusChip()
     if not e then return "\u{25b2} back  B: office" end
     local nx = PWeek.cycleMode(e.mode, 1)
@@ -661,7 +679,7 @@ function Week:hint()
   elseif self.row == ROW_INT then
     return "\u{25c0}\u{25b6} intensity  \u{25b2}\u{25bc} program / games  A: " .. verb .. "  B: office"
   end
-  return "\u{25c0}\u{25b6} program  \u{25bc} intensity, games  A: " .. verb .. "  B: office"
+  return tired .. "\u{25c0}\u{25b6} program  \u{25bc} intensity, games  A: " .. verb .. "  B: office"
 end
 
 function Week:compose()
@@ -687,6 +705,13 @@ function Week:compose()
     end
   end
   if not (L.phase == "awards" or self.sp.over) then self:stripImg():draw(0, STRIP_Y - 5) end
+  if self.row == ROW_TIRED then
+    -- (the TIRED chip has the focus: a bracket round THE CLUB's header)
+    gfx.setLineWidth(2)
+    gfx.drawRect(2, 93, 96, 18)
+    gfx.setLineWidth(1)
+    gfx.fillTriangle(103, 97, 103, 107, 100, 102)
+  end
   PUI.hintBar(self:hint())
   gfx.popContext()
 end
@@ -771,6 +796,12 @@ function Week:setRow(r)
   if not cards then return end
   local dir = r > self.row and 1 or -1
   if r == ROW_INT and L.club.prog == "rest" then r = r + dir end
+  if r == ROW_TIRED and (self.tired or 0) > 0 then
+    self.row = ROW_TIRED
+    Sfx.focus()
+    self.frameDirty = true
+    return
+  end
   if r < ROW_CARDS or r > ROW_GAMES then return end
   if r == ROW_GAMES then
     local open = self:openDays()
@@ -814,20 +845,38 @@ function Week:cycleGame(dir)
 end
 
 function Week:leftButtonDown()
+  if self.row == ROW_TIRED then return end
   if self.row == ROW_GAMES then self:moveGame(-1)
   elseif self.row == ROW_INT then self:setInt(-1)
   else self:select(self.sel - 1) end
 end
 function Week:rightButtonDown()
+  if self.row == ROW_TIRED then return end
   if self.row == ROW_GAMES then self:moveGame(1)
   elseif self.row == ROW_INT then self:setInt(1)
   else self:select(self.sel + 1) end
 end
+--- (the tour's navcheck) The focus rows: left/right moves along each one (selecting a card or an
+--- intensity is choosing it); no item on them takes left/right for a value of its own (A cycles a game).
+function Week:navItems()
+  local out = {}
+  for i, k in ipairs(PWeek.PROGS) do out[#out + 1] = { id = "card:" .. k, row = ROW_CARDS } end
+  for _, k in ipairs({ "light", "normal", "hard", "rest" }) do out[#out + 1] = { id = "int:" .. k, row = ROW_INT } end
+  for _, e in ipairs(self:openDays()) do out[#out + 1] = { id = "game:" .. e.d, row = ROW_GAMES } end
+  return out
+end
+Week.navName = "Week"
+
 function Week:upButtonDown() self:setRow(self.row - 1) end
 function Week:downButtonDown() self:setRow(self.row + 1) end
 
 function Week:AButtonDown()
   if self.row == ROW_GAMES and self:focusChip() then self:cycleGame(1) return end
+  if self.row == ROW_TIRED then
+    Sfx.select()
+    PennantUI.RestTired.open({ onDone = function() self.base = nil self.stale = true end })
+    return
+  end
   Sfx.select()
   PennantUI.runWeek()
 end
@@ -910,10 +959,10 @@ function Office:layout(Lb)
   end
   local items = {
     { "This week's games", "How each game this week is played: sim, watch, bat, pitch or both", function() PennantUI.ThisWeek.open({}) end },
-    { "Every game: " .. PWeek.MODE_NAME[all] .. " \u{25c0}\u{25b6}",
-      all == "sim" and "Default for every game: SIM (only the \u{2605} game and the playoffs live). \u{25c0}\u{25b6}/A: change"
-        or ("Default for every game: " .. PWeek.MODE_NAME[all] .. " (" .. PWeek.MODE_DESC[all] .. "). \u{25c0}\u{25b6}/A: change"),
-      function() cycleAll(1) Sfx.tick() self:render(true) end, adj = cycleAll },
+    { "Every game: " .. PWeek.MODE_NAME[all],
+      all == "sim" and "A: change. Default for every game: SIM (only the \u{2605} game and the playoffs live)"
+        or ("A: change. Default for every game: " .. PWeek.MODE_NAME[all] .. " (" .. PWeek.MODE_DESC[all] .. ")"),
+      function() cycleAll(1) Sfx.tick() self:render(true) end },
     { "Season goals", "The month-by-month goals and what's next", function() PennantUI.Goals.open({}) end },
     { "Team", "Roster, player cards, condition", function() PennantUI.Team.open({}) end },
     { "Lineup", "Batting order, positions, rotation, bullpen (the coaches set it otherwise)", function() PennantUI.Lineup.open({}) end },
@@ -934,7 +983,8 @@ function Office:layout(Lb)
     local row = (i - 1) // 2
     local x = 6 + col * 194
     local yy = y + row * 30
-    Lb:button(it[1], x, yy, 186, 24, it[3], { id = "o" .. i, hint = it[2], data = it.adj and { adj = it.adj } or nil })
+    -- (a grid: left/right always moves between the buttons; "Every game" changes with A)
+    Lb:button(it[1], x, yy, 186, 24, it[3], { id = "o" .. i, hint = it[2] })
   end
   local own = 0
   for _ in pairs(c.own) do own = own + 1 end

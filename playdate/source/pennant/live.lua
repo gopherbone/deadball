@@ -413,7 +413,12 @@ function Live:input(scene, btn, change)
   local u = self.ui
   if st == "menu" then self:menuInput(scene, btn, change) return true end
   if st == "final" then
-    if self:caughtUp(scene) then self:finish() end
+    -- the result screen: A skips its beats, then A (or B, any time) is on to the box score; before
+    -- it's up (the FINAL banner) nothing
+    local r = self.result
+    if not r then return true end
+    if btn == "A" and not r:done() then r:skip() Sfx.select() return true end
+    self:finish()
     return true
   end
   if st == "dugout" then self:dugoutInput(scene, btn) return true end
@@ -525,6 +530,7 @@ function Live:finish()
   local res = self.h:result()
   PL.apply(L, self.g, res)
   PennantLive.cur = nil
+  if self.result then self.result:release() self.result = nil end
   App.pop()   -- BallCast
   -- a game inside the week run (ui/gameday.lua Advance:liveGame): back to the run
   local back = PennantUI.liveReturn
@@ -611,58 +617,91 @@ function Live:drawMenu()
   end
 end
 
---- The race after tonight (the result counted in before it's applied): "Up to 2nd, 1 GB",
---- "Still 5th, 3 GB", late in the year "MAGIC # 6" / "ELIM # 4".
-function Live:raceLine(res)
-  local L = self.L
-  if L.phase ~= "season" then return nil end
-  local T = L.teams[self.user]
-  local before = PL.rank(L, self.user)
+-- The result screen (ballcast/tv/result.lua) ----------------------------------------------------------
+
+local function pname(L, id) local p = id and L.players[id] return p and string.upper(PM.short(p)) or nil end
+
+--- The race after tonight, counted in before the result is applied (the league isn't touched:
+--- the standings, the race line and the month's goal are read with tonight's result counted in,
+--- then put back). Returns stand, note, goal for the result screen; nil outside the season.
+function Live:raceAfter(res)
+  local L, g = self.L, self.g
+  if L.phase ~= "season" or g.po then return nil end
+  local user = self.user
+  local opp = g.h == user and g.a or g.h
+  local function snap()
+    local out = {}
+    for i, T in ipairs(PL.standings(L)) do out[i] = { abbr = T.abbr, w = T.w, l = T.l, rs = T.rs, ra = T.ra } end
+    return BallCast.Result.ranked(out)
+  end
+  local goal = L.club and L.club.goal
+  local before = snap()
+  local gv0, gp0
+  if goal then gv0, gp0 = PWeek.goalProgress(L, goal) end
+  local T, O = L.teams[user], L.teams[opp]
+  local saved = { g.done, g.hs, g.as, T.w, T.l, T.rs, T.ra, O.w, O.l, O.rs, O.ra }
   local mine = self.side == "home" and res.home.runs or res.away.runs
   local them = self.side == "home" and res.away.runs or res.home.runs
-  local won = mine > them
-  if won then T.w = T.w + 1 else T.l = T.l + 1 end
-  local ok, line = pcall(function()
-    local r = PL.rank(L, self.user)
+  local after, note, gv1, gp1
+  local ok, err = pcall(function()
+    g.done, g.hs, g.as = true, res.home.runs, res.away.runs
+    if mine > them then T.w, O.l = T.w + 1, O.l + 1 elseif them > mine then T.l, O.w = T.l + 1, O.w + 1 end
+    T.rs, T.ra, O.rs, O.ra = T.rs + mine, T.ra + them, O.rs + them, O.ra + mine
+    after = snap()
+    local r, rb = 8, 8
+    for _, x in ipairs(after) do if x.abbr == user then r = x.r end end
+    for _, x in ipairs(before) do if x.abbr == user then rb = x.r end end
     local gb = T.gb or 0
     local left = PL.seasonGames(L) - (T.w + T.l)
     if left <= 20 then
-      local m, e = PL.magic(L, self.user), PL.elimination(L, self.user)
-      if m then return m <= 0 and "CLINCHED A PLAYOFF SPOT!" or ("Playoff MAGIC # " .. m .. ", " .. left .. " to play") end
-      if e then return e <= 0 and "Eliminated." or ("ELIM # " .. e .. ", " .. left .. " to play") end
+      local m, e = PL.magic(L, user), PL.elimination(L, user)
+      if m then note = m <= 0 and "CLINCHED A PLAYOFF SPOT!" or ("PLAYOFF MAGIC # " .. m .. ", " .. left .. " TO PLAY") end
+      if e then note = e <= 0 and "ELIMINATED." or ("ELIM # " .. e .. ", " .. left .. " TO PLAY") end
     end
-    local verb = r < before and "Up to " or (r > before and "Down to " or "Still ")
-    return verb .. PUI.ord(r) .. ", " .. (gb <= 0 and "in first" or (PL.gbText(gb) .. " GB"))
+    if not note then
+      local verb = r < rb and "UP TO " or (r > rb and "DOWN TO " or "STILL ")
+      note = verb .. PUI.ord(r):upper() .. ", " .. (gb <= 0 and "IN FIRST" or (PL.gbText(gb) .. " GB"))
+    end
+    if goal then gv1, gp1 = PWeek.goalProgress(L, goal) end
   end)
-  if won then T.w = T.w - 1 else T.l = T.l - 1 end
-  PL.standings(L)   -- (restore the GB column)
-  return ok and line or nil
+  g.done, g.hs, g.as, T.w, T.l, T.rs, T.ra, O.w, O.l, O.rs, O.ra = table.unpack(saved, 1, 11)
+  PL.standings(L)   -- (the GB column back)
+  if not ok then print("[pennant] result standings: " .. tostring(err)) return nil end
+  local stand = { rows = BallCast.Result.rows(before, after, { [user] = true }), line = 4, title = "STANDINGS" }
+  local gl = goal and { text = PWeek.goalShort(L, goal), v0 = tostring(gv0 or ""), v1 = tostring(gv1 or ""), p0 = gp0 or 0, p1 = gp1 or 0 } or nil
+  return stand, note, gl
 end
 
-function Live:drawFinal(scene)
+--- The result screen's spec for this game (res: the engine's result; a staged one for the tour).
+function Live:resultSpec(scene, res)
   local L = self.L
-  local res = self.finalRes
-  if not res then res = self.h:result() self.finalRes = res self.finalRace = self:raceLine(res) end
-  local x, y, w, h = 90, 140, 220, 84
-  panel(x, y, w, h)
-  gfx.fillRect(x, y, w, 15)
-  Text.draw("FINAL", x + w // 2, y + 1, F().bold, "white", "center")
-  Text.draw(self.g.a .. " " .. res.away.runs .. "    " .. self.g.h .. " " .. res.home.runs .. ((res.innings or 9) > 9 and ("  (" .. res.innings .. ")") or ""), x + w // 2, y + 18, F().head, nil, "center")
-  local function nm(id) local p = id and L.players[id] return p and PM.short(p) or "-" end
-  Text.draw("W " .. nm(res.W) .. "   L " .. nm(res.L) .. (res.S and ("   S " .. nm(res.S)) or ""), x + w // 2, y + 36, F().body, nil, "center")
-  if self.finalRace then
-    gfx.fillRect(x + 2, y + 51, w - 4, 15)
-    local s = Text.ellipsize(self.finalRace, F().bold, w - 10)
-    Text.draw(s, x + w // 2, Text.boxY(F().bold, y + 51, 15, s), F().bold, "white", "center")
-  end
-  Text.draw("A: box score & the rest of the day", x + w // 2, y + 68, F().body, nil, "center")
+  local spec = BallCast.Result.base(scene.tl, scene.meta)
+  spec.away.runs, spec.home.runs = res.away.runs, res.home.runs
+  spec.mine = self.side
+  local lines = {}
+  if pname(L, res.W) then lines[#lines + 1] = { "W", pname(L, res.W) } end
+  if pname(L, res.L) then lines[#lines + 1] = { "L", pname(L, res.L) } end
+  if pname(L, res.S) then lines[#lines + 1] = { "SV", pname(L, res.S) } end
+  spec.lines = lines
+  spec.stand, spec.note, spec.goal = self:raceAfter(res)
+  if L.phase == "playoffs" then spec.note = "THE PLAYOFFS" end
+  return spec
+end
+
+--- Put up the result screen (res: nil = this game's; the tour stages others).
+function Live:openResult(scene, res)
+  res = res or self.h:result()
+  if self.result then self.result:release() end
+  self.result = BallCast.Result.new(self:resultSpec(scene, res))
+  self.resultMs = nil
 end
 
 --- BallCast holds the picture still under a static panel (the time-out menu, the final card).
 function Live:freeze(scene, bi, b, tau)
   if self.menu then return true end
-  return self.pause ~= nil and self.pause.reason == "done" and b.kind == "end" and tau > 1.25
+  return self.pause ~= nil and self.pause.reason == "done" and b.kind == "end" and tau > Live.RESULT_AT
 end
+Live.RESULT_AT = 1.25   -- s into the final beat (the FINAL banner has landed): the result screen
 
 --- Text-heavy panels are painted into an image when they change and blitted every frame.
 function Live:cached(key, x, y, w, h, paint, slot)
@@ -695,8 +734,12 @@ function Live:draw(scene, bi, b, tau)
     self:cached("d" .. tostring(u.sub ~= nil) .. (u.sub and u.subSel or u.sel) .. ":" .. tostring(self.pause), 226, math.max(20, 200 - h), 172, h + 2, function() self:drawDugout() end)
   end
   self:drawControl(scene, bi, b, tau)
-  if self.pause and self.pause.reason == "done" and b.kind == "end" and tau > 1.0 then
-    self:cached("final", 90, 140, 223, 87, function() self:drawFinal(scene) end, "final")
+  if self.pause and self.pause.reason == "done" and b.kind == "end" and tau > Live.RESULT_AT then
+    if not self.result then self:openResult(scene) App.latch() end
+    local now = playdate.getCurrentTimeMilliseconds()
+    local dt = self.resultMs and min(0.1, (now - self.resultMs) / 1000) or 0
+    self.resultMs = now
+    self.result:draw(dt)
   end
   if self.menu then
     local m = self.menu

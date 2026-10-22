@@ -220,6 +220,12 @@ end
 
 --- Today's starter: next in the rotation who is healthy and rested.
 function R.starter(L, T)
+  -- a spot start (pennant/rest.lua): today only; the rotation doesn't turn (no index)
+  local spot = T.spotSp
+  if spot and spot.day == L.day then
+    local q = P(L, spot.id)
+    if q and R.healthy(q) and q.team == T.abbr and q.lvl ~= "F" then return q.id, nil end
+  end
   local n = #T.rot
   for k = 0, n - 1 do
     local i = (T.rotIdx + k - 1) % n + 1

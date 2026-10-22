@@ -327,16 +327,19 @@ function PUI.mood(x, y, m)
   end
 end
 
---- Fatigue meter (0..100), w x 6. Fuller = more tired.
+--- Fatigue meter (0..100), w x 6. Fuller = more tired; solid black once tired (over 55, where it
+--- starts to cost rating points: PRest.TIRED), with a notch at that line.
 function PUI.fatigue(x, y, f, w)
   w = w or 24
   gfx.setColor(gfx.kColorBlack)
   gfx.drawRect(x, y, w, 6)
   local fw = math.floor((w - 2) * math.max(0, math.min(100, f or 0)) / 100 + 0.5)
   if fw > 0 then
-    if (f or 0) >= 70 then gfx.fillRect(x + 1, y + 1, fw, 4)
+    if (f or 0) > 55 then gfx.fillRect(x + 1, y + 1, fw, 4)
     else gfx.setPattern(UI.pat.gray) gfx.fillRect(x + 1, y + 1, fw, 4) gfx.setColor(gfx.kColorBlack) end
   end
+  local nx = x + 1 + math.floor((w - 2) * 0.55 + 0.5)
+  gfx.drawLine(nx, y - 1, nx, y)
 end
 
 --- Grade letter in a box (S..G) for a 20-80 value.

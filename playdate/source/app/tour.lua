@@ -102,6 +102,107 @@ local function legacyFixture()
   return A
 end
 
+-- The result screen (ballcast/tv/result.lua) ------------------------------------------------------
+-- A frame strip of its beats (the clock pinned at each time: r.debugT), then the settled frame.
+local STRIP <const> = { 0.1, 0.3, 0.55, 0.8, 1.1, 1.4, 1.65, 1.85, 2.2, 3.0 }
+local function resultStrip(getR, prefix)
+  for _, t in ipairs(STRIP) do
+    S(2, function() local r = getR() if r then r.debugT = t end end, string.format("%s_t%02d", prefix, math.floor(t * 10 + 0.5)))
+  end
+  S(2, function() local r = getR() if r then r.debugT = nil r:skip() end end, nil)
+end
+
+--- A Pennant live game's result, staged as a win or a loss (the real one's runs swapped when it
+--- went the other way: its line score turned round, the tags that no longer hold dropped).
+local function stageResult(win)
+  local src = PennantLive and PennantLive.cur
+  local s = App.top()
+  if not src or s ~= BallCast.scene then return end
+  local real = src.h:result()
+  local mineH = src.side == "home"
+  local m = mineH and real.home.runs or real.away.runs
+  local t = mineH and real.away.runs or real.home.runs
+  local swap = (m > t) ~= win
+  local res = { home = { runs = real.home.runs }, away = { runs = real.away.runs }, W = real.W, L = real.L, S = real.S, innings = real.innings }
+  if swap then res.home.runs, res.away.runs, res.W, res.L, res.S = real.away.runs, real.home.runs, real.L, real.W, nil end
+  src:openResult(s, res)
+  local spec = src.result.spec
+  if swap then
+    local ls = spec.ls
+    ls.away, ls.home = ls.home, ls.away
+    for _, k in ipairs({ "R", "H", "E" }) do ls[k].away, ls[k].home = ls[k].home, ls[k].away end
+    local keep = {}
+    for _, tg in ipairs(spec.tags) do if not (tg == "WALK-OFF" or tg:find("^CAME BACK")) then keep[#keep + 1] = tg end end
+    spec.tags = keep
+  end
+  src.result.debugT = 3.0
+end
+
+--- Shots of a Pennant live game's end: the FINAL banner, the held-A probe through the result
+--- screen's arrival, its frame strip, then the game staged as a win and as a loss.
+local function pennantResultSteps(prefix, full)
+  local function live() return PennantLive and PennantLive.cur end
+  U(function() local src = live() local s = App.top() return not src or (src.pause and src.pause.reason == "done" and s.tl and s:curBeatIndex() == #s.tl.beats and s.t - s.tl.beats[#s.tl.beats].start > 0.5) end,
+    30 * 60, function() local src = live() if src then src.menu = nil src:simToEnd(false) end end, prefix .. "_final", 2)
+  S(1, function() Tour.resultHeldProbe() end, nil)
+  U(function() local src = live() return not src or (src.result ~= nil and src.result:done()) end, 30 * 10, nil, prefix .. "_result_live", 2)
+  if not full then return end
+  resultStrip(function() local src = live() return src and src.result end, prefix .. "_result_strip")
+  S(4, function() stageResult(true) end, prefix .. "_result_win")
+  S(4, function() stageResult(false) end, prefix .. "_result_loss")
+  S(2, function() local src = live() local s = App.top() if src and s == BallCast.scene then src:openResult(s) src.result:skip() end end, nil)
+end
+
+--- A league replay's end (BallCast, no local source): the fixture's table injected as today's,
+--- the clock put at the last beat's end; the strip, the settled frame, A to put it away.
+local function bcResultSteps(prefix)
+  S(10, function()
+    if not (BallCast and BallCast.scene) then print("[tour] no BallCast in this build") return end
+    App.push(BallCast.scene, { gameId = "g1", skipIntro = true })
+  end, nil)
+  U(function() local t = App.top() return not (BallCast and t == BallCast.scene) or (t.mode == "watch" and t.tl and not t:timelinePending()) end, 900, nil, nil, 10)
+  S(4, function()
+    local s = App.top()
+    if not (BallCast and s == BallCast.scene and s.tl) then return end
+    local st = Fixtures and Fixtures.peek("/standings?level=ML")
+    s.standRows, s.standToday, s.standAfter = st and st.rows, true, true
+    s:debugSeek(function(b) return b.kind == "end" end, function(b) return b.dur - 0.02 end)
+    s.playing = true
+  end, nil)
+  U(function() local s = App.top() return not (BallCast and s == BallCast.scene) or s.result ~= nil end, 120, nil, nil, 1)
+  resultStrip(function() local s = App.top() return BallCast and s == BallCast.scene and s.result or nil end, prefix .. "_strip")
+  S(4, function() end, prefix)
+  S(10, function() press("A") end, prefix .. "_dismissed")
+  S(10, function() if BallCast and App.top() == BallCast.scene then App.pop() end end, nil)
+end
+
+--- The quick run (tour.flag second line "gameend"): a new Pennant league's first game, watched and
+--- simmed to its end, then a league replay's end.
+local function buildGameEnd()
+  local function T() return App.top() end
+  local function isA(t, S2) return t and getmetatable(t) == S2 end
+  S(10, function() if PSave then PSave.delete(3) end PLegacy.mem = PLegacy.normalize({ v = PLegacy.VERSION }) Pennant.open() end, nil)
+  U(function() local t = T() return t and t.generating == false end, 600, function() PennantUI.NewGame.open({ slot = 3 }) end, nil, 4)
+  S(8, function() focusId("club:HCL") press("A") end, nil)
+  U(function() return isA(T(), PennantUI.Inspire) end, 300, function() T():go() end, nil, 10)
+  U(function() return Pennant.hub ~= nil and isA(T(), PennantUI.Goals) end, 300, function() local t = T() if isA(t, PennantUI.Inspire) then t.t = 99 t:AButtonDown() end end, nil, 10)
+  S(20, function() local t = T() if isA(t, PennantUI.Goals) then t.t = 99 press("down") t:AButtonDown() end end, nil)
+  -- (a game day: an off day sims through)
+  U(function() local t = T() local L = Pennant.L
+    if t and t.state == "done" and t.AButtonDown then t:AButtonDown() return false end
+    if t ~= Pennant.hub then if t and t.AButtonDown and (t.rows or t.map2 or t.lm) then t:AButtonDown() end return false end
+    if PL.gameFor(L, L.user) and not PL.gameFor(L, L.user).done then return true end
+    PennantUI.Advance.open({ days = 1 })
+    return false
+  end, 30 * 120, function() Pennant.toHub() end, nil, 4)
+  -- (the watching probes belong to the full run: a watched game may go a long while without a panel)
+  U(function() local t = T() return t == BallCast.scene and t.mode == "watch" end, 900, function() Tour.held.done["A:manage"] = true PennantLive.start("watch") end, nil, 30)
+  pennantResultSteps("g01_pennant", true)
+  U(function() return T() and T().box ~= nil end, 600, function() local src = PennantLive.cur if src then src:finish() end end, "g02_after_game", 10)
+  S(10, function() Pennant.quit() PSave.delete(3) PLegacy.mem = nil end, nil)
+  bcResultSteps("g03_league_result")
+end
+
 local function buildPennant()
   S(1, function() Tour.held.screens = not perfMode end, nil)
   local function T() return App.top() end
@@ -136,7 +237,7 @@ local function buildPennant()
   S(12, function() press("left", 6) press("A") press("right") press("A", 2) press("right") press("A", 3) press("right") press("A", 4) end, "p03h_week_strip_modes")
   S(4, function() Pennant.L.club.mode = {} press("up", 2) if Pennant.hub then Pennant.hub.strip = nil Pennant.hub.frameDirty = true end end, nil)
   S(20, function() press("B") end, "p03e_office")
-  S(12, function() focusId("o2") press("right") local t = T() if t and t.render then t:render(true) end end, "p03e2_office_every_game")
+  S(12, function() focusId("o2") press("A") end, "p03e2_office_every_game")
   S(4, function() Pennant.L.settings.allGames = nil local t = T() if t and t.render then t:render(true) end end, nil)
   S(20, function() PennantUI.ThisWeek.open({}) end, "p03f_this_week")
   S(20, function() home() PennantUI.Team.open({}) end, "p04_team")
@@ -149,6 +250,23 @@ local function buildPennant()
   S(20, function() home() PennantUI.Lineup.open({}) end, "p07_lineup")
   S(10, function() press("A") press("down") end, "p07b_lineup_pick")
   S(10, function() press("B") T().tab = "pit" T():render() end, "p08_staff")
+  -- rest the tired (pennant/rest.lua): three regulars worn out, the Week screen's TIRED chip (up
+  -- from the cards), the swap list, the lineup's meters, the pregame's REST TIRED; then fresh again
+  S(12, function() home() local L = Pennant.L local Tm = L.teams[L.user] PL.todayCard(L, L.user)
+    Tour.rs = { fat = {} }
+    local want = { [2] = 74, [5] = 66, [7] = 59 }
+    for i, id in ipairs(Tm.order) do if want[i] then local p = L.players[id] Tour.rs.fat[id] = p.fat p.fat = want[i] end end
+    if Pennant.hub then Pennant.hub.base = nil Pennant.hub.stale = true end end, nil)
+  S(12, function() press("up") end, "p07c_week_tired")
+  S(20, function() press("A") end, "p07d_rest_swap")
+  S(20, function() local t = T() if isA(t, PennantUI.RestTired) then press("up") press("up") end end, "p07d2_rest_swap_row")
+  S(20, function() local t = T() if isA(t, PennantUI.RestTired) then t:finish(0) end home() PennantUI.Lineup.open({}) end, "p07e_lineup_tired")
+  S(20, function() home() if PL.gameFor(Pennant.L, Pennant.L.user) then PennantUI.GameDay.open({ featured = "featured", onChoice = function() App.pop() end }) end end, "p07f_gameday_tired")
+  S(16, function() activate("rest") end, nil)
+  S(16, function() local t = T() if isA(t, PennantUI.RestTired) then activate("swap") end end, "p07g_gameday_rested")
+  S(6, function() local L = Pennant.L
+    for id, f in pairs(Tour.rs.fat) do L.players[id].fat = f end
+    Tour.rs = nil home() end, nil)
   S(20, function() home() PennantUI.Farm.open({}) end, "p09_farm")
   S(20, function() home() PennantUI.Trades.open({}) end, "p10_trades")
   S(20, function()
@@ -493,8 +611,8 @@ local function buildPennant()
       return b and b.kind == "p" and b.plan.pitch and (s.curCam == "pitch" or s.curCam == "behindPlate") and s.t - b.start > b.plan.pitch.tPlate + 0.4 and not src.hideKzone
     end, 30 * 60, nil, "p28b_watch_kzone", 1) end
     if withDugout then S(10, function() local src = live() if src then src:openMenu() end end, "p28_timeout_menu") end
-    U(function() local src = live() local s = T() return not src or (src.pause and src.pause.reason == "done" and s.tl and s:curBeatIndex() == #s.tl.beats and s.t - s.tl.beats[#s.tl.beats].start > 1.5) end,
-      30 * 60, function() local src = live() if src then src.menu = nil src:simToEnd(false) end end, withDugout and "p29_final" or nil, 4)
+    -- the end: the FINAL banner, then the result screen (its strip, a staged win and loss)
+    pennantResultSteps(withDugout and "p29" or (tag .. "_end"), withDugout)
     U(function() return T() and T().box ~= nil end, 600, function() local src = live() if src then src:finish() end end, nil, 2)
     U(function() local t = T() return t and t.state == "done" end, 600, nil, nil, 2)
     S(20, function() local t = T() if t and t.AButtonDown and t.state then t:AButtonDown() end end, withDugout and "p30_postgame" or nil)
@@ -780,6 +898,8 @@ local function build()
   U(function() local t = top() return not (BallCast and t == BallCast.scene) or (t.mode == "watch" and t.tl and not t:timelinePending()) end, 900, nil, nil, 60)
   S(4, function() if BallCast and top() == BallCast.scene then Tour.bcHeldProbes() end end, nil)
   S(10, function() if BallCast and top() == BallCast.scene then App.pop() end end, nil)
+  -- a league replay's end: the result screen (ballcast/tv/result.lua)
+  if not perfMode then bcResultSteps("29_bc_result") end
   if Pennant then buildPennant() end
   if perfMode then
     -- BallCast at 1x on the live C renderer; frame costs bucketed by camera shot.
@@ -819,6 +939,7 @@ end
 function Tour.isActive() return active end
 
 function Tour.finish()
+  if Tour.nav then print(string.format("[navcheck] screens %d, left/right cyclers alone on their row %d, FAIL %d", Tour.nav.screens, Tour.nav.lone, Tour.nav.fail)) end
   print("[tour] done")
   active = false
   Tour.held.screens = false
@@ -867,7 +988,11 @@ function Tour.start()
   outDir = line and line:gsub("%s+$", "") or nil
   if not outDir or outDir == "" then return end
   playdate.file.delete("tour.done")
-  if only == "pennant" or only == "pennantweek" then
+  if only == "gameend" then
+    S(40, function() end, nil)
+    buildGameEnd()
+    S(10, function() Tour.finish() end, nil)
+  elseif only == "pennant" or only == "pennantweek" then
     -- the Pennant section alone (it needs no server or fixtures); "pennantweek": the week screens only
     Tour.short = only == "pennantweek"
     S(40, function() end, nil)
@@ -1024,6 +1149,30 @@ function Tour.bcHeldProbes()
   end)
 end
 
+-- The result screen (Pennant's live game end): A pressed on the FINAL banner and held as the result
+-- screen comes up: neither the hold nor its release skips the beats or leaves the game.
+function Tour.resultHeldProbe()
+  local src = PennantLive and PennantLive.cur
+  local s = App.top()
+  if not src or not BallCast or s ~= BallCast.scene then heldReport("A final->result", { "no live game" }) return end
+  if src.result then heldReport("A final->result (already up)", {}) return end
+  heldStart("result", function()
+    local bad = {}
+    holdBtn("A", true)
+    if not waitFor(function() return src.result ~= nil end, 90) then bad[#bad + 1] = "no result screen" end
+    frames(20)
+    local r = src.result
+    if not App.latched.A then bad[#bad + 1] = "A not latched" end
+    if r and r.skipped then bad[#bad + 1] = "the hold skipped the beats" end
+    if src.finished then bad[#bad + 1] = "the hold left the game" end
+    releaseBtn("A")
+    frames(3)
+    if r and r.skipped then bad[#bad + 1] = "the release skipped the beats" end
+    if src.finished then bad[#bad + 1] = "the release left the game" end
+    heldReport("A final->result", bad)
+  end)
+end
+
 -- Pennant live games (BallCast + PennantLive): A held from watching into the next panel; B held
 -- into the time-out menu (its release mustn't close it), then a B tap closing the menu held on
 -- into the panel (no take / no time out from it).
@@ -1148,9 +1297,70 @@ local function heldTick()
   return true
 end
 
+-- Navcheck: rows of focusable items --------------------------------------------------------------
+-- On every screen the tour shows, the focusable items are grouped by row (their rects overlap
+-- vertically, or the screen's own navItems() says which row). An item that uses left/right itself
+-- (a value cycler: Page:linkTakesLR, or navItems' lr) must be alone on its row; otherwise
+-- left/right can't move the focus off it to its neighbours. "[navcheck] FAIL <screen> <item>".
+Tour.nav = { screens = 0, fail = 0, lone = 0 }
+local navSeen = {}
+local function navName(s)
+  local t = s.title
+  if type(t) == "function" then local ok, v = pcall(t, s) t = ok and v or nil end
+  if type(t) ~= "string" and s.url then local ok, v = pcall(s.url, s) t = ok and v or nil end
+  if (t == nil or t == "about:blank") and Sites then
+    -- (a page without an address: its Sites name)
+    local mt = getmetatable(s)
+    for k, v in pairs(Sites) do if v == mt then t = "Sites." .. k end end
+  end
+  if type(s.step) == "number" then t = tostring(t) .. "#" .. s.step end
+  return tostring(t or s.navName or "?")
+end
+local function navItems(s)
+  if s.navItems then return s:navItems() end
+  if not s.links or s.loading or s.err then return nil end
+  local out = {}
+  for _, l in ipairs(s.links) do
+    out[#out + 1] = { id = l.id or (l.x .. ":" .. l.y), y = l.y, h = l.h, lr = s.linkTakesLR and s:linkTakesLR(l) or false }
+  end
+  return out
+end
+local function sameRow(a, b)
+  if a.row or b.row then return a.row == b.row end
+  return math.min(a.y + a.h, b.y + b.h) - math.max(a.y, b.y) > 2
+end
+local function navCheck()
+  local s = App.top()
+  if not s then return end
+  local ok, items = pcall(navItems, s)
+  if not ok or not items or #items == 0 then return end
+  local name = navName(s)
+  if not navSeen[name] then
+    navSeen[name] = true
+    Tour.nav.screens += 1
+    print(string.format("[navcheck] screen %s (%d items)", name, #items))
+  end
+  for i, a in ipairs(items) do
+    local key = name .. "|" .. tostring(a.id)
+    if a.lr and not navSeen[key] then
+      navSeen[key] = true
+      local other = nil
+      for j, b in ipairs(items) do if j ~= i and sameRow(a, b) then other = b break end end
+      if other then
+        Tour.nav.fail += 1
+        print("[navcheck] FAIL " .. name .. " " .. tostring(a.id) .. " (left/right changes it; shares its row with " .. tostring(other.id) .. ")")
+      else
+        Tour.nav.lone += 1
+        print("[navcheck] ok " .. name .. " " .. tostring(a.id) .. " (left/right changes it; alone on its row)")
+      end
+    end
+  end
+end
+
 --- Called after each frame is drawn (from Debug.update).
 function Tour.update()
   if not active then return end
+  if not perfMode and (Game.frame or 0) % 3 == 0 then navCheck() end
   if PennantLive and PennantLive.cur and not perfMode then probeInputs() end
   if not perfMode and heldTick() then return end
   -- Pennant screens must show something every frame (main.lua clears the display each frame):

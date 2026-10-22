@@ -143,6 +143,7 @@ function Bets:moveFocus(dx, dy)
   end
   return Page.moveFocus(self, dx, dy)
 end
+function Bets:linkTakesLR(l) return l and l.data and l.data.game and bettable(l.data.game) and true or false end
 
 -- Layout -------------------------------------------------------------------------------------
 

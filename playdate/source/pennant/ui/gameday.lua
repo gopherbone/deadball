@@ -97,6 +97,10 @@ function GameDay:layout(Lb)
   local vs = PL.todayCard(L, L.user)
   PRoster.validate(L, T)
   local opp = g.h == L.user and g.a or g.h
+  -- who's tired today (pennant/rest.lua): marked in the lineup, and the REST TIRED button
+  local rest = PRest.plan(L)
+  local tiredId = {}
+  for _, r in ipairs(rest) do tiredId[r.id] = r end
   -- matchup header on one line (16 px logos), then park / date
   local function club(ab) return Text.fitTeam(PennantClubs.byAbbr[ab], 120, UI.fonts.bold) .. " " .. L.teams[ab].w .. "-" .. L.teams[ab].l end
   PUI.logo(g.a, 4, 2, 16)
@@ -121,7 +125,9 @@ function GameDay:layout(Lb)
       local q = L.players[id]
       Text.draw(i .. ". " .. (TT.field[id] or "DH") .. " " .. Text.ellipsize(PM.short(q), UI.fonts.body, 86), x, y, UI.fonts.body)
       PUI.handChip(x + 132, y + 1, q.bats)
-      Text.draw(PM.rate3(PM.avg(q.st.b)), x + 148, y, UI.fonts.body)
+      -- (a tired regular: his fatigue meter where the average goes)
+      if abbr == L.user and tiredId[id] then PUI.fatigue(x + 150, y + 4, q.fat, 26)
+      else Text.draw(PM.rate3(PM.avg(q.st.b)), x + 148, y, UI.fonts.body) end
       if abbr == L.user then PUI.arrow(x + 180, y + 1, q.cond) end
       y = y + 13
     end
@@ -131,21 +137,32 @@ function GameDay:layout(Lb)
   col(g.h, 204)
   gfx.drawLine(200, 36, 200, 168)
   local probs = PennantUI.lineupProblems(L, T)
-  -- worn-out regulars: worth a day off
-  for _, id in ipairs(T.order) do
-    local q = L.players[id]
-    if (q.fat or 0) >= 70 then probs[#probs + 1] = PM.short(q) .. " is worn out (fatigue " .. math.floor(q.fat) .. ")" end
+  -- tired regulars: who, and one button to rest them (its own row: no left/right cycler on it)
+  if #rest > 0 then
+    local names = {}
+    for _, r in ipairs(rest) do names[#names + 1] = PM.short(L.players[r.id]) .. " " .. math.floor(r.fat + 0.5) end
+    probs[#probs + 1] = "Tired: " .. table.concat(names, ", ")
   end
-  local by = 188
-  if #probs > 0 then
-    Text.draw(Text.ellipsize("! " .. probs[1], UI.fonts.bold, 386), 6, by - 16, UI.fonts.bold)
+  -- two rows: [note or REST TIRED] [Simulate] [Lineup], then the mode selector alone on its row
+  -- (so left/right may change it: on a row of several buttons left/right moves between them)
+  local ry, by = 173, 191
+  local note = nil
+  if #probs > 0 then note = "! " .. probs[1] end
+  if #rest > 0 then
+    note = nil
+    Lb:button("REST TIRED (" .. #rest .. ")", 4, ry, 188, 15, function()
+      PennantUI.RestTired.open({ onDone = function() self:render(true) end })
+    end, { id = "rest", hint = probs[#probs] .. ". A: the swap list" })
   end
   local oc = self.onChoice
-  if oc and self.why and #probs == 0 then
-    local WHY = { featured = "\u{2605} The week's big one. Play it, or let the coaches have it.", playoff = "\u{2605} A playoff game. Every one counts.",
-      all = "\u{25b6} Every game is live (the Office's default).", picked = "\u{25b6} You set this one to play live." }
-    Text.draw(WHY[self.why] or WHY.picked, 6, by - 16, UI.fonts.bold)
+  if oc and self.why and #probs == 0 and #rest == 0 then
+    local WHY = { featured = "\u{2605} The week's big one.", playoff = "\u{2605} A playoff game.",
+      all = "\u{25b6} Every game is live.", picked = "\u{25b6} You set this one live." }
+    note = WHY[self.why] or WHY.picked
   end
+  if note then Text.draw(Text.ellipsize(note, UI.fonts.bold, 186), 6, Text.boxY(UI.fonts.bold, ry, 15), UI.fonts.bold) end
+  Lb:button("Simulate", 196, ry, 92, 15, function() if oc then oc("sim") else PennantUI.Advance.open({ days = 1, fromGameDay = true }) end end, { id = "sim", hint = (oc and "B: the coaches play it out; the week goes on" or "The coaches play it out") })
+  Lb:button("Lineup", 292, ry, 96, 15, function() PennantUI.Lineup.open({}) end, { id = "lineup", hint = "Order, positions, platoon cards, staff" })
   -- the mode selector: left/right change it, A goes with it
   local s = L.settings
   local m = self.mode
@@ -153,11 +170,9 @@ function GameDay:layout(Lb)
   if m == "bat" or m == "both" then how = how .. " (" .. PScheme.NAME[s.batScheme or "arcade"] .. (m == "both" and (" / " .. PScheme.NAME[s.pitchScheme or "arcade"]) or "") .. ")"
   elseif m == "pitch" then how = how .. " (" .. PScheme.NAME[s.pitchScheme or "arcade"] .. ")" end
   local label = "\u{25c0} " .. (m == "sim" and "SIM IT" or ("PLAY: " .. PWeek.MODE_NAME[m])) .. " \u{25b6}"
-  Lb:button(label, 4, by, 188, 18, function() self:go() end, { id = "mode",
+  Lb:button(label, 4, by, 384, 15, function() self:go() end, { id = "mode",
     hint = "A: " .. how .. "   \u{25c0}\u{25b6}: watch / bat / pitch / both / sim",
     data = { adj = function(d) self.mode = PWeek.cycleMode(self.mode, d) end } })
-  Lb:button("Simulate", 196, by, 92, 18, function() if oc then oc("sim") else PennantUI.Advance.open({ days = 1, fromGameDay = true }) end end, { id = "sim", hint = oc and "B: the coaches play it out; the week goes on" or "The coaches play it out" })
-  Lb:button("Lineup", 292, by, 96, 18, function() PennantUI.Lineup.open({}) end, { id = "lineup", hint = "Order, positions, platoon cards, staff" })
   Lb:mark(PUI.VIEW_H - 2)
 end
 

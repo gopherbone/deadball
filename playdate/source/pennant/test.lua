@@ -181,6 +181,13 @@ if playdate.file.exists("pennant-sim.flag") then
     local n, seed = line:match("^programs%s*(%d*)%s*(%d*)")
     PennantTest.progOpts = { games = tonumber(n), seed = tonumber(seed) }
     playdate.frameTimer.performAfterDelay(20, function() PennantTest.programs() end)
+  elseif line and line:match("^restsim") then
+    -- "restsim [games] [seed]": the same season with the auto-rest off, then on (pennant/rest.lua)
+    local n, seed, var = line:match("^restsim%s*(%d*)%s*(%d*)%s*(%a*)")
+    PennantTest.restOpts = { games = tonumber(n), seed = tonumber(seed) }
+    -- ("nopen": the plan leaves the bullpen alone)
+    PRest.noPen = var == "nopen" or nil
+    playdate.frameTimer.performAfterDelay(20, function() PennantTest.restsim() end)
   elseif line and line:match("^legacy") then
     -- "legacy [runs] [seed] [heat] [games] [base]": a chain of runs, each banking alumni for the
     -- next one's legacy and deck (pennant/testlegacy.lua)
@@ -558,5 +565,101 @@ function Progs:body()
     collectgarbage("collect")
   end
   log("done")
+  PennantTest.finish()
+end
+
+-- Rest the tired ("pennant-sim.flag" first line "restsim [games] [seed]"): one league played twice
+-- through the real week turn (the rotate program, a rest week under 40 energy, every game simmed),
+-- L.settings.autoRest off then on. Prints wins, injuries, the fatigue cost in the lineup (rating
+-- points a lineup slot a game) and how many rests were made.
+local RestSim = { opaque = true }
+RestSim.__index = RestSim
+function PennantTest.restsim() App.push(setmetatable({}, RestSim)) end
+function RestSim:enter() self.co = coroutine.create(function() self:body() end) self.msg = "" end
+RestSim.update = Progs.update
+RestSim.Y = Progs.Y
+
+function RestSim:season(auto, hard, opt)
+  local L = PGen.league(opt.seed or 777, "HCL", opt.games or 84, function() self:Y() end)
+  PL.init(L)
+  -- (the C engine's day cache is keyed by day and season only: a new league mustn't reuse it)
+  PEng.invalidate()
+  L.gseq = 0
+  Pennant.L = L
+  L.settings.autoRest = auto or nil
+  local c = L.club
+  local T = L.teams.HCL
+  local rot = { "bat", "arms", "def", "gym", "farm" }
+  local ri = 0
+  local games, slots, cost, tiredSlots, injuries, spTired = 0, 0, 0, 0, 0, 0
+  -- (hard: every big-league hitter on his own HARD plan, the way a club gets worn out; the
+  -- programs alone keep a lineup under the line)
+  if hard then
+    for _, id in ipairs(T.ml) do
+      local p = L.players[id]
+      if p.pos ~= "P" then c.own[tostring(id)] = true p.plan = { f = "pow", i = 3 } end
+    end
+  end
+  local kinds = { bat = 0, sp = 0, pen = 0 }
+  local apply0 = PRest.apply
+  PRest.apply = function(L2, rows, mode)
+    for _, r in ipairs(rows) do if r.on and (r.sub or r.k == "pen") then kinds[r.k] = kinds[r.k] + 1 end end
+    return apply0(L2, rows, mode)
+  end
+  while L.phase ~= "awards" do
+    self.msg = (auto and "auto-rest " or "no rest ") .. PL.date(L, math.min(L.day, #L.sched))
+    if not c.wk or PWeek.weekDone(L) then
+      if c.wk then PWeek.endWeek(L) end
+      if c.goalOffer then PWeek.pickGoal(L, 1) end
+      while c.rewards and #c.rewards > 0 do PWeek.claim(L, "fac") end
+      c.monthNote = nil
+      if L.phase == "season" or PWeek.userSeries(L) then
+        ri = ri % 5 + 1
+        local prog = rot[ri]
+        if PWeek.energy(L) < 40 and PWeek.canRest(L) then prog = "rest" ri = ri - 1 end
+        c.prog, c.int = prog, 2
+        PWeek.beginWeek(L)
+      end
+    end
+    for _, st in ipairs(PWeek.dueStops(L)) do
+      if st.stop.id == "clubhouse" then PWeek.resolveEvent(L, PL.rng(L, 5):int(3)) end
+    end
+    L.alerts = {}
+    local g = PL.gameFor(L, "HCL")
+    if g and not g.done and L.phase == "season" then
+      -- today's lineup as it goes in (the card, the returns and the auto-rest: PL.todayCard)
+      PL.todayCard(L, "HCL")
+      PRoster.validate(L, T)
+      games = games + 1
+      for _, id in ipairs(T.order) do
+        local p = L.players[id]
+        slots = slots + 1
+        if (p.fat or 0) > 55 then tiredSlots = tiredSlots + 1 cost = cost + ((p.fat or 0) - 55) / 7 end
+      end
+      local sp = PRoster.starter(L, T)
+      if sp and (L.players[sp].fat or 0) >= PRest.SP_TIRED then spTired = spTired + 1 end
+    end
+    for _, gg in ipairs(PL.pending(L)) do PEng.simNow(L, gg) self:Y() end
+    L.trainerQ = nil
+    PL.finishDay(L)
+    for _, a in ipairs(L.alerts) do if a.kind == "inj" and L.players[a.id] and L.players[a.id].team == "HCL" then injuries = injuries + 1 end end
+    self:Y()
+  end
+  PRest.apply = apply0
+  log("restsim %-4s %-5s HCL %d-%d (%s) RS %d RA %d, inj %d, rests bat %d sp %d pen %d, tired slots %.1f%%, fatigue cost %.3f pts/slot/game, SP due tired %d",
+    auto and "ON" or "OFF", hard and "HARD" or "PROG", T.w, T.l, PUI.ord(PL.rank(L, "HCL")), T.rs, T.ra, injuries, kinds.bat, kinds.sp, kinds.pen,
+    100 * tiredSlots / math.max(1, slots), cost / math.max(1, slots), spTired)
+end
+
+function RestSim:body()
+  local opt = PennantTest.restOpts or {}
+  for _, hard in ipairs({ false, true }) do
+    for _, auto in ipairs({ false, true }) do
+      self:season(auto, hard, opt)
+      Pennant.L = nil
+      collectgarbage("collect")
+    end
+  end
+  log("restsim done")
   PennantTest.finish()
 end

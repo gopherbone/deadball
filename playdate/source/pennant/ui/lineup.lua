@@ -268,6 +268,14 @@ function Lineup:layout(Lb)
     { "L", tl("L", "vs LHP"), tab("L"), "The lineup card against left-handed starters" },
     { "pit", "Pitching", tab("pit"), "Rotation and bullpen roles" },
   }, self.tab, 2)
+  -- tired today (pennant/rest.lua): the swap list
+  local nt = PRest.count(L)
+  if nt > 0 then
+    Lb:button("Rest (" .. nt .. ")", self:batting() and 266 or 234, 2, 60, 15, function()
+      self.pick = nil
+      PennantUI.RestTired.open({ onDone = function() PL.todayCard(L, L.user) if self.tab ~= "pit" then PRoster.useCard(L, T, self.tab) end self:render(true) end })
+    end, { id = "tired", hint = nt .. " tired today (fatigue over 55 costs points): who sits, who covers" })
+  end
   if self:batting() then
     local side = self.tab
     Lb:button("Auto", 330, 2, 60, 15, function() PRoster.autoLineup(L, T, side) self.pick = nil Sfx.coin() self:render(true) end, { id = "auto", hint = "The coaches fill this card (with the platoon edge vs " .. (side == "L" and "LHP" or "RHP") .. ")" })

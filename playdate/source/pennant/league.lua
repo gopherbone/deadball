@@ -262,7 +262,11 @@ function PL.todayCard(L, abbr)
   abbr = abbr or L.user
   if abbr ~= L.user then return nil end
   local vs = PL.vsHand(L, abbr)
-  if vs then PRoster.useCard(L, L.teams[abbr], vs) end
+  if vs then
+    PRoster.useCard(L, L.teams[abbr], vs)
+    -- rested players due back, and the auto-rest (pennant/rest.lua)
+    if PRest then PRest.daily(L) end
+  end
   return vs
 end
 
@@ -280,11 +284,13 @@ function PL.sideSpec(L, abbr, ctrl)
     if p and not p.inj and (p.late or 0) <= 0 then s.p[id] = PL.view(p, abbr, L.norm) end
   end
   s.p[sp] = s.p[sp] or PL.view(P(L, sp), abbr, L.norm)
+  -- (resting players sit it out: pennant/rest.lua)
+  local sit = PRest and abbr == L.user and PRest.sitSet(L, T) or {}
   for id, role in pairs(T.pen or {}) do
-    if s.p[id] and id ~= sp then s.pen[#s.pen + 1] = id s.roles[id] = role end
+    if s.p[id] and id ~= sp and not sit[id] then s.pen[#s.pen + 1] = id s.roles[id] = role end
   end
   table.sort(s.pen)
-  for _, id in ipairs(PRoster.bench(L, T)) do if s.p[id] then s.bench[#s.bench + 1] = id end end
+  for _, id in ipairs(PRoster.bench(L, T)) do if s.p[id] and not sit[id] then s.bench[#s.bench + 1] = id end end
   return s
 end
 

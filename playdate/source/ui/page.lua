@@ -534,6 +534,15 @@ function Page:moveFocus(dx, dy)
   end
 end
 
+--- Does this link use left/right itself (a value cycler: opts.data.adj in Pennant pages,
+--- data.adjust in Preferences) instead of moving the focus? The rule: only a link alone on its
+--- row may; on a row of several, left/right always moves between them and A changes the value.
+--- Pages that take left/right some other way override this (the tour's navcheck asks it).
+function Page:linkTakesLR(l)
+  local d = l and l.data
+  return d ~= nil and type(d) == "table" and (d.adj ~= nil or d.adjust ~= nil)
+end
+
 function Page:bump()
   self.bumpT = 6
   Sfx.detent()

@@ -580,6 +580,8 @@ function Ops:moveFocus(dx, dy)
   if self.step == 2 and dx ~= 0 and dy == 0 then return self:cycleTarget(dx) end
   return Page.moveFocus(self, dx, dy)
 end
+-- (every job row is alone on its row, so left/right may switch the target there)
+function Ops:linkTakesLR(l) return self.step == 2 end
 
 function Ops:goBack()
   if self.stampT then return end
